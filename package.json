@@ -15,6 +15,9 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "engines": {
+    "node": ">=24.13.1"
+  },
   "bugs": {
     "url": "https://github.com/LeDrFouDu3664/REFORMED/issues"
   },
