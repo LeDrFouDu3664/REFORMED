@@ -1,6 +1,6 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-module.exports = {
+export default {
     token: process.env.DISCORD_TOKEN,
     guildId: process.env.GUILD_ID,
 

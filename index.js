@@ -1,4 +1,4 @@
-const {
+import {
     Client,
     GatewayIntentBits,
     Partials,
@@ -13,11 +13,11 @@ const {
     TextInputStyle,
     UserSelectMenuBuilder,
     AttachmentBuilder
-} = require('discord.js');
-const config = require('./config');
-const db = require('./database');
-const { logTicketAction } = require('./logger');
-const transcript = require('discord-html-transcripts');
+} from 'discord.js';
+import config from './config.js';
+import * as db from './database.js';
+import { logTicketAction } from './logger.js';
+import transcript from 'discord-html-transcripts';
 
 const client = new Client({
     intents: [
@@ -151,14 +151,16 @@ async function handleTicketCreation(interaction, categoryKey) {
         new ButtonBuilder().setCustomId('ticket_action:close').setLabel('Fermer').setEmoji('🔒').setStyle(ButtonStyle.Danger)
     );
 
+    const staffPing = config.roles.staff ? ` | <@&${config.roles.staff}>` : '';
+
     if (categoryCfg.isRecruitment) {
         const recruitRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId(`recruit_action:accept`).setLabel('Accepter').setEmoji('✅').setStyle(ButtonStyle.Success),
             new ButtonBuilder().setCustomId(`recruit_action:reject`).setLabel('Refuser').setEmoji('❌').setStyle(ButtonStyle.Danger)
         );
-        await channel.send({ content: `${interaction.user} | <@&${config.roles.staff || ''}>`, embeds: [embed], components: [row, recruitRow] }).then(m => m.pin());
+        await channel.send({ content: `${interaction.user}${staffPing}`, embeds: [embed], components: [row, recruitRow] }).then(m => m.pin());
     } else {
-        await channel.send({ content: `${interaction.user} | <@&${config.roles.staff || ''}>`, embeds: [embed], components: [row] }).then(m => m.pin());
+        await channel.send({ content: `${interaction.user}${staffPing}`, embeds: [embed], components: [row] }).then(m => m.pin());
     }
 
     await interaction.editReply(`Votre ticket a été créé : ${channel}`);

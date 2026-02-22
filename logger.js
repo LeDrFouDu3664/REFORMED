@@ -1,7 +1,7 @@
-const { EmbedBuilder } = require('discord.js');
-const config = require('./config');
+import { EmbedBuilder } from 'discord.js';
+import config from './config.js';
 
-async function logTicketAction(client, action, staff, channel, details = null, file = null) {
+export async function logTicketAction(client, action, staff, channel, details = null, file = null) {
     const logChannel = await client.channels.fetch(config.channels.logs).catch(() => null);
     if (!logChannel) return;
 
@@ -25,5 +25,3 @@ async function logTicketAction(client, action, staff, channel, details = null, f
 
     await logChannel.send(options);
 }
-
-module.exports = { logTicketAction };
