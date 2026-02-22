@@ -5,11 +5,13 @@ export async function logTicketAction(client, action, staff, channel, details = 
     const logChannel = await client.channels.fetch(config.channels.logs).catch(() => null);
     if (!logChannel) return;
 
+    const channelValue = channel.mention || (channel.id !== 'N/A' ? `<#${channel.id}>` : channel.name);
+
     const embed = new EmbedBuilder()
         .setTitle(`Log Ticket - ${action}`)
         .setColor(action === 'Création' ? '#3498db' : '#e67e22')
         .addFields(
-            { name: 'Salon', value: `${channel} (\`${channel.name}\`)`, inline: true },
+            { name: 'Salon', value: `${channelValue} (\`${channel.name}\`)`, inline: true },
             { name: 'Responsable', value: `${staff} (\`${staff.id}\`)`, inline: true }
         )
         .setTimestamp();

@@ -11,8 +11,7 @@ import {
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
-    UserSelectMenuBuilder,
-    AttachmentBuilder
+    UserSelectMenuBuilder
 } from 'discord.js';
 import config from './config.js';
 import * as db from './database.js';
@@ -39,14 +38,71 @@ client.once('ready', () => {
                 name: 'setup_tickets',
                 description: 'Configure le système de tickets',
                 defaultMemberPermissions: PermissionFlagsBits.Administrator,
+            },
+            {
+                name: 'stats_tickets',
+                description: 'Affiche les statistiques des tickets',
+                defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
+            },
+            {
+                name: 'check_inactifs',
+                description: 'Liste les tickets inactifs',
+                defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
+                options: [
+                    {
+                        name: 'heures',
+                        type: 4, // INTEGER
+                        description: 'Nombre d\'heures d\'inactivité (défaut 24)',
+                        required: false
+                    }
+                ]
+            },
+            {
+                name: 'blacklist',
+                description: 'Gère la liste noire des tickets',
+                defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
+                options: [
+                    {
+                        name: 'action',
+                        type: 3, // STRING
+                        description: 'Ajouter ou retirer',
+                        required: true,
+                        choices: [
+                            { name: 'Ajouter', value: 'add' },
+                            { name: 'Retirer', value: 'remove' }
+                        ]
+                    },
+                    {
+                        name: 'utilisateur',
+                        type: 6, // USER
+                        description: 'L\'utilisateur à cibler',
+                        required: true
+                    },
+                    {
+                        name: 'raison',
+                        type: 3, // STRING
+                        description: 'La raison du blacklist (optionnel)',
+                        required: false
+                    }
+                ]
             }
         ]);
     }
 });
 
+client.on('messageCreate', async message => {
+    if (message.author.bot) return;
+    const ticket = db.getTicket(message.channel.id);
+    if (ticket && ticket.status === 'open') {
+        db.updateActivity(message.channel.id);
+    }
+});
+
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
-        if (interaction.commandName === 'setup_tickets') {
+        const { commandName } = interaction;
+
+        if (commandName === 'setup_tickets') {
             const embed = new EmbedBuilder()
                 .setTitle("Ouverture d'un Ticket")
                 .setDescription("Veuillez cliquer sur le bouton correspondant à votre demande pour ouvrir un ticket.")
@@ -66,9 +122,54 @@ client.on('interactionCreate', async interaction => {
             await interaction.reply({ content: "Système de tickets configuré.", ephemeral: true });
             await interaction.channel.send({ embeds: [embed], components: [row] });
         }
+
+        else if (commandName === 'stats_tickets') {
+            if (!await checkStaff(interaction)) return;
+            const stats = db.getStats();
+            const embed = new EmbedBuilder()
+                .setTitle("Statistiques des Tickets")
+                .addFields(
+                    { name: "Total", value: `${stats.total}`, inline: true },
+                    { name: "Ouverts", value: `${stats.open}`, inline: true },
+                    { name: "Fermés", value: `${stats.closed}`, inline: true }
+                )
+                .setColor('#3498db')
+                .setTimestamp();
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
+        else if (commandName === 'check_inactifs') {
+            if (!await checkStaff(interaction)) return;
+            const hours = interaction.options.getInteger('heures') || 24;
+            const inactives = db.getInactiveTickets(hours);
+
+            if (inactives.length === 0) {
+                return interaction.reply({ content: `Aucun ticket inactif depuis plus de ${hours} heures.`, ephemeral: true });
+            }
+
+            const list = inactives.map(t => `<#${t.channelId}> (Dernière activité: ${t.lastActivityAt})`).join('\n');
+            await interaction.reply({ content: `**Tickets inactifs (${hours}h+) :**\n${list}`, ephemeral: true });
+        }
+
+        else if (commandName === 'blacklist') {
+            if (!await checkStaff(interaction)) return;
+            const action = interaction.options.getString('action');
+            const user = interaction.options.getUser('utilisateur');
+            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
+
+            if (action === 'add') {
+                db.addToBlacklist(user.id, reason, interaction.user.id);
+                await interaction.reply({ content: `${user.tag} a été ajouté à la liste noire.`, ephemeral: true });
+                await logTicketAction(client, 'Blacklist - Ajout', interaction.user, interaction.channel || { name: 'Hors Ticket', id: 'N/A' }, `Utilisateur: ${user.tag}, Raison: ${reason}`);
+            } else {
+                db.removeFromBlacklist(user.id);
+                await interaction.reply({ content: `${user.tag} a été retiré de la liste noire.`, ephemeral: true });
+                await logTicketAction(client, 'Blacklist - Retrait', interaction.user, interaction.channel || { name: 'Hors Ticket', id: 'N/A' }, `Utilisateur: ${user.tag}`);
+            }
+        }
     }
 
-    if (interaction.isButton()) {
+    else if (interaction.isButton()) {
         const [action, data] = interaction.customId.split(':');
 
         if (action === 'ticket_create') {
@@ -80,7 +181,7 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
-    if (interaction.isModalSubmit()) {
+    else if (interaction.isModalSubmit()) {
         if (interaction.customId === 'modal_close_ticket') {
             await handleCloseTicket(interaction);
         } else if (interaction.customId.startsWith('modal_recruit_reject:')) {
@@ -89,15 +190,46 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
-    if (interaction.isUserSelectMenu()) {
+    else if (interaction.isUserSelectMenu()) {
         if (interaction.customId === 'ticket_user_toggle') {
             await handleUserToggle(interaction);
         }
     }
 });
 
+async function getMonthlyCategory(guild) {
+    const date = new Date();
+    const monthNames = [
+        "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+        "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+    ];
+    const categoryName = `Tickets - ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+
+    let category = guild.channels.cache.find(c => c.name === categoryName && c.type === ChannelType.GuildCategory);
+
+    if (!category) {
+        category = await guild.channels.create({
+            name: categoryName,
+            type: ChannelType.GuildCategory,
+            permissionOverwrites: [
+                { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] }
+            ]
+        });
+    }
+
+    return category;
+}
+
 async function handleTicketCreation(interaction, categoryKey) {
     const categoryCfg = config.ticketCategories[categoryKey];
+
+    if (db.isBlacklisted(interaction.user.id)) {
+        const info = db.getBlacklistInfo(interaction.user.id);
+        return interaction.reply({
+            content: `Vous êtes banni du système de tickets.\nRaison : ${info.reason}`,
+            ephemeral: true
+        });
+    }
 
     const activeCount = db.getActiveTicketCount(interaction.user.id);
     if (activeCount >= config.ticketLimitPerUser) {
@@ -122,14 +254,21 @@ async function handleTicketCreation(interaction, categoryKey) {
         { id: client.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels] }
     ];
 
-    if (config.roles.staff) {
+    // Direction tickets only for Admins
+    if (categoryKey === 'direction') {
+        if (config.roles.admin) {
+            overwrites.push({ id: config.roles.admin, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] });
+        }
+    } else if (config.roles.staff) {
         overwrites.push({ id: config.roles.staff, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] });
     }
+
+    const monthlyCategory = await getMonthlyCategory(guild);
 
     const channel = await guild.channels.create({
         name: `${categoryCfg.name}-${interaction.user.username}`,
         type: ChannelType.GuildText,
-        parent: config.channels.ticketCategory,
+        parent: monthlyCategory.id,
         permissionOverwrites: overwrites
     });
 
@@ -203,7 +342,8 @@ async function handleTicketAction(interaction, actionType) {
         const user = await interaction.guild.members.fetch(ticket.userId).catch(() => null);
         if (user) await interaction.channel.permissionOverwrites.edit(user, { ViewChannel: true, SendMessages: true });
 
-        if (config.channels.ticketCategory) await interaction.channel.setParent(config.channels.ticketCategory);
+        const monthlyCategory = await getMonthlyCategory(interaction.guild);
+        await interaction.channel.setParent(monthlyCategory.id);
 
         await interaction.reply({ embeds: [new EmbedBuilder().setTitle("Ticket RÉOUVERT").setDescription(`Réouvert par ${interaction.user}.`).setColor('#3498db')] });
         await logTicketAction(client, 'Réouverture', interaction.user, interaction.channel);
@@ -221,7 +361,12 @@ async function handleUserToggle(interaction) {
     const user = await interaction.guild.members.fetch(userId);
     const hasPerm = interaction.channel.permissionOverwrites.cache.has(userId);
 
+    const ticket = db.getTicket(interaction.channelId);
+
     if (hasPerm) {
+        if (ticket && userId === ticket.userId) {
+            return interaction.reply({ content: "Vous ne pouvez pas retirer le créateur du ticket.", ephemeral: true });
+        }
         await interaction.channel.permissionOverwrites.delete(userId);
         await interaction.reply({ content: `${user} retiré.`, ephemeral: true });
     } else {
@@ -242,7 +387,9 @@ async function handleCloseTicket(interaction) {
     const user = await interaction.guild.members.fetch(ticket.userId).catch(() => null);
     if (user) await interaction.channel.permissionOverwrites.delete(user.id);
 
-    if (config.channels.archiveCategory) await interaction.channel.setParent(config.channels.archiveCategory);
+    if (config.channels.archiveCategory) {
+        await interaction.channel.setParent(config.channels.archiveCategory).catch(() => null);
+    }
 
     const attachment = await transcript.createTranscript(interaction.channel);
 
