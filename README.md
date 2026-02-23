@@ -1,18 +1,28 @@
-# REFORMED - Bot de Tickets Discord
+# REFORMED - Bot de Tickets & Modération Discord
 
-Un bot complet de gestion de tickets et de recrutement pour Discord, développé en Node.js (ESM).
+Un bot professionnel et complet pour la gestion des tickets, du recrutement et de la modération, développé en Node.js 24 (ESM).
 
 ## Fonctionnalités
-- **Catégories de tickets claires** : Commande, Direction, Partenariat, Recrutement, Modération.
-- **Gestion simplifiée** : Boutons pour Claim, Ajouter/Retirer des membres, Réouvrir et Fermer (avec raison obligatoire).
-- **Recrutement automatisé** : Workflow dédié avec boutons Accepter/Refuser, attribution de rôles et création de salons.
-- **Logs et Traçabilité** : Enregistrement de toutes les actions et génération de transcriptions HTML complètes.
-- **Sécurité** : Limite d'un ticket par utilisateur et cooldown configurable.
+- **Système de Tickets Avancé** :
+    - Catégories dynamiques par mois (ex: "Tickets - Mars 2026").
+    - Boutons interactifs (Claim, Add/Remove, Reopen, Close).
+    - Priorités personnalisables (/priority).
+    - Statistiques globales et par staff (/stats_tickets, /staff_stats).
+    - Blacklist d'utilisateurs (/blacklist).
+    - Fermeture automatique des tickets inactifs.
+    - Transcriptions HTML envoyées en DM et loguées.
+- **Système de Recrutement** :
+    - Workflow Accept/Reject avec boutons.
+    - Attribution automatique de rôles et création de salons de bienvenue.
+- **Système de Modération** :
+    - Commandes slash : `/warn`, `/warnings`, `/kick`, `/ban`, `/timeout`, `/clear`, `/mod_history`.
+    - Historique persistant en base de données.
+    - Logs détaillés dans un salon dédié.
 
 ## Prérequis
 - **Node.js v24.13.1** ou supérieur.
-- Un token de bot Discord.
-- Les IDs des rôles et catégories configurés dans le fichier `.env`.
+- Un token de bot Discord (avec Intents activés).
+- Configuration des IDs dans le fichier `.env`.
 
 ## Installation
 1. Clonez le dépôt.
@@ -20,11 +30,18 @@ Un bot complet de gestion de tickets et de recrutement pour Discord, développé
    ```bash
    npm install
    ```
-3. Configurez le fichier `.env` (utilisez `.env.example` comme modèle).
+3. Configurez le fichier `.env` :
+    - Remplacez le token factice (`0000...`) par votre vrai token.
+    - Remplissez les IDs de votre serveur (Guild ID, Role IDs, Channel IDs).
 4. Lancez le bot :
    ```bash
    npm start
    ```
 
-## Configuration
-Le bot utilise des commandes slash. Lors du premier lancement, utilisez `/setup_tickets` dans le salon où vous souhaitez afficher le message d'ouverture des tickets.
+## Configuration Critique
+Dans le **Discord Developer Portal**, vous devez impérativement activer :
+- **Server Members Intent** (pour le recrutement et la modération)
+- **Message Content Intent** (pour le suivi d'activité et les transcriptions)
+
+## Commandes Initiales
+Utilisez `/setup_tickets` pour initialiser le message d'ouverture dans le salon de votre choix.

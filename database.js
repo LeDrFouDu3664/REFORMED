@@ -10,6 +10,7 @@ db.exec(`
         category TEXT,
         status TEXT,
         staffId TEXT,
+        priority TEXT DEFAULT 'Normale',
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         lastActivityAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -23,15 +24,30 @@ db.exec(`
         staffId TEXT,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS staff_stats (
+        staffId TEXT PRIMARY KEY,
+        claimedCount INTEGER DEFAULT 0,
+        closedCount INTEGER DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS moderation_actions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        userId TEXT,
+        staffId TEXT,
+        reason TEXT,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS warnings (
+        userId TEXT PRIMARY KEY,
+        count INTEGER DEFAULT 0
+    );
 `);
 
-// Migration for existing databases (adding lastActivityAt if it doesn't exist)
-try {
-    db.prepare("ALTER TABLE tickets ADD COLUMN lastActivityAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP").run();
-} catch (e) {
-    // Column likely already exists
-}
+// Migrations
+try { db.prepare("ALTER TABLE tickets ADD COLUMN priority TEXT DEFAULT 'Normale'").run(); } catch(e) {}
+try { db.prepare("ALTER TABLE tickets ADD COLUMN lastActivityAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP").run(); } catch(e) {}
 
+// Ticket functions
 export const createTicket = (channelId, userId, category) => {
     const stmt = db.prepare("INSERT INTO tickets (channelId, userId, category, status) VALUES (?, ?, ?, ?)");
     return stmt.run(channelId, userId, category, 'open');
@@ -50,8 +66,20 @@ export const updateActivity = (channelId) => {
     return db.prepare("UPDATE tickets SET lastActivityAt = CURRENT_TIMESTAMP WHERE channelId = ?").run(channelId);
 };
 
+export const setPriority = (channelId, priority) => {
+    return db.prepare("UPDATE tickets SET priority = ? WHERE channelId = ?").run(priority, channelId);
+};
+
 export const claimTicket = (channelId, staffId) => {
+    db.prepare("INSERT OR IGNORE INTO staff_stats (staffId) VALUES (?)").run(staffId);
+    db.prepare("UPDATE staff_stats SET claimedCount = claimedCount + 1 WHERE staffId = ?").run(staffId);
     return db.prepare("UPDATE tickets SET staffId = ? WHERE channelId = ?").run(staffId, channelId);
+};
+
+export const incrementClosedStats = (staffId) => {
+    if (!staffId) return;
+    db.prepare("INSERT OR IGNORE INTO staff_stats (staffId) VALUES (?)").run(staffId);
+    return db.prepare("UPDATE staff_stats SET closedCount = closedCount + 1 WHERE staffId = ?").run(staffId);
 };
 
 export const getTicket = (channelId) => {
@@ -93,6 +121,33 @@ export const getStats = () => {
     return { total, open, closed };
 };
 
+export const getStaffStats = (staffId) => {
+    return db.prepare("SELECT * FROM staff_stats WHERE staffId = ?").get(staffId);
+};
+
 export const getInactiveTickets = (hours) => {
     return db.prepare("SELECT * FROM tickets WHERE status = 'open' AND lastActivityAt < datetime('now', '-' || ? || ' hours')").all(hours);
+};
+
+// Moderation functions
+export const addModerationAction = (type, userId, staffId, reason) => {
+    return db.prepare("INSERT INTO moderation_actions (type, userId, staffId, reason) VALUES (?, ?, ?, ?)").run(type, userId, staffId, reason);
+};
+
+export const getModerationHistory = (userId) => {
+    return db.prepare("SELECT * FROM moderation_actions WHERE userId = ? ORDER BY createdAt DESC").all(userId);
+};
+
+export const addWarning = (userId) => {
+    db.prepare("INSERT OR IGNORE INTO warnings (userId, count) VALUES (?, 0)").run(userId);
+    return db.prepare("UPDATE warnings SET count = count + 1 WHERE userId = ?").run(userId);
+};
+
+export const getWarningCount = (userId) => {
+    const row = db.prepare("SELECT count FROM warnings WHERE userId = ?").get(userId);
+    return row ? row.count : 0;
+};
+
+export const resetWarnings = (userId) => {
+    return db.prepare("UPDATE warnings SET count = 0 WHERE userId = ?").run(userId);
 };

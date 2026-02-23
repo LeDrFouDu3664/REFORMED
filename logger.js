@@ -5,7 +5,7 @@ export async function logTicketAction(client, action, staff, channel, details = 
     const logChannel = await client.channels.fetch(config.channels.logs).catch(() => null);
     if (!logChannel) return;
 
-    const channelValue = channel.mention || (channel.id !== 'N/A' ? `<#${channel.id}>` : channel.name);
+    const channelValue = channel.id !== 'N/A' ? `<#${channel.id}>` : (channel.name || 'Inconnu');
 
     const embed = new EmbedBuilder()
         .setTitle(`Log Ticket - ${action}`)
@@ -26,4 +26,21 @@ export async function logTicketAction(client, action, staff, channel, details = 
     }
 
     await logChannel.send(options);
+}
+
+export async function logModeration(client, target, type, reason, staff) {
+    const logChannel = await client.channels.fetch(config.channels.logs).catch(() => null);
+    if (!logChannel) return;
+
+    const embed = new EmbedBuilder()
+        .setTitle(`Modération - ${type}`)
+        .setColor(type === 'Bannissement' ? '#c0392b' : '#f39c12')
+        .addFields(
+            { name: 'Utilisateur', value: `${target.tag || target} (\`${target.id}\`)`, inline: true },
+            { name: 'Modérateur', value: `${staff} (\`${staff.id}\`)`, inline: true },
+            { name: 'Raison', value: reason, inline: false }
+        )
+        .setTimestamp();
+
+    await logChannel.send({ embeds: [embed] });
 }
