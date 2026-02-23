@@ -25,7 +25,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent, // Requis pour l'activité des tickets
-        GatewayIntentBits.GuildMembers,   // Requis pour le recrutement
+        GatewayIntentBits.GuildMembers,   // Requis pour le recrutement et modération
     ],
     partials: [Partials.Channel, Partials.Message, Partials.User],
 });
@@ -200,6 +200,11 @@ client.once('ready', () => {
                 ]
             },
             {
+                name: 'transcript',
+                description: 'Génère une transcription HTML du ticket actuel',
+                defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
+            },
+            {
                 name: 'blacklist',
                 description: 'Gère la liste noire des tickets',
                 defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
@@ -265,6 +270,95 @@ client.on('interactionCreate', async interaction => {
             await interaction.channel.send({ embeds: [embed], components: [row] });
         }
 
+        else if (commandName === 'warn') {
+            const target = interaction.options.getUser('utilisateur');
+            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
+            db.addWarning(target.id);
+            db.addModerationAction('WARN', target.id, interaction.user.id, reason);
+            const count = db.getWarningCount(target.id);
+            await interaction.reply({ content: `⚠️ ${target} a été averti. (Total: ${count})\nRaison: ${reason}` });
+            await logModeration(client, target, 'Avertissement', reason, interaction.user);
+        }
+
+        else if (commandName === 'warnings') {
+            const target = interaction.options.getUser('utilisateur');
+            const count = db.getWarningCount(target.id);
+            const history = db.getModerationHistory(target.id).filter(a => a.type === 'WARN');
+            const embed = new EmbedBuilder()
+                .setTitle(`Avertissements - ${target.tag}`)
+                .setDescription(`Total: **${count}** avertissement(s)`)
+                .setColor('#f1c40f');
+            if (history.length > 0) {
+                embed.addFields({ name: 'Derniers avertissements', value: history.slice(0, 5).map(a => `- ${a.reason} (par <@${a.staffId}>)`).join('\n') });
+            }
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
+        else if (commandName === 'kick') {
+            const target = interaction.options.getMember('utilisateur');
+            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
+            if (!target || !target.kickable) return interaction.reply({ content: "Je ne peux pas expulser cet utilisateur.", ephemeral: true });
+            await target.kick(reason);
+            db.addModerationAction('KICK', target.id, interaction.user.id, reason);
+            await interaction.reply({ content: `👢 ${target.user.tag} a été expulsé.\nRaison: ${reason}` });
+            await logModeration(client, target.user, 'Expulsion', reason, interaction.user);
+        }
+
+        else if (commandName === 'ban') {
+            const target = interaction.options.getMember('utilisateur');
+            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
+            if (!target || !target.bannable) return interaction.reply({ content: "Je ne peux pas bannir cet utilisateur.", ephemeral: true });
+            await target.ban({ reason });
+            db.addModerationAction('BAN', target.id, interaction.user.id, reason);
+            await interaction.reply({ content: `🔨 ${target.user.tag} a été banni.\nRaison: ${reason}` });
+            await logModeration(client, target.user, 'Bannissement', reason, interaction.user);
+        }
+
+        else if (commandName === 'timeout') {
+            const target = interaction.options.getMember('utilisateur');
+            const duration = interaction.options.getInteger('duree');
+            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
+            if (!target) return interaction.reply({ content: "Utilisateur non trouvé.", ephemeral: true });
+            try {
+                await target.timeout(duration * 60 * 1000, reason);
+                db.addModerationAction('TIMEOUT', target.id, interaction.user.id, reason);
+                await interaction.reply({ content: `🔇 ${target.user.tag} a été mis en sourdine pour ${duration} minutes.\nRaison: ${reason}` });
+                await logModeration(client, target.user, 'Mute (Timeout)', `Durée: ${duration}m | Raison: ${reason}`, interaction.user);
+            } catch (e) {
+                await interaction.reply({ content: "Erreur lors du timeout.", ephemeral: true });
+            }
+        }
+
+        else if (commandName === 'clear') {
+            const amount = interaction.options.getInteger('nombre');
+            if (amount < 1 || amount > 100) return interaction.reply({ content: "Nombre invalide (1-100).", ephemeral: true });
+            await interaction.channel.bulkDelete(amount, true);
+            await interaction.reply({ content: `✅ ${amount} messages supprimés.`, ephemeral: true });
+        }
+
+        else if (commandName === 'mod_history') {
+            const target = interaction.options.getUser('utilisateur');
+            const history = db.getModerationHistory(target.id);
+
+            if (history.length === 0) {
+                return interaction.reply({ content: `Aucun historique pour ${target.tag}.`, ephemeral: true });
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle(`Historique - ${target.tag}`)
+                .setColor('#34495e')
+                .setTimestamp();
+
+            const list = history.map(a => `**${a.type}** | ${a.reason} (par <@${a.staffId}>) - <t:${Math.floor(new Date(a.createdAt).getTime() / 1000)}:R>`).join('\n');
+
+            if (list.length > 4096) {
+                 await interaction.reply({ content: "Historique trop long pour être affiché.", ephemeral: true });
+            } else {
+                 embed.setDescription(list);
+                 await interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+        }
+
         else if (commandName === 'stats_tickets') {
             if (!await checkStaff(interaction)) return;
             const stats = db.getStats();
@@ -328,71 +422,6 @@ client.on('interactionCreate', async interaction => {
             await interaction.reply({ content: `**Tickets inactifs (${hours}h+) :**\n${list}`, ephemeral: true });
         }
 
-        else if (commandName === 'warn') {
-            const target = interaction.options.getUser('utilisateur');
-            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
-            db.addWarning(target.id);
-            db.addModerationAction('WARN', target.id, interaction.user.id, reason);
-            const count = db.getWarningCount(target.id);
-            await interaction.reply({ content: `⚠️ ${target} a été averti. (Total: ${count})\nRaison: ${reason}` });
-            await logModeration(client, target, 'Avertissement', reason, interaction.user);
-        }
-
-        else if (commandName === 'warnings') {
-            const target = interaction.options.getUser('utilisateur');
-            const count = db.getWarningCount(target.id);
-            const history = db.getModerationHistory(target.id).filter(a => a.type === 'WARN');
-            const embed = new EmbedBuilder()
-                .setTitle(`Avertissements - ${target.tag}`)
-                .setDescription(`Total: **${count}** avertissement(s)`)
-                .setColor('#f1c40f');
-            if (history.length > 0) {
-                embed.addFields({ name: 'Derniers avertissements', value: history.slice(0, 5).map(a => `- ${a.reason} (par <@${a.staffId}>)`).join('\n') });
-            }
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-        }
-
-        else if (commandName === 'kick') {
-            const target = interaction.options.getMember('utilisateur');
-            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
-            if (!target.kickable) return interaction.reply({ content: "Je ne peux pas expulser cet utilisateur.", ephemeral: true });
-            await target.kick(reason);
-            db.addModerationAction('KICK', target.id, interaction.user.id, reason);
-            await interaction.reply({ content: `👢 ${target.user.tag} a été expulsé.\nRaison: ${reason}` });
-            await logModeration(client, target.user, 'Expulsion', reason, interaction.user);
-        }
-
-        else if (commandName === 'ban') {
-            const target = interaction.options.getMember('utilisateur');
-            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
-            if (!target.bannable) return interaction.reply({ content: "Je ne peux pas bannir cet utilisateur.", ephemeral: true });
-            await target.ban({ reason });
-            db.addModerationAction('BAN', target.id, interaction.user.id, reason);
-            await interaction.reply({ content: `🔨 ${target.user.tag} a été banni.\nRaison: ${reason}` });
-            await logModeration(client, target.user, 'Bannissement', reason, interaction.user);
-        }
-
-        else if (commandName === 'timeout') {
-            const target = interaction.options.getMember('utilisateur');
-            const duration = interaction.options.getInteger('duree');
-            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
-            try {
-                await target.timeout(duration * 60 * 1000, reason);
-                db.addModerationAction('TIMEOUT', target.id, interaction.user.id, reason);
-                await interaction.reply({ content: `🔇 ${target.user.tag} a été mis en sourdine pour ${duration} minutes.\nRaison: ${reason}` });
-                await logModeration(client, target.user, 'Mute (Timeout)', `Durée: ${duration}m | Raison: ${reason}`, interaction.user);
-            } catch (e) {
-                await interaction.reply({ content: "Erreur lors du timeout.", ephemeral: true });
-            }
-        }
-
-        else if (commandName === 'clear') {
-            const amount = interaction.options.getInteger('nombre');
-            if (amount < 1 || amount > 100) return interaction.reply({ content: "Nombre invalide (1-100).", ephemeral: true });
-            await interaction.channel.bulkDelete(amount, true);
-            await interaction.reply({ content: `✅ ${amount} messages supprimés.`, ephemeral: true });
-        }
-
         else if (commandName === 'rename') {
             if (!await checkStaff(interaction)) return;
             const ticket = db.getTicket(interaction.channelId);
@@ -403,27 +432,14 @@ client.on('interactionCreate', async interaction => {
             await logTicketAction(client, 'Renommage', interaction.user, interaction.channel, `Nouveau nom: ${newName}`);
         }
 
-        else if (commandName === 'mod_history') {
-            const target = interaction.options.getUser('utilisateur');
-            const history = db.getModerationHistory(target.id);
+        else if (commandName === 'transcript') {
+            if (!await checkStaff(interaction)) return;
+            const ticket = db.getTicket(interaction.channelId);
+            if (!ticket) return interaction.reply({ content: "Ce salon n'est pas un ticket.", ephemeral: true });
 
-            if (history.length === 0) {
-                return interaction.reply({ content: `Aucun historique pour ${target.tag}.`, ephemeral: true });
-            }
-
-            const embed = new EmbedBuilder()
-                .setTitle(`Historique - ${target.tag}`)
-                .setColor('#34495e')
-                .setTimestamp();
-
-            const list = history.map(a => `**${a.type}** | ${a.reason} (par <@${a.staffId}>) - <t:${Math.floor(new Date(a.createdAt).getTime() / 1000)}:R>`).join('\n');
-
-            if (list.length > 4096) {
-                 await interaction.reply({ content: "Historique trop long pour être affiché en une fois.", ephemeral: true });
-            } else {
-                 embed.setDescription(list);
-                 await interaction.reply({ embeds: [embed], ephemeral: true });
-            }
+            await interaction.deferReply();
+            const attachment = await transcript.createTranscript(interaction.channel);
+            await interaction.editReply({ content: "Transcription générée :", files: [attachment] });
         }
 
         else if (commandName === 'blacklist') {
@@ -493,7 +509,6 @@ async function getMonthlyCategory(guild) {
             });
         } catch (e) {
             console.error("Erreur lors de la création de la catégorie mensuelle:", e);
-            // Fallback to general category if creation fails (e.g., limit reached)
             return guild.channels.cache.get(config.channels.ticketCategory);
         }
     }
@@ -535,7 +550,6 @@ async function handleTicketCreation(interaction, categoryKey) {
         { id: client.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels] }
     ];
 
-    // Direction tickets only for Admins
     if (categoryKey === 'direction') {
         if (config.roles.admin) {
             overwrites.push({ id: config.roles.admin, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] });
@@ -606,7 +620,6 @@ async function handleTicketAction(interaction, actionType) {
         db.claimTicket(interaction.channelId, interaction.user.id);
         await interaction.channel.permissionOverwrites.edit(interaction.user, { ViewChannel: true, SendMessages: true, ManageChannels: true });
 
-        // Auto-rename to indicate claim
         if (!interaction.channel.name.startsWith('✔-')) {
             await interaction.channel.setName(`✔-${interaction.channel.name}`).catch(() => null);
         }
@@ -686,7 +699,6 @@ async function handleCloseTicket(interaction) {
         .setColor('#e74c3c')
         .setTimestamp();
 
-    // Send transcript to user DM
     if (user) {
         const dmEmbed = new EmbedBuilder()
             .setTitle(`Votre ticket sur ${interaction.guild.name} est fermé`)
