@@ -15,7 +15,7 @@ import {
 } from 'discord.js';
 import config from './config.js';
 import * as db from './database.js';
-import { logTicketAction, logModeration } from './logger.js';
+import { logTicketAction, logModeration, logMessageDeleted, logMessageEdited } from './logger.js';
 import transcript from 'discord-html-transcripts';
 
 // IMPORTANT: Vous DEVEZ activer "Server Members Intent" et "Message Content Intent"
@@ -205,6 +205,10 @@ client.once('ready', () => {
                 defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
             },
             {
+                name: 'help',
+                description: 'Affiche la liste des commandes disponibles',
+            },
+            {
                 name: 'blacklist',
                 description: 'Gère la liste noire des tickets',
                 defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
@@ -243,6 +247,14 @@ client.on('messageCreate', async message => {
     if (ticket && ticket.status === 'open') {
         db.updateActivity(message.channel.id);
     }
+});
+
+client.on('messageDelete', async message => {
+    await logMessageDeleted(client, message);
+});
+
+client.on('messageUpdate', async (oldMessage, newMessage) => {
+    await logMessageEdited(client, oldMessage, newMessage);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -440,6 +452,21 @@ client.on('interactionCreate', async interaction => {
             await interaction.deferReply();
             const attachment = await transcript.createTranscript(interaction.channel);
             await interaction.editReply({ content: "Transcription générée :", files: [attachment] });
+        }
+
+        else if (commandName === 'help') {
+            const embed = new EmbedBuilder()
+                .setTitle("📚 Liste des Commandes")
+                .setDescription("Voici les commandes disponibles sur le bot.")
+                .addFields(
+                    { name: "🎟️ Tickets", value: "`/setup_tickets` - Initialiser le système\n`/rename` - Renommer un ticket\n`/priority` - Changer la priorité\n`/transcript` - Générer une transcription\n`/blacklist` - Gérer l'accès" },
+                    { name: "🛡️ Modération", value: "`/warn` - Avertir\n`/warnings` - Voir les avertissements\n`/kick` - Expulser\n`/ban` - Bannir\n`/timeout` - Mettre en sourdine\n`/clear` - Supprimer des messages\n`/mod_history` - Historique" },
+                    { name: "📊 Statistiques", value: "`/stats_tickets` - Stats globales\n`/staff_stats` - Stats d'un modérateur\n`/check_inactifs` - Tickets sans activité" }
+                )
+                .setColor('#3498db')
+                .setFooter({ text: "Bot REFORMED - v1.0" })
+                .setTimestamp();
+            await interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
         else if (commandName === 'blacklist') {

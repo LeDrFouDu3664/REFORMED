@@ -44,3 +44,40 @@ export async function logModeration(client, target, type, reason, staff) {
 
     await logChannel.send({ embeds: [embed] });
 }
+
+export async function logMessageDeleted(client, message) {
+    if (message.author?.bot) return;
+    const logChannel = await client.channels.fetch(config.channels.logs).catch(() => null);
+    if (!logChannel) return;
+
+    const embed = new EmbedBuilder()
+        .setTitle("Message Supprimé")
+        .setColor('#e74c3c')
+        .addFields(
+            { name: 'Auteur', value: `${message.author} (\`${message.author.id}\`)`, inline: true },
+            { name: 'Salon', value: `${message.channel}`, inline: true },
+            { name: 'Contenu', value: message.content || '*Fichier/Embed*' }
+        )
+        .setTimestamp();
+
+    await logChannel.send({ embeds: [embed] });
+}
+
+export async function logMessageEdited(client, oldMessage, newMessage) {
+    if (oldMessage.author?.bot || oldMessage.content === newMessage.content) return;
+    const logChannel = await client.channels.fetch(config.channels.logs).catch(() => null);
+    if (!logChannel) return;
+
+    const embed = new EmbedBuilder()
+        .setTitle("Message Modifié")
+        .setColor('#3498db')
+        .addFields(
+            { name: 'Auteur', value: `${oldMessage.author} (\`${oldMessage.author.id}\`)`, inline: true },
+            { name: 'Salon', value: `${oldMessage.channel}`, inline: true },
+            { name: 'Ancien', value: oldMessage.content || '*Vide*' },
+            { name: 'Nouveau', value: newMessage.content || '*Vide*' }
+        )
+        .setTimestamp();
+
+    await logChannel.send({ embeds: [embed] });
+}

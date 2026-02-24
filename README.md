@@ -17,11 +17,12 @@ Un bot professionnel et complet pour la gestion des tickets, du recrutement et d
 - **Système de Modération** :
     - Commandes slash : `/warn`, `/warnings`, `/kick`, `/ban`, `/timeout`, `/clear`, `/mod_history`.
     - Historique persistant en base de données.
-    - Logs détaillés dans un salon dédié.
+    - Logs détaillés (incluant messages supprimés/modifiés).
+- **Aide Intégrée** : `/help` pour voir toutes les commandes.
 
 ## Prérequis
 - **Node.js v24.13.1** ou supérieur.
-- Un token de bot Discord (avec Intents activés).
+- Un token de bot Discord.
 - Configuration des IDs dans le fichier `.env`.
 
 ## Installation
@@ -38,10 +39,17 @@ Un bot professionnel et complet pour la gestion des tickets, du recrutement et d
    npm start
    ```
 
-## Configuration Critique
-Dans le **Discord Developer Portal**, vous devez impérativement activer :
-- **Server Members Intent** (pour le recrutement et la modération)
-- **Message Content Intent** (pour le suivi d'activité et les transcriptions)
+## Configuration Critique (Intents)
+Pour que le bot puisse fonctionner, vous **devez** activer les Intents Privilégiés dans le portail développeur :
+
+1. Allez sur le [Discord Developer Portal](https://discord.com/developers/applications).
+2. Sélectionnez votre application (le bot).
+3. Cliquez sur l'onglet **"Bot"** dans le menu à gauche.
+4. Faites défiler jusqu'à la section **"Privileged Gateway Intents"**.
+5. Activez les interrupteurs suivants :
+    - [x] **Server Members Intent** (Nécessaire pour le recrutement et la modération).
+    - [x] **Message Content Intent** (Nécessaire pour le suivi d'activité et les transcriptions).
+6. Cliquez sur **"Save Changes"**.
 
 ## Commandes Initiales
 Utilisez `/setup_tickets` pour initialiser le message d'ouverture dans le salon de votre choix.
