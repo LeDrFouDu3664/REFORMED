@@ -51,5 +51,12 @@ Pour que le bot puisse fonctionner, vous **devez** activer les Intents Privilég
     - [x] **Message Content Intent** (Nécessaire pour le suivi d'activité et les transcriptions).
 6. Cliquez sur **"Save Changes"**.
 
+## Résolution des Problèmes (Troubleshooting)
+### Le bot ne démarre pas (Erreur d'Intents)
+Si vous voyez l'erreur `Used disallowed intents`, cela signifie que vous avez oublié l'étape ci-dessus. Le bot **ne peut pas** démarrer sans ces permissions car il doit suivre l'activité des tickets et gérer les membres.
+
+### Les commandes ne s'affichent pas
+Les commandes slash peuvent prendre jusqu'à quelques minutes pour apparaître. Essayez de redémarrer votre client Discord (Ctrl+R).
+
 ## Commandes Initiales
 Utilisez `/setup_tickets` pour initialiser le message d'ouverture dans le salon de votre choix.

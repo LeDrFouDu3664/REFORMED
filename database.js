@@ -129,6 +129,10 @@ export const getInactiveTickets = (hours) => {
     return db.prepare("SELECT * FROM tickets WHERE status = 'open' AND lastActivityAt < datetime('now', '-' || ? || ' hours')").all(hours);
 };
 
+export const getOpenTickets = () => {
+    return db.prepare("SELECT * FROM tickets WHERE status = 'open'").all();
+};
+
 // Moderation functions
 export const addModerationAction = (type, userId, staffId, reason) => {
     return db.prepare("INSERT INTO moderation_actions (type, userId, staffId, reason) VALUES (?, ?, ?, ?)").run(type, userId, staffId, reason);
@@ -149,5 +153,6 @@ export const getWarningCount = (userId) => {
 };
 
 export const resetWarnings = (userId) => {
+    db.prepare("DELETE FROM moderation_actions WHERE userId = ?").run(userId);
     return db.prepare("UPDATE warnings SET count = 0 WHERE userId = ?").run(userId);
 };

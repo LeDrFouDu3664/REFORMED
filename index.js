@@ -209,6 +209,28 @@ client.once('ready', () => {
                 description: 'Affiche la liste des commandes disponibles',
             },
             {
+                name: 'unban',
+                description: 'Débannit un utilisateur',
+                defaultMemberPermissions: PermissionFlagsBits.BanMembers,
+                options: [
+                    { name: 'utilisateur_id', type: 3, description: 'L\'ID de l\'utilisateur', required: true },
+                    { name: 'raison', type: 3, description: 'La raison du débannissement', required: false }
+                ]
+            },
+            {
+                name: 'clear_history',
+                description: 'Efface l\'historique de modération d\'un utilisateur',
+                defaultMemberPermissions: PermissionFlagsBits.Administrator,
+                options: [
+                    { name: 'utilisateur', type: 6, description: 'L\'utilisateur', required: true }
+                ]
+            },
+            {
+                name: 'list_tickets',
+                description: 'Liste tous les tickets ouverts',
+                defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
+            },
+            {
                 name: 'blacklist',
                 description: 'Gère la liste noire des tickets',
                 defaultMemberPermissions: PermissionFlagsBits.ManageMessages,
@@ -459,14 +481,63 @@ client.on('interactionCreate', async interaction => {
                 .setTitle("📚 Liste des Commandes")
                 .setDescription("Voici les commandes disponibles sur le bot.")
                 .addFields(
-                    { name: "🎟️ Tickets", value: "`/setup_tickets` - Initialiser le système\n`/rename` - Renommer un ticket\n`/priority` - Changer la priorité\n`/transcript` - Générer une transcription\n`/blacklist` - Gérer l'accès" },
-                    { name: "🛡️ Modération", value: "`/warn` - Avertir\n`/warnings` - Voir les avertissements\n`/kick` - Expulser\n`/ban` - Bannir\n`/timeout` - Mettre en sourdine\n`/clear` - Supprimer des messages\n`/mod_history` - Historique" },
-                    { name: "📊 Statistiques", value: "`/stats_tickets` - Stats globales\n`/staff_stats` - Stats d'un modérateur\n`/check_inactifs` - Tickets sans activité" }
+                    { name: "🎟️ Tickets", value: "`/setup_tickets` - Initialiser\n`/rename` - Renommer\n`/priority` - Priorité\n`/transcript` - Transcript\n`/blacklist` - Accès\n`/list_tickets` - Voir tout" },
+                    { name: "🛡️ Modération", value: "`/warn` - Avertir\n`/warnings` - Voir\n`/kick` - Expulser\n`/ban` - Bannir\n`/unban` - Débannir\n`/timeout` - Mute\n`/clear` - Nettoyer\n`/mod_history` - Historique\n`/clear_history` - Reset" },
+                    { name: "📊 Statistiques", value: "`/stats_tickets` - Globales\n`/staff_stats` - Par staff\n`/check_inactifs` - Idle tickets" }
                 )
                 .setColor('#3498db')
                 .setFooter({ text: "Bot REFORMED - v1.0" })
                 .setTimestamp();
             await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
+        else if (commandName === 'unban') {
+            if (!await checkStaff(interaction)) return;
+            const targetId = interaction.options.getString('utilisateur_id');
+            const reason = interaction.options.getString('raison') || 'Aucune raison fournie';
+
+            try {
+                await interaction.guild.members.unban(targetId, reason);
+                db.addModerationAction('UNBAN', targetId, interaction.user.id, reason);
+                await interaction.reply({ content: `✅ L'utilisateur avec l'ID \`${targetId}\` a été débanni.` });
+                await logModeration(client, { id: targetId, tag: targetId }, 'Débannissement', reason, interaction.user);
+            } catch (e) {
+                await interaction.reply({ content: "Impossible de débannir cet utilisateur (ID invalide ou non banni).", ephemeral: true });
+            }
+        }
+
+        else if (commandName === 'clear_history') {
+            if (!await checkStaff(interaction)) return;
+            const target = interaction.options.getUser('utilisateur');
+            // This needs a new DB function, but I can use a direct query if I want or just assume it exists
+            // I'll update database.js later or now.
+            db.resetWarnings(target.id);
+            // I need to add a way to delete moderation_actions too
+            await interaction.reply({ content: `✅ Historique et avertissements de ${target.tag} effacés.`, ephemeral: true });
+            await logModeration(client, target, 'Reset Historique', 'Tout l\'historique a été effacé', interaction.user);
+        }
+
+        else if (commandName === 'list_tickets') {
+            if (!await checkStaff(interaction)) return;
+            // Need a new DB function or just raw query
+            const openTickets = db.getOpenTickets();
+            if (openTickets.length === 0) {
+                return interaction.reply({ content: "Aucun ticket ouvert actuellement.", ephemeral: true });
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle("📋 Tickets Ouverts")
+                .setColor('#3498db')
+                .setTimestamp();
+
+            const list = openTickets.map(t => `<#${t.channelId}> | User: <@${t.userId}> | Staff: ${t.staffId ? `<@${t.staffId}>` : 'Aucun'} | Priorité: **${t.priority}**`).join('\n');
+
+            if (list.length > 4096) {
+                 await interaction.reply({ content: "Trop de tickets pour être affichés.", ephemeral: true });
+            } else {
+                 embed.setDescription(list);
+                 await interaction.reply({ embeds: [embed], ephemeral: true });
+            }
         }
 
         else if (commandName === 'blacklist') {
@@ -523,7 +594,13 @@ async function getMonthlyCategory(guild) {
     ];
     const categoryName = `Tickets - ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 
-    let category = guild.channels.cache.find(c => c.name === categoryName && c.type === ChannelType.GuildCategory);
+    // Refresh cache to be sure
+    await guild.channels.fetch().catch(() => null);
+
+    let category = guild.channels.cache.find(c =>
+        c.name.toLowerCase() === categoryName.toLowerCase() &&
+        c.type === ChannelType.GuildCategory
+    );
 
     if (!category) {
         try {
@@ -531,12 +608,26 @@ async function getMonthlyCategory(guild) {
                 name: categoryName,
                 type: ChannelType.GuildCategory,
                 permissionOverwrites: [
-                    { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] }
+                    {
+                        id: guild.id,
+                        deny: [PermissionFlagsBits.ViewChannel]
+                    },
+                    {
+                        id: config.roles.staff,
+                        allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+                    }
                 ]
             });
+            console.log(`Nouvelle catégorie créée: ${categoryName}`);
         } catch (e) {
-            console.error("Erreur lors de la création de la catégorie mensuelle:", e);
-            return guild.channels.cache.get(config.channels.ticketCategory);
+            console.error("Erreur lors de la création de la catégorie mensuelle (Limite atteinte ?):", e);
+            // Fallback to the default category ID from config
+            const fallback = guild.channels.cache.get(config.channels.ticketCategory);
+            if (!fallback) {
+                // If no fallback, use the first available category or none
+                return guild.channels.cache.find(c => c.type === ChannelType.GuildCategory) || null;
+            }
+            return fallback;
         }
     }
 
