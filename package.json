@@ -1,0 +1,31 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "REFORMED",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeDrFouDu3664/REFORMED.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=24.13.1"
+  },
+  "bugs": {
+    "url": "https://github.com/LeDrFouDu3664/REFORMED/issues"
+  },
+  "homepage": "https://github.com/LeDrFouDu3664/REFORMED#readme",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "discord-html-transcripts": "^3.2.0",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.3.1"
+  }
+}
