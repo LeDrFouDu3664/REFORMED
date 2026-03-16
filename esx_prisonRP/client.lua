@@ -63,7 +63,79 @@ AddEventHandler('prison:client:UnjailPlayer', function()
     TriggerEvent('esx:showNotification', 'Vous êtes libre ! Essayez de rester dans le droit chemin.')
 end)
 
--- Interactions des métiers (Garde & EMS)
+-- Actualisation du temps par les travaux
+RegisterNetEvent('prison:client:ReduceJailTime')
+AddEventHandler('prison:client:ReduceJailTime', function(amount)
+    if isJailed and jailTime > 0 then
+        jailTime = jailTime - amount
+        if jailTime < 0 then jailTime = 0 end
+    end
+end)
+
+-- Command pour l'emploi du temps
+RegisterCommand('emploi_du_temps', function()
+    if isJailed then
+        local msg = "~y~Emploi du temps de la Prison d'État~s~\n"
+        for i=0, 23 do
+            if Config.Schedule[i] then
+                msg = msg .. "~b~" .. i .. "h00~s~ : " .. Config.Schedule[i] .. "\n"
+            end
+        end
+        TriggerEvent('chat:addMessage', {
+            color = {255, 165, 0},
+            multiline = true,
+            args = {"Système", msg}
+        })
+    else
+        TriggerEvent('esx:showNotification', 'Vous n\'êtes pas en prison.')
+    end
+end, false)
+
+-- Suivi de l'heure en jeu pour l'emploi du temps
+Citizen.CreateThread(function()
+    local lastHour = -1
+    while true do
+        Citizen.Wait(1000)
+        if isJailed then
+            local currentHour = GetClockHours()
+            if currentHour ~= lastHour then
+                lastHour = currentHour
+                if Config.Schedule[currentHour] then
+                    TriggerEvent('esx:showNotification', '~b~['..currentHour..'h00]~s~ ' .. Config.Schedule[currentHour])
+                end
+            end
+        else
+            Citizen.Wait(5000)
+        end
+    end
+end)
+
+-- Fonction pour jouer l'animation de travail
+local isWorking = false
+function StartPrisonWork(jobName)
+    if isWorking then return end
+    isWorking = true
+
+    local jobData = Config.PrisonerJobs[jobName]
+    local ped = PlayerPedId()
+
+    RequestAnimDict(jobData.Anim.dict)
+    while not HasAnimDictLoaded(jobData.Anim.dict) do
+        Citizen.Wait(10)
+    end
+
+    TaskPlayAnim(ped, jobData.Anim.dict, jobData.Anim.name, 8.0, -8.0, 10000, 1, 0, false, false, false)
+
+    TriggerEvent('esx:showNotification', 'Vous commencez à travailler...')
+
+    Citizen.Wait(10000)
+
+    ClearPedTasks(ped)
+    TriggerServerEvent('prison:server:RewardPrisoner', jobName)
+    isWorking = false
+end
+
+-- Interactions des métiers (Garde, EMS) et Travaux des Prisonniers
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
@@ -97,6 +169,25 @@ Citizen.CreateThread(function()
                     if IsControlJustReleased(0, 38) then -- Touche E
                         TriggerEvent('esx:showNotification', 'Vous êtes maintenant en position pour soigner les détenus.')
                         -- (Tu peux ajouter ton script de soin EMS ici)
+                    end
+                end
+            end
+        end
+
+        -- Interactions des prisonniers (Travaux)
+        if isJailed and not isWorking then
+            for jobName, jobData in pairs(Config.PrisonerJobs) do
+                for _, coord in pairs(jobData.Coords) do
+                    local dist = #(pedCoords - coord)
+                    if dist < 10.0 then
+                        sleep = false
+                        DrawMarker(20, coord.x, coord.y, coord.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 255, 255, 0, 100, false, true, 2, false, nil, nil, false)
+                        if dist < 1.5 then
+                            ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour travailler (' .. jobName .. ')')
+                            if IsControlJustReleased(0, 38) then
+                                StartPrisonWork(jobName)
+                            end
+                        end
                     end
                 end
             end

@@ -70,6 +70,39 @@ AddEventHandler('prison:server:FinishJail', function()
     end
 end)
 
+-- Reward pour les prisonniers
+RegisterServerEvent('prison:server:RewardPrisoner')
+AddEventHandler('prison:server:RewardPrisoner', function(jobName)
+    local source = source
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer or not Config.PrisonerJobs[jobName] then return end
+
+    local rewardData = Config.PrisonerJobs[jobName].Reward
+    local timeReduction = rewardData.timeReduction
+    local message = rewardData.msg
+
+    MySQL.Async.fetchAll('SELECT jail_time FROM users WHERE identifier = @identifier', {
+        ['@identifier'] = xPlayer.identifier
+    }, function(result)
+        if result[1] and result[1].jail_time > 0 then
+            local newTime = result[1].jail_time - timeReduction
+            if newTime < 0 then newTime = 0 end
+
+            MySQL.Async.execute('UPDATE users SET jail_time = @jail_time WHERE identifier = @identifier', {
+                ['@jail_time'] = newTime,
+                ['@identifier'] = xPlayer.identifier
+            })
+
+            -- Informer le client de réduire son timer local
+            TriggerClientEvent('prison:client:ReduceJailTime', source, timeReduction)
+            TriggerClientEvent('esx:showNotification', source, message)
+
+            -- Exemples de paiements (facultatif)
+            -- xPlayer.addAccountMoney('black_money', 10)
+        end
+    end)
+end)
+
 -- Vérification à la connexion (remettre en prison si déco/reco)
 AddEventHandler('esx:playerLoaded', function(source, xPlayer)
     MySQL.Async.fetchAll('SELECT jail_time FROM users WHERE identifier = @identifier', {
