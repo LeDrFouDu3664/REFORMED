@@ -125,13 +125,22 @@ AddEventHandler('prison:server:RewardPrisoner', function(jobName)
     end)
 end)
 
--- Vérification à la connexion (remettre en prison si déco/reco)
+-- Vérification à la connexion (remettre en prison si déco/reco, et premier spawn)
 AddEventHandler('esx:playerLoaded', function(source, xPlayer)
-    MySQL.Async.fetchAll('SELECT jail_time FROM users WHERE identifier = @identifier', {
+    MySQL.Async.fetchAll('SELECT jail_time, first_spawn FROM users WHERE identifier = @identifier', {
         ['@identifier'] = xPlayer.identifier
     }, function(result)
-        if result[1] and result[1].jail_time > 0 then
-            TriggerClientEvent('prison:client:JailPlayer', source, result[1].jail_time)
+        if result[1] then
+            -- Gestion du jail_time existant
+            if result[1].jail_time > 0 then
+                TriggerClientEvent('prison:client:JailPlayer', source, result[1].jail_time)
+            -- Gestion du tout premier spawn (uniquement s'ils ne sont pas déjà en prison)
+            elseif result[1].first_spawn == 1 then
+                MySQL.Async.execute('UPDATE users SET first_spawn = 0 WHERE identifier = @identifier', {
+                    ['@identifier'] = xPlayer.identifier
+                })
+                TriggerClientEvent('prison:client:FirstSpawn', source)
+            end
         end
     end)
 end)

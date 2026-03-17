@@ -9,7 +9,7 @@ end)
 local isJailed = false
 local jailTime = 0
 
--- Blip sur la carte
+-- Blip global de la Prison
 Citizen.CreateThread(function()
     local blip = AddBlipForCoord(Config.PrisonCoords.x, Config.PrisonCoords.y, Config.PrisonCoords.z)
     SetBlipSprite(blip, 188)
@@ -20,6 +20,85 @@ Citizen.CreateThread(function()
     BeginTextCommandSetBlipName("STRING")
     AddTextComponentString("Prison d'État")
     EndTextCommandSetBlipName(blip)
+
+    -- Blips internes à la prison pour les interactions
+    -- Armurerie Garde
+    local armoryBlip = AddBlipForCoord(Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
+    SetBlipSprite(armoryBlip, 175)
+    SetBlipScale(armoryBlip, 0.6)
+    SetBlipColour(armoryBlip, 38)
+    SetBlipAsShortRange(armoryBlip, true)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString("Armurerie Garde")
+    EndTextCommandSetBlipName(armoryBlip)
+
+    -- Infirmerie EMS
+    local infBlip = AddBlipForCoord(Config.Locations.Infirmary.x, Config.Locations.Infirmary.y, Config.Locations.Infirmary.z)
+    SetBlipSprite(infBlip, 153)
+    SetBlipScale(infBlip, 0.6)
+    SetBlipColour(infBlip, 1)
+    SetBlipAsShortRange(infBlip, true)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString("Infirmerie")
+    EndTextCommandSetBlipName(infBlip)
+
+    -- Coffre Prisonnier
+    local stashBlip = AddBlipForCoord(Config.Locations.PrisonerStash.x, Config.Locations.PrisonerStash.y, Config.Locations.PrisonerStash.z)
+    SetBlipSprite(stashBlip, 50)
+    SetBlipScale(stashBlip, 0.6)
+    SetBlipColour(stashBlip, 5)
+    SetBlipAsShortRange(stashBlip, true)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString("Effets Personnels")
+    EndTextCommandSetBlipName(stashBlip)
+
+    -- Blips des travaux
+    for jobName, jobData in pairs(Config.PrisonerJobs) do
+        for _, coord in pairs(jobData.Coords) do
+            local jobBlip = AddBlipForCoord(coord.x, coord.y, coord.z)
+            SetBlipSprite(jobBlip, 566)
+            SetBlipScale(jobBlip, 0.5)
+            SetBlipColour(jobBlip, 5)
+            SetBlipAsShortRange(jobBlip, true)
+            BeginTextCommandSetBlipName("STRING")
+            AddTextComponentString("Travail : " .. jobName)
+            EndTextCommandSetBlipName(jobBlip)
+        end
+    end
+end)
+
+-- Gestion de la densité des PNJ (Bloqués partout sauf en prison)
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+        local pedCoords = GetEntityCoords(PlayerPedId())
+        local distToPrison = #(pedCoords - Config.PrisonCoords)
+
+        if distToPrison > Config.PrisonRadius then
+            -- En dehors de la prison : Bloquer les PNJ et le trafic
+            SetPedDensityMultiplierThisFrame(0.0)
+            SetScenarioPedDensityMultiplierThisFrame(0.0, 0.0)
+            SetVehicleDensityMultiplierThisFrame(0.0)
+            SetRandomVehicleDensityMultiplierThisFrame(0.0)
+            SetParkedVehicleDensityMultiplierThisFrame(0.0)
+        else
+            -- Dans la prison : PNJ normaux
+            SetPedDensityMultiplierThisFrame(1.0)
+            SetScenarioPedDensityMultiplierThisFrame(1.0, 1.0)
+            SetVehicleDensityMultiplierThisFrame(1.0)
+            SetRandomVehicleDensityMultiplierThisFrame(1.0)
+            SetParkedVehicleDensityMultiplierThisFrame(1.0)
+        end
+    end
+end)
+
+-- Événement de Premier Spawn
+RegisterNetEvent('prison:client:FirstSpawn')
+AddEventHandler('prison:client:FirstSpawn', function()
+    -- On attend que le joueur soit bien sur la map
+    Citizen.Wait(2000)
+    SetEntityCoords(PlayerPedId(), Config.ReleaseCoords.x, Config.ReleaseCoords.y, Config.ReleaseCoords.z)
+    TriggerEvent('esx:showNotification', '~b~Bienvenue dans l\'État !~s~ Vous atterrissez près de la prison.')
 end)
 
 -- Événement d'emprisonnement
