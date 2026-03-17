@@ -6,6 +6,9 @@ INSERT INTO `addon_account` (name, label, shared) VALUES ('society_garde', 'Gard
 INSERT INTO `addon_inventory` (name, label, shared) VALUES ('society_garde', 'Garde Pénitentiaire', 1);
 INSERT INTO `datastore` (name, label, shared) VALUES ('society_garde', 'Garde Pénitentiaire', 1);
 
+-- Stash partagé des prisonniers
+INSERT INTO `addon_inventory` (name, label, shared) VALUES ('prison_stash', 'Coffre des Détenus', 1);
+
 -- Création du métier de Garde
 INSERT INTO `jobs` (name, label) VALUES ('garde', 'Garde Pénitentiaire');
 

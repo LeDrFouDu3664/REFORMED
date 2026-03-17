@@ -1,5 +1,10 @@
 ESX = exports["es_extended"]:getSharedObject()
 
+-- Configuration ox_inventory (si utilisé)
+if Config.InventorySystem == 'ox_inventory' then
+    exports.ox_inventory:RegisterStash('prison_stash', 'Effets Personnels (Prison)', 50, 100000, false)
+end
+
 -- Commande pour mettre en prison
 RegisterCommand('jail', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)

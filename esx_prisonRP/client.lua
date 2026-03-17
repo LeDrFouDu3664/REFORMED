@@ -120,19 +120,33 @@ function StartPrisonWork(jobName)
     local ped = PlayerPedId()
 
     RequestAnimDict(jobData.Anim.dict)
-    while not HasAnimDictLoaded(jobData.Anim.dict) do
+    local timeout = 0
+    while not HasAnimDictLoaded(jobData.Anim.dict) and timeout < 1000 do
         Citizen.Wait(10)
+        timeout = timeout + 10
     end
 
-    TaskPlayAnim(ped, jobData.Anim.dict, jobData.Anim.name, 8.0, -8.0, 10000, 1, 0, false, false, false)
+    if HasAnimDictLoaded(jobData.Anim.dict) then
+        TaskPlayAnim(ped, jobData.Anim.dict, jobData.Anim.name, 8.0, -8.0, 10000, 1, 0, false, false, false)
+        TriggerEvent('esx:showNotification', 'Vous commencez à travailler...')
+        Citizen.Wait(10000)
+        ClearPedTasks(ped)
+        TriggerServerEvent('prison:server:RewardPrisoner', jobName)
+    else
+        TriggerEvent('esx:showNotification', '~r~Erreur de chargement de l\'animation.')
+    end
 
-    TriggerEvent('esx:showNotification', 'Vous commencez à travailler...')
-
-    Citizen.Wait(10000)
-
-    ClearPedTasks(ped)
-    TriggerServerEvent('prison:server:RewardPrisoner', jobName)
     isWorking = false
+end
+
+-- Fonction pour ouvrir le coffre de prison
+function OpenPrisonStash()
+    if Config.InventorySystem == 'ox_inventory' then
+        exports.ox_inventory:openInventory('stash', {id = 'prison_stash'})
+    else
+        -- Fallback ESX standard
+        TriggerEvent('esx:showNotification', '~r~Le système d\'inventaire ESX n\'est pas configuré pour les coffres. Utilisez ox_inventory.')
+    end
 end
 
 -- Interactions des métiers (Garde, EMS) et Travaux des Prisonniers
@@ -188,6 +202,19 @@ Citizen.CreateThread(function()
                                 StartPrisonWork(jobName)
                             end
                         end
+                    end
+                end
+            end
+
+            -- Stash pour les prisonniers
+            local stashDist = #(pedCoords - Config.Locations.PrisonerStash)
+            if stashDist < 10.0 then
+                sleep = false
+                DrawMarker(2, Config.Locations.PrisonerStash.x, Config.Locations.PrisonerStash.y, Config.Locations.PrisonerStash.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0, 255, 0, 100, false, true, 2, false, nil, nil, false)
+                if stashDist < 1.5 then
+                    ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour ouvrir vos effets personnels')
+                    if IsControlJustReleased(0, 38) then
+                        OpenPrisonStash()
                     end
                 end
             end

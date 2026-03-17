@@ -11,9 +11,12 @@ Config.Jobs = {
     EMS = 'ambulance'
 }
 
+Config.InventorySystem = 'ox_inventory' -- 'esx' ou 'ox_inventory'
+
 Config.Locations = {
     Armory = vector3(1834.78, 2589.67, 46.01), -- Armurerie des gardes
     Infirmary = vector3(1769.75, 2568.16, 45.72), -- Infirmerie pour les EMS
+    PrisonerStash = vector3(1705.50, 2555.30, 45.56) -- Boîte d'effets personnels pour les prisonniers
 }
 
 -- Emploi du temps des prisonniers (Heures in-game 0-23)
@@ -46,5 +49,29 @@ Config.PrisonerJobs = {
         },
         Reward = { timeReduction = 1, msg = "Vous avez réduit votre peine d'un mois en nettoyant." },
         Anim = { dict = "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", name = "machinic_loop_mechandplayer" }
+    },
+    Laundry = {
+        Coords = {
+            vector3(1730.00, 2555.00, 45.56),
+            vector3(1732.50, 2555.00, 45.56)
+        },
+        Reward = { timeReduction = 2, msg = "Vous avez réduit votre peine de 2 mois en faisant la lessive." },
+        Anim = { dict = "amb@prop_human_bum_bin@idle_b", name = "idle_d" }
+    },
+    Kitchen = {
+        Coords = {
+            vector3(1715.00, 2570.00, 45.56),
+            vector3(1717.50, 2570.00, 45.56)
+        },
+        Reward = { timeReduction = 1, msg = "Vous avez réduit votre peine d'un mois en cuisinant." },
+        Anim = { dict = "anim@heists@prison_heiststation@cop_reactions", name = "cop_b_idle" }
+    },
+    Workout = {
+        Coords = {
+            vector3(1640.00, 2530.00, 45.56), -- Cour de la prison (pompes)
+            vector3(1642.50, 2530.00, 45.56)
+        },
+        Reward = { timeReduction = 1, msg = "Faire de l'exercice a allégé votre esprit (et votre peine)." },
+        Anim = { dict = "amb@world_human_push_ups@male@base", name = "base" }
     }
 }
