@@ -1,9 +1,17 @@
-ESX = exports["es_extended"]:getSharedObject()
+ESX = nil
+TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+
+if ESX == nil then
+    -- Fallback for newer ESX if TriggerEvent fails but export exists
+    pcall(function() ESX = exports["es_extended"]:getSharedObject() end)
+end
 
 -- Configuration ox_inventory (si utilisé)
 if Config.InventorySystem == 'ox_inventory' then
     exports.ox_inventory:RegisterStash('prison_stash', 'Effets Personnels (Prison)', 50, 100000, false)
 end
+
+local playerCooldowns = {}
 
 -- Commande pour mettre en prison
 RegisterCommand('jail', function(source, args, rawCommand)
@@ -79,6 +87,15 @@ end)
 RegisterServerEvent('prison:server:RewardPrisoner')
 AddEventHandler('prison:server:RewardPrisoner', function(jobName)
     local source = source
+
+    -- Sécurité Anti-Spam (10 secondes)
+    local currentTime = os.time()
+    if playerCooldowns[source] and (currentTime - playerCooldowns[source]) < 10 then
+        -- Cooldown non respecté, potentiellement un tricheur
+        return
+    end
+    playerCooldowns[source] = currentTime
+
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer or not Config.PrisonerJobs[jobName] then return end
 
