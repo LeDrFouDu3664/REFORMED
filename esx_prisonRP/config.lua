@@ -39,7 +39,7 @@ Config.PrisonerJobs = {
             vector3(1697.55, 2548.88, 45.56),
             vector3(1701.32, 2552.14, 45.56)
         },
-        Reward = { timeReduction = 2, msg = "Vous avez réduit votre peine de 2 mois en minant." },
+        Reward = { timeReduction = 2, money = 15, msg = "Vous avez réduit votre peine de 2 mois et gagné 15$ en minant." },
         Anim = { dict = "melee@hatchet@streamed_core", name = "plyr_rear_takedown_b" }
     },
     Janitor = {
@@ -47,7 +47,7 @@ Config.PrisonerJobs = {
             vector3(1710.25, 2560.45, 45.56), -- Couloir principal
             vector3(1720.50, 2565.30, 45.56)  -- Cantine
         },
-        Reward = { timeReduction = 1, msg = "Vous avez réduit votre peine d'un mois en nettoyant." },
+        Reward = { timeReduction = 1, money = 10, msg = "Vous avez réduit votre peine d'un mois et gagné 10$ en nettoyant." },
         Anim = { dict = "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", name = "machinic_loop_mechandplayer" }
     },
     Laundry = {
@@ -55,7 +55,7 @@ Config.PrisonerJobs = {
             vector3(1730.00, 2555.00, 45.56),
             vector3(1732.50, 2555.00, 45.56)
         },
-        Reward = { timeReduction = 2, msg = "Vous avez réduit votre peine de 2 mois en faisant la lessive." },
+        Reward = { timeReduction = 2, money = 12, msg = "Vous avez réduit votre peine de 2 mois et gagné 12$ à la blanchisserie." },
         Anim = { dict = "amb@prop_human_bum_bin@idle_b", name = "idle_d" }
     },
     Kitchen = {
@@ -63,7 +63,7 @@ Config.PrisonerJobs = {
             vector3(1715.00, 2570.00, 45.56),
             vector3(1717.50, 2570.00, 45.56)
         },
-        Reward = { timeReduction = 1, msg = "Vous avez réduit votre peine d'un mois en cuisinant." },
+        Reward = { timeReduction = 1, money = 20, msg = "Vous avez réduit votre peine d'un mois et gagné 20$ en cuisinant." },
         Anim = { dict = "anim@heists@prison_heiststation@cop_reactions", name = "cop_b_idle" }
     },
     Workout = {
@@ -71,7 +71,50 @@ Config.PrisonerJobs = {
             vector3(1640.00, 2530.00, 45.56), -- Cour de la prison (pompes)
             vector3(1642.50, 2530.00, 45.56)
         },
-        Reward = { timeReduction = 1, msg = "Faire de l'exercice a allégé votre esprit (et votre peine)." },
+        Reward = { timeReduction = 1, money = 0, msg = "Faire de l'exercice a allégé votre esprit (et votre peine)." },
         Anim = { dict = "amb@world_human_push_ups@male@base", name = "base" }
+    }
+}
+
+-- PNJs d'aide statiques
+Config.GuardNPCs = {
+    { model = 's_m_m_prisguard_01', coords = vector4(1832.10, 2587.50, 45.01, 180.0), text = "L'armurerie est derrière moi. Équipez-vous bien !" },
+    { model = 's_m_m_prisguard_01', coords = vector4(1853.50, 2599.20, 44.32, 90.0), text = "Bienvenue à Bolingbroke. Faites pas d'histoires." },
+    { model = 's_m_m_prisguard_01', coords = vector4(1679.50, 2512.40, 44.56, 120.0), text = "Respectez l'emploi du temps ou c'est l'isolement." }
+}
+
+-- Système de Vendeur Illégal (Spawn 1 fois/jour)
+Config.BlackMarket = {
+    Model = 'g_m_m_chigoon_01',
+    Spawns = {
+        vector4(1620.50, 2500.20, 44.56, 45.0),
+        vector4(1750.30, 2540.60, 44.56, 90.0),
+        vector4(1680.10, 2580.80, 44.56, 180.0)
+    },
+    Items = {
+        { item = 'phone', price = 500, label = 'Téléphone Jetable' },
+        { item = 'lockpick', price = 250, label = 'Crochet' },
+        { item = 'WEAPON_KNIFE', price = 1000, label = 'Surin' }
+    }
+}
+
+-- Quêtes Illégales
+Config.QuestNPC = {
+    Model = 'u_m_y_prisoner_01',
+    Coords = vector4(1645.00, 2535.00, 44.56, 120.0),
+    Text = "Hé, ramène-moi un téléphone du vendeur et je te donnerai un truc intéressant...",
+    Requirement = 'phone',
+    Reward = 'WEAPON_KNIFE'
+}
+
+-- Programmation du Chemin du Tutoriel (Guide PNJ)
+Config.TutorialPath = {
+    Model = 'u_m_y_prisoner_01',
+    SpawnCoord = vector4(1855.93, 2601.95, 44.32, 270.0), -- Début (Entrée)
+    Nodes = {
+        { coords = vector3(1840.00, 2585.00, 45.56), text = "Voici le bureau des gardes. Reste loin si tu veux éviter les coups." },
+        { coords = vector3(1770.00, 2570.00, 45.56), text = "Ici c'est l'infirmerie. Pratique quand on se fait planter." },
+        { coords = vector3(1720.00, 2565.00, 45.56), text = "La cantine. Mange, bosse, et ferme-la. Tu peux cuistoter pour réduire ta peine." },
+        { coords = vector3(1640.00, 2530.00, 45.56), text = "La cour. Un bon endroit pour faire du sport... ou des mauvaises rencontres." }
     }
 }

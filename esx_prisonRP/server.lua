@@ -102,6 +102,7 @@ AddEventHandler('prison:server:RewardPrisoner', function(jobName)
     local rewardData = Config.PrisonerJobs[jobName].Reward
     local timeReduction = rewardData.timeReduction
     local message = rewardData.msg
+    local moneyReward = rewardData.money or 0
 
     MySQL.Async.fetchAll('SELECT jail_time FROM users WHERE identifier = @identifier', {
         ['@identifier'] = xPlayer.identifier
@@ -119,10 +120,68 @@ AddEventHandler('prison:server:RewardPrisoner', function(jobName)
             TriggerClientEvent('prison:client:ReduceJailTime', source, timeReduction)
             TriggerClientEvent('esx:showNotification', source, message)
 
-            -- Exemples de paiements (facultatif)
-            -- xPlayer.addAccountMoney('black_money', 10)
+            -- Donner l'argent sale / propre
+            if moneyReward > 0 then
+                xPlayer.addAccountMoney('black_money', moneyReward)
+            end
         end
     end)
+end)
+
+-- Quête : Échange illégal
+RegisterServerEvent('prison:server:CompleteQuest')
+AddEventHandler('prison:server:CompleteQuest', function()
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer then
+        local item = xPlayer.getInventoryItem(Config.QuestNPC.Requirement)
+        if item and item.count > 0 then
+            xPlayer.removeInventoryItem(Config.QuestNPC.Requirement, 1)
+            xPlayer.addInventoryItem(Config.QuestNPC.Reward, 1)
+            TriggerClientEvent('esx:showNotification', source, "Bien joué. Tiens, prends ça.")
+        else
+            TriggerClientEvent('esx:showNotification', source, "Tu te fous de moi ? Reviens quand tu auras le matos.")
+        end
+    end
+end)
+
+-- Achat Vendeur Illégal
+RegisterServerEvent('prison:server:BuyBlackMarket')
+AddEventHandler('prison:server:BuyBlackMarket', function(itemIndex)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer then
+        local itemData = Config.BlackMarket.Items[itemIndex]
+        if itemData then
+            local money = xPlayer.getAccount('black_money').money
+            if money >= itemData.price then
+                xPlayer.removeAccountMoney('black_money', itemData.price)
+                xPlayer.addInventoryItem(itemData.item, 1)
+                TriggerClientEvent('esx:showNotification', source, "Transaction réussie.")
+            else
+                TriggerClientEvent('esx:showNotification', source, "~r~Pas assez d'argent sale.")
+            end
+        end
+    end
+end)
+
+-- Gestion du Vendor Spawn Quotidien
+local dailyVendorSpawn = nil
+
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(1000 * 60 * 60) -- Change toutes les heures (irl)
+        local randomIndex = math.random(1, #Config.BlackMarket.Spawns)
+        dailyVendorSpawn = Config.BlackMarket.Spawns[randomIndex]
+        TriggerClientEvent('prison:client:UpdateVendorSpawn', -1, dailyVendorSpawn)
+    end
+end)
+
+RegisterServerEvent('prison:server:RequestVendorSpawn')
+AddEventHandler('prison:server:RequestVendorSpawn', function()
+    if dailyVendorSpawn == nil then
+        local randomIndex = math.random(1, #Config.BlackMarket.Spawns)
+        dailyVendorSpawn = Config.BlackMarket.Spawns[randomIndex]
+    end
+    TriggerClientEvent('prison:client:UpdateVendorSpawn', source, dailyVendorSpawn)
 end)
 
 -- Vérification à la connexion (remettre en prison si déco/reco, et premier spawn)

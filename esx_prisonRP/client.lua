@@ -93,12 +93,115 @@ Citizen.CreateThread(function()
 end)
 
 -- Événement de Premier Spawn
+-- Désactiver les PNJ qui attaquent et la police de GTA
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(1000)
+        -- Empêcher le niveau de recherche
+        if GetPlayerWantedLevel(PlayerId()) > 0 then
+            SetPlayerWantedLevel(PlayerId(), 0, false)
+            SetPlayerWantedLevelNow(PlayerId(), false)
+        end
+
+        -- Empêcher les PNJ de la prison d'attaquer les joueurs
+        SetRelationshipBetweenGroups(1, GetHashKey("PRISONER"), GetHashKey("PLAYER"))
+        SetRelationshipBetweenGroups(1, GetHashKey("PLAYER"), GetHashKey("PRISONER"))
+        SetRelationshipBetweenGroups(1, GetHashKey("GUARD"), GetHashKey("PLAYER"))
+        SetRelationshipBetweenGroups(1, GetHashKey("PLAYER"), GetHashKey("GUARD"))
+    end
+end)
+
+-- Spawn des PNJs Statiques
+local spawnedNPCs = {}
+Citizen.CreateThread(function()
+    -- Gardes d'aide
+    for i=1, #Config.GuardNPCs do
+        local v = Config.GuardNPCs[i]
+        RequestModel(v.model)
+        while not HasModelLoaded(v.model) do Citizen.Wait(10) end
+        local ped = CreatePed(4, GetHashKey(v.model), v.coords.x, v.coords.y, v.coords.z - 1.0, v.coords.w, false, true)
+        SetEntityHeading(ped, v.coords.w)
+        FreezeEntityPosition(ped, true)
+        SetEntityInvincible(ped, true)
+        SetBlockingOfNonTemporaryEvents(ped, true)
+        SetPedRelationshipGroupHash(ped, GetHashKey("GUARD"))
+        table.insert(spawnedNPCs, {ped = ped, text = v.text})
+    end
+
+    -- PNJ de Quête
+    RequestModel(Config.QuestNPC.Model)
+    while not HasModelLoaded(Config.QuestNPC.Model) do Citizen.Wait(10) end
+    local qped = CreatePed(4, GetHashKey(Config.QuestNPC.Model), Config.QuestNPC.Coords.x, Config.QuestNPC.Coords.y, Config.QuestNPC.Coords.z - 1.0, Config.QuestNPC.Coords.w, false, true)
+    FreezeEntityPosition(qped, true)
+    SetEntityInvincible(qped, true)
+    SetBlockingOfNonTemporaryEvents(qped, true)
+    SetPedRelationshipGroupHash(qped, GetHashKey("PRISONER"))
+end)
+
+-- Update Vendor Spawn
+local currentVendorCoords = nil
+local vendorPed = nil
+RegisterNetEvent('prison:client:UpdateVendorSpawn')
+AddEventHandler('prison:client:UpdateVendorSpawn', function(coords)
+    currentVendorCoords = coords
+    if vendorPed and DoesEntityExist(vendorPed) then DeleteEntity(vendorPed) end
+
+    RequestModel(Config.BlackMarket.Model)
+    while not HasModelLoaded(Config.BlackMarket.Model) do Citizen.Wait(10) end
+    vendorPed = CreatePed(4, GetHashKey(Config.BlackMarket.Model), coords.x, coords.y, coords.z - 1.0, coords.w, false, true)
+    FreezeEntityPosition(vendorPed, true)
+    SetEntityInvincible(vendorPed, true)
+    SetBlockingOfNonTemporaryEvents(vendorPed, true)
+    SetPedRelationshipGroupHash(vendorPed, GetHashKey("PRISONER"))
+end)
+
+-- Demander le vendeur au login
+AddEventHandler('playerSpawned', function()
+    TriggerServerEvent('prison:server:RequestVendorSpawn')
+end)
+
+-- Événement de Premier Spawn & Tutoriel
 RegisterNetEvent('prison:client:FirstSpawn')
 AddEventHandler('prison:client:FirstSpawn', function()
     -- On attend que le joueur soit bien sur la map
     Citizen.Wait(2000)
-    SetEntityCoords(PlayerPedId(), Config.ReleaseCoords.x, Config.ReleaseCoords.y, Config.ReleaseCoords.z)
-    TriggerEvent('esx:showNotification', '~b~Bienvenue dans l\'État !~s~ Vous atterrissez près de la prison.')
+
+    -- Création du personnage (ESX Skin)
+    TriggerEvent('esx_skin:openSaveableMenu')
+
+    -- Spawn dans la prison
+    SetEntityCoords(PlayerPedId(), Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
+    TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
+
+    -- Apparition du Guide Tutoriel
+    RequestModel(Config.TutorialPath.Model)
+    while not HasModelLoaded(Config.TutorialPath.Model) do Citizen.Wait(10) end
+    local guidePed = CreatePed(4, GetHashKey(Config.TutorialPath.Model), Config.TutorialPath.SpawnCoord.x + 2.0, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z, 0.0, false, true)
+    SetEntityInvincible(guidePed, true)
+
+    Citizen.CreateThread(function()
+        for i=1, #Config.TutorialPath.Nodes do
+            local node = Config.TutorialPath.Nodes[i]
+            TaskGoStraightToCoord(guidePed, node.coords.x, node.coords.y, node.coords.z, 1.0, -1, 0.0, 0.0)
+
+            -- Attendre que le PNJ arrive au node
+            while #(GetEntityCoords(guidePed) - node.coords) > 2.0 do
+                Citizen.Wait(500)
+            end
+
+            -- Attendre le joueur
+            while #(GetEntityCoords(PlayerPedId()) - node.coords) > 5.0 do
+                TriggerEvent('esx:showNotification', '~r~Le guide vous attend.')
+                Citizen.Wait(2000)
+            end
+
+            TriggerEvent('chat:addMessage', { args = {"Guide", node.text} })
+            Citizen.Wait(5000) -- Temps de lecture
+        end
+
+        TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
+        DeleteEntity(guidePed)
+    end)
 end)
 
 -- Événement d'emprisonnement
@@ -305,8 +408,55 @@ Citizen.CreateThread(function()
             end
         end
 
+        -- Quête Illégale
+        if isJailed and not isWorking then
+            local qdist = #(pedCoords - vector3(Config.QuestNPC.Coords.x, Config.QuestNPC.Coords.y, Config.QuestNPC.Coords.z))
+            if qdist < 3.0 then
+                sleep = false
+                ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour parler')
+                if IsControlJustReleased(0, 38) then
+                    TriggerEvent('chat:addMessage', { args = {"Détenu Louche", Config.QuestNPC.Text} })
+                    TriggerServerEvent('prison:server:CompleteQuest')
+                end
+            end
+        end
+
+        -- Vendeur Illégal
+        if isJailed and not isWorking and currentVendorCoords then
+            local vdist = #(pedCoords - vector3(currentVendorCoords.x, currentVendorCoords.y, currentVendorCoords.z))
+            if vdist < 3.0 then
+                sleep = false
+                ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour voir la marchandise')
+                if IsControlJustReleased(0, 38) then
+                    -- Exemple simple: Acheter le premier item (peut être converti en menu esx_menu_default)
+                    TriggerEvent('chat:addMessage', { args = {"Vendeur", "Achat: " .. Config.BlackMarket.Items[1].label .. " pour " .. Config.BlackMarket.Items[1].price .. "$ (Tape /acheter_illegal 1)"} })
+                end
+            end
+        end
+
+        -- Interaction Gardes Statiques
+        for i=1, #spawnedNPCs do
+            local npcData = spawnedNPCs[i]
+            local gdist = #(pedCoords - GetEntityCoords(npcData.ped))
+            if gdist < 3.0 then
+                sleep = false
+                ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour parler au garde')
+                if IsControlJustReleased(0, 38) then
+                    TriggerEvent('chat:addMessage', { args = {"Garde", npcData.text} })
+                end
+            end
+        end
+
         if sleep then
             Citizen.Wait(1000)
         end
     end
 end)
+
+-- Commande d'achat illégal temporaire
+RegisterCommand('acheter_illegal', function(source, args)
+    if isJailed then
+        local index = tonumber(args[1])
+        if index then TriggerServerEvent('prison:server:BuyBlackMarket', index) end
+    end
+end, false)
