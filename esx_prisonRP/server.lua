@@ -131,40 +131,54 @@ end)
 -- Quête : Échange illégal
 RegisterServerEvent('prison:server:CompleteQuest')
 AddEventHandler('prison:server:CompleteQuest', function()
-    local xPlayer = ESX.GetPlayerFromId(source)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
     if xPlayer then
+        local playerPed = GetPlayerPed(src)
+        local playerCoords = GetEntityCoords(playerPed)
+        local dist = #(playerCoords - vector3(Config.QuestNPC.Coords.x, Config.QuestNPC.Coords.y, Config.QuestNPC.Coords.z))
+
+        if dist > 5.0 then return end -- Sécurité anti-triche
+
         local item = xPlayer.getInventoryItem(Config.QuestNPC.Requirement)
         if item and item.count > 0 then
             xPlayer.removeInventoryItem(Config.QuestNPC.Requirement, 1)
             xPlayer.addInventoryItem(Config.QuestNPC.Reward, 1)
-            TriggerClientEvent('esx:showNotification', source, "Bien joué. Tiens, prends ça.")
+            TriggerClientEvent('esx:showNotification', src, "Bien joué. Tiens, prends ça.")
         else
-            TriggerClientEvent('esx:showNotification', source, "Tu te fous de moi ? Reviens quand tu auras le matos.")
-        end
-    end
-end)
-
--- Achat Vendeur Illégal
-RegisterServerEvent('prison:server:BuyBlackMarket')
-AddEventHandler('prison:server:BuyBlackMarket', function(itemIndex)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if xPlayer then
-        local itemData = Config.BlackMarket.Items[itemIndex]
-        if itemData then
-            local money = xPlayer.getAccount('black_money').money
-            if money >= itemData.price then
-                xPlayer.removeAccountMoney('black_money', itemData.price)
-                xPlayer.addInventoryItem(itemData.item, 1)
-                TriggerClientEvent('esx:showNotification', source, "Transaction réussie.")
-            else
-                TriggerClientEvent('esx:showNotification', source, "~r~Pas assez d'argent sale.")
-            end
+            TriggerClientEvent('esx:showNotification', src, "Tu te fous de moi ? Reviens quand tu auras le matos.")
         end
     end
 end)
 
 -- Gestion du Vendor Spawn Quotidien
 local dailyVendorSpawn = nil
+
+-- Achat Vendeur Illégal
+RegisterServerEvent('prison:server:BuyBlackMarket')
+AddEventHandler('prison:server:BuyBlackMarket', function(itemIndex)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if xPlayer and dailyVendorSpawn then
+        local playerPed = GetPlayerPed(src)
+        local playerCoords = GetEntityCoords(playerPed)
+        local dist = #(playerCoords - vector3(dailyVendorSpawn.x, dailyVendorSpawn.y, dailyVendorSpawn.z))
+
+        if dist > 5.0 then return end -- Sécurité anti-triche
+
+        local itemData = Config.BlackMarket.Items[itemIndex]
+        if itemData then
+            local money = xPlayer.getAccount('black_money').money
+            if money >= itemData.price then
+                xPlayer.removeAccountMoney('black_money', itemData.price)
+                xPlayer.addInventoryItem(itemData.item, 1)
+                TriggerClientEvent('esx:showNotification', src, "Transaction réussie.")
+            else
+                TriggerClientEvent('esx:showNotification', src, "~r~Pas assez d'argent sale.")
+            end
+        end
+    end
+end)
 
 Citizen.CreateThread(function()
     while true do
@@ -184,6 +198,37 @@ AddEventHandler('prison:server:RequestVendorSpawn', function()
     TriggerClientEvent('prison:client:UpdateVendorSpawn', source, dailyVendorSpawn)
 end)
 
+local firstSpawnPlayers = {}
+
+-- Choix initial (Garde ou Prisonnier)
+RegisterServerEvent('prison:server:SetInitialRole')
+AddEventHandler('prison:server:SetInitialRole', function(role)
+    local source = source
+    local xPlayer = ESX.GetPlayerFromId(source)
+
+    if not xPlayer then return end
+
+    -- Sécurité Anti-Triche : le joueur ne peut appeler ça qu'une seule fois
+    if not firstSpawnPlayers[source] then
+        print("[PrisonRP] Le joueur " .. source .. " a tenté de bypass le choix du métier initial.")
+        return
+    end
+    firstSpawnPlayers[source] = nil
+
+    if role == 'garde' then
+        xPlayer.setJob('garde', 0)
+    elseif role == 'prisonnier' then
+        -- 20 mois de prison par défaut
+        MySQL.Async.execute('UPDATE users SET jail_time = 20 WHERE identifier = @identifier', {
+            ['@identifier'] = xPlayer.identifier
+        }, function(rowsChanged)
+            if rowsChanged > 0 then
+                TriggerClientEvent('prison:client:JailPlayer', source, 20, false)
+            end
+        end)
+    end
+end)
+
 -- Vérification à la connexion (remettre en prison si déco/reco, et premier spawn)
 AddEventHandler('esx:playerLoaded', function(source, xPlayer)
     MySQL.Async.fetchAll('SELECT jail_time, first_spawn FROM users WHERE identifier = @identifier', {
@@ -197,8 +242,12 @@ AddEventHandler('esx:playerLoaded', function(source, xPlayer)
             elseif result[1].first_spawn == 1 then
                 MySQL.Async.execute('UPDATE users SET first_spawn = 0 WHERE identifier = @identifier', {
                     ['@identifier'] = xPlayer.identifier
-                })
-                TriggerClientEvent('prison:client:FirstSpawn', source)
+                }, function(rowsChanged)
+                    if rowsChanged > 0 then
+                        firstSpawnPlayers[source] = true
+                        TriggerClientEvent('prison:client:FirstSpawn', source)
+                    end
+                end)
             end
         end
     end)

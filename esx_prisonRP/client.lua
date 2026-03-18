@@ -133,6 +133,14 @@ end)
 
 -- Événement de Premier Spawn
 -- Désactiver les PNJ qui attaquent et la police de GTA
+-- Création des groupes une seule fois au démarrage
+AddRelationshipGroup("PRISONER")
+AddRelationshipGroup("GUARD")
+SetRelationshipBetweenGroups(1, GetHashKey("PRISONER"), GetHashKey("PLAYER"))
+SetRelationshipBetweenGroups(1, GetHashKey("PLAYER"), GetHashKey("PRISONER"))
+SetRelationshipBetweenGroups(1, GetHashKey("GUARD"), GetHashKey("PLAYER"))
+SetRelationshipBetweenGroups(1, GetHashKey("PLAYER"), GetHashKey("GUARD"))
+
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(1000)
@@ -141,14 +149,6 @@ Citizen.CreateThread(function()
             SetPlayerWantedLevel(PlayerId(), 0, false)
             SetPlayerWantedLevelNow(PlayerId(), false)
         end
-
-        -- Empêcher les PNJ de la prison d'attaquer les joueurs
-        AddRelationshipGroup("PRISONER")
-        AddRelationshipGroup("GUARD")
-        SetRelationshipBetweenGroups(1, GetHashKey("PRISONER"), GetHashKey("PLAYER"))
-        SetRelationshipBetweenGroups(1, GetHashKey("PLAYER"), GetHashKey("PRISONER"))
-        SetRelationshipBetweenGroups(1, GetHashKey("GUARD"), GetHashKey("PLAYER"))
-        SetRelationshipBetweenGroups(1, GetHashKey("PLAYER"), GetHashKey("GUARD"))
     end
 end)
 
@@ -242,43 +242,65 @@ AddEventHandler('prison:client:FirstSpawn', function()
     DeleteEntity(copPed)
 
     -- Création du personnage (ESX Skin) APRÈS la cinématique
-    TriggerEvent('esx:showNotification', '~b~Créez votre détenu.~s~')
+    TriggerEvent('esx:showNotification', '~b~Créez votre personnage.~s~')
     TriggerEvent('esx_skin:openSaveableMenu', function()
-        -- Ce callback est appelé quand le joueur a terminé de créer/sauvegarder son personnage.
-        SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
-        TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
+        -- Menu de Choix : Garde ou Prisonnier
+        ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'initial_job_choice', {
+            title    = 'Choix de votre destin',
+            align    = 'center',
+            elements = {
+                {label = 'Devenir Garde Pénitentiaire', value = 'garde'},
+                {label = 'Devenir Prisonnier (20 mois)', value = 'prisonnier'}
+            }
+        }, function(data, menu)
+            menu.close()
+            local choice = data.current.value
 
-        -- Apparition du Guide Tutoriel
-        RequestModel(Config.TutorialPath.Model)
-        while not HasModelLoaded(Config.TutorialPath.Model) do Citizen.Wait(10) end
-        local guidePed = CreatePed(4, GetHashKey(Config.TutorialPath.Model), Config.TutorialPath.SpawnCoord.x + 2.0, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z, 0.0, false, true)
-        SetEntityInvincible(guidePed, true)
+            if choice == 'garde' then
+                TriggerServerEvent('prison:server:SetInitialRole', 'garde')
+                SetEntityCoords(ped, Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
+                TriggerEvent('esx:showNotification', '~g~Vous êtes maintenant Garde Pénitentiaire.~s~')
+            elseif choice == 'prisonnier' then
+                TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
+                SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
+                TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
 
-        Citizen.CreateThread(function()
-            for i=1, #Config.TutorialPath.Nodes do
-                local node = Config.TutorialPath.Nodes[i]
-                TaskGoStraightToCoord(guidePed, node.coords.x, node.coords.y, node.coords.z, 1.0, -1, 0.0, 0.0)
+                -- Apparition du Guide Tutoriel
+                RequestModel(Config.TutorialPath.Model)
+                while not HasModelLoaded(Config.TutorialPath.Model) do Citizen.Wait(10) end
+                local guidePed = CreatePed(4, GetHashKey(Config.TutorialPath.Model), Config.TutorialPath.SpawnCoord.x + 2.0, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z, 0.0, false, true)
+                SetEntityInvincible(guidePed, true)
 
-                -- Attendre que le PNJ arrive au node
-                while #(GetEntityCoords(guidePed) - node.coords) > 2.0 do
-                    Citizen.Wait(500)
-                end
+                Citizen.CreateThread(function()
+                    for i=1, #Config.TutorialPath.Nodes do
+                        local node = Config.TutorialPath.Nodes[i]
+                        TaskGoStraightToCoord(guidePed, node.coords.x, node.coords.y, node.coords.z, 1.0, -1, 0.0, 0.0)
 
-                -- Attendre le joueur
-                while #(GetEntityCoords(PlayerPedId()) - node.coords) > 5.0 do
-                    TriggerEvent('esx:showNotification', '~r~Le guide vous attend.')
-                    Citizen.Wait(2000)
-                end
+                        -- Attendre que le PNJ arrive au node
+                        while #(GetEntityCoords(guidePed) - node.coords) > 2.0 do
+                            Citizen.Wait(500)
+                        end
 
-                TriggerEvent('chat:addMessage', { args = {"Guide", node.text} })
-                Citizen.Wait(5000) -- Temps de lecture
+                        -- Attendre le joueur
+                        while #(GetEntityCoords(PlayerPedId()) - node.coords) > 5.0 do
+                            TriggerEvent('esx:showNotification', '~r~Le guide vous attend.')
+                            Citizen.Wait(2000)
+                        end
+
+                        TriggerEvent('chat:addMessage', { args = {"Guide", node.text} })
+                        Citizen.Wait(5000) -- Temps de lecture
+                    end
+
+                    TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
+                    DeleteEntity(guidePed)
+                end)
             end
-
-            TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
-            DeleteEntity(guidePed)
+        end, function(data, menu)
+            -- Interdire la fermeture du menu tant qu'aucun choix n'est fait
         end)
     end, function()
-        -- Cancel callback
+        -- Si annulation de la création, le forcer en prisonnier par défaut
+        TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
         SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
     end)
 end)
@@ -299,6 +321,8 @@ AddEventHandler('prison:client:JailPlayer', function(time, isLogin)
 
     RemoveAllPedWeapons(ped, true)
     TriggerEvent('esx:showNotification', 'Vous purgez une peine de ' .. jailTime .. ' mois.')
+
+    RefreshBlips()
 
     -- Boucle de prison
     if not wasAlreadyJailed then
@@ -333,6 +357,7 @@ AddEventHandler('prison:client:UnjailPlayer', function()
     jailTime = 0
     SetEntityCoords(PlayerPedId(), Config.ReleaseCoords.x, Config.ReleaseCoords.y, Config.ReleaseCoords.z)
     TriggerEvent('esx:showNotification', 'Vous êtes libre ! Essayez de rester dans le droit chemin.')
+    RefreshBlips()
 end)
 
 -- Actualisation du temps par les travaux
