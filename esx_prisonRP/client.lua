@@ -4,67 +4,106 @@ Citizen.CreateThread(function()
         TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
         Citizen.Wait(10)
     end
+
+    while ESX.GetPlayerData().job == nil do
+        Citizen.Wait(10)
+    end
+    ESX.PlayerData = ESX.GetPlayerData()
+    RefreshBlips()
+end)
+
+RegisterNetEvent('esx:playerLoaded')
+AddEventHandler('esx:playerLoaded', function(xPlayer)
+    ESX.PlayerData = xPlayer
+    RefreshBlips()
 end)
 
 local isJailed = false
 local jailTime = 0
+local createdBlips = {}
 
--- Blip global de la Prison
-Citizen.CreateThread(function()
-    local blip = AddBlipForCoord(Config.PrisonCoords.x, Config.PrisonCoords.y, Config.PrisonCoords.z)
-    SetBlipSprite(blip, 188)
-    SetBlipDisplay(blip, 4)
-    SetBlipScale(blip, 1.0)
-    SetBlipColour(blip, 1)
-    SetBlipAsShortRange(blip, true)
+-- Gestion Dynamique des Blips
+function RefreshBlips()
+    -- Nettoyer les anciens blips
+    for k, blip in pairs(createdBlips) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
+    end
+    createdBlips = {}
+
+    local pedJob = ESX.PlayerData.job and ESX.PlayerData.job.name or 'unemployed'
+
+    -- Blip global de la Prison (Visible pour tout le monde)
+    local mainBlip = AddBlipForCoord(Config.PrisonCoords.x, Config.PrisonCoords.y, Config.PrisonCoords.z)
+    SetBlipSprite(mainBlip, 188)
+    SetBlipDisplay(mainBlip, 4)
+    SetBlipScale(mainBlip, 1.2)
+    SetBlipColour(mainBlip, 1)
+    SetBlipAsShortRange(mainBlip, true)
     BeginTextCommandSetBlipName("STRING")
     AddTextComponentString("Prison d'État")
-    EndTextCommandSetBlipName(blip)
+    EndTextCommandSetBlipName(mainBlip)
+    table.insert(createdBlips, mainBlip)
 
-    -- Blips internes à la prison pour les interactions
-    -- Armurerie Garde
-    local armoryBlip = AddBlipForCoord(Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
-    SetBlipSprite(armoryBlip, 175)
-    SetBlipScale(armoryBlip, 0.6)
-    SetBlipColour(armoryBlip, 38)
-    SetBlipAsShortRange(armoryBlip, true)
-    BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString("Armurerie Garde")
-    EndTextCommandSetBlipName(armoryBlip)
+    -- Blips internes (seulement visibles par Gardes ou Prisonniers)
+    if isJailed or pedJob == Config.Jobs.Garde or pedJob == Config.Jobs.Police then
 
-    -- Infirmerie EMS
-    local infBlip = AddBlipForCoord(Config.Locations.Infirmary.x, Config.Locations.Infirmary.y, Config.Locations.Infirmary.z)
-    SetBlipSprite(infBlip, 153)
-    SetBlipScale(infBlip, 0.6)
-    SetBlipColour(infBlip, 1)
-    SetBlipAsShortRange(infBlip, true)
-    BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString("Infirmerie")
-    EndTextCommandSetBlipName(infBlip)
-
-    -- Coffre Prisonnier
-    local stashBlip = AddBlipForCoord(Config.Locations.PrisonerStash.x, Config.Locations.PrisonerStash.y, Config.Locations.PrisonerStash.z)
-    SetBlipSprite(stashBlip, 50)
-    SetBlipScale(stashBlip, 0.6)
-    SetBlipColour(stashBlip, 5)
-    SetBlipAsShortRange(stashBlip, true)
-    BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString("Effets Personnels")
-    EndTextCommandSetBlipName(stashBlip)
-
-    -- Blips des travaux
-    for jobName, jobData in pairs(Config.PrisonerJobs) do
-        for _, coord in pairs(jobData.Coords) do
-            local jobBlip = AddBlipForCoord(coord.x, coord.y, coord.z)
-            SetBlipSprite(jobBlip, 566)
-            SetBlipScale(jobBlip, 0.5)
-            SetBlipColour(jobBlip, 5)
-            SetBlipAsShortRange(jobBlip, true)
+        -- Armurerie (Uniquement forces de l'ordre)
+        if pedJob == Config.Jobs.Garde or pedJob == Config.Jobs.Police then
+            local armoryBlip = AddBlipForCoord(Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
+            SetBlipSprite(armoryBlip, 175)
+            SetBlipScale(armoryBlip, 0.8)
+            SetBlipColour(armoryBlip, 38)
+            SetBlipAsShortRange(armoryBlip, true)
             BeginTextCommandSetBlipName("STRING")
-            AddTextComponentString("Travail : " .. jobName)
-            EndTextCommandSetBlipName(jobBlip)
+            AddTextComponentString("Armurerie Garde")
+            EndTextCommandSetBlipName(armoryBlip)
+            table.insert(createdBlips, armoryBlip)
+        end
+
+        -- Infirmerie EMS (Visible pour Prisonniers et Forces de l'ordre)
+        local infBlip = AddBlipForCoord(Config.Locations.Infirmary.x, Config.Locations.Infirmary.y, Config.Locations.Infirmary.z)
+        SetBlipSprite(infBlip, 153)
+        SetBlipScale(infBlip, 0.8)
+        SetBlipColour(infBlip, 1)
+        SetBlipAsShortRange(infBlip, true)
+        BeginTextCommandSetBlipName("STRING")
+        AddTextComponentString("Infirmerie")
+        EndTextCommandSetBlipName(infBlip)
+        table.insert(createdBlips, infBlip)
+
+        -- Blips des travaux et Stash (Uniquement Prisonniers)
+        if isJailed then
+            local stashBlip = AddBlipForCoord(Config.Locations.PrisonerStash.x, Config.Locations.PrisonerStash.y, Config.Locations.PrisonerStash.z)
+            SetBlipSprite(stashBlip, 50)
+            SetBlipScale(stashBlip, 0.8)
+            SetBlipColour(stashBlip, 5)
+            SetBlipAsShortRange(stashBlip, true)
+            BeginTextCommandSetBlipName("STRING")
+            AddTextComponentString("Effets Personnels")
+            EndTextCommandSetBlipName(stashBlip)
+            table.insert(createdBlips, stashBlip)
+
+            for jobName, jobData in pairs(Config.PrisonerJobs) do
+                for _, coord in pairs(jobData.Coords) do
+                    local jobBlip = AddBlipForCoord(coord.x, coord.y, coord.z)
+                    SetBlipSprite(jobBlip, 566)
+                    SetBlipScale(jobBlip, 0.8)
+                    SetBlipColour(jobBlip, 5)
+                    SetBlipAsShortRange(jobBlip, true)
+                    BeginTextCommandSetBlipName("STRING")
+                    AddTextComponentString("Travail : " .. jobName)
+                    EndTextCommandSetBlipName(jobBlip)
+                    table.insert(createdBlips, jobBlip)
+                end
+            end
         end
     end
+end
+
+RegisterNetEvent('esx:setJob')
+AddEventHandler('esx:setJob', function(job)
+    ESX.PlayerData.job = job
+    RefreshBlips()
 end)
 
 -- Gestion de la densité des PNJ (Bloqués partout sauf en prison)
@@ -104,6 +143,8 @@ Citizen.CreateThread(function()
         end
 
         -- Empêcher les PNJ de la prison d'attaquer les joueurs
+        AddRelationshipGroup("PRISONER")
+        AddRelationshipGroup("GUARD")
         SetRelationshipBetweenGroups(1, GetHashKey("PRISONER"), GetHashKey("PLAYER"))
         SetRelationshipBetweenGroups(1, GetHashKey("PLAYER"), GetHashKey("PRISONER"))
         SetRelationshipBetweenGroups(1, GetHashKey("GUARD"), GetHashKey("PLAYER"))
@@ -121,7 +162,6 @@ Citizen.CreateThread(function()
         while not HasModelLoaded(v.model) do Citizen.Wait(10) end
         local ped = CreatePed(4, GetHashKey(v.model), v.coords.x, v.coords.y, v.coords.z - 1.0, v.coords.w, false, true)
         SetEntityHeading(ped, v.coords.w)
-        FreezeEntityPosition(ped, true)
         SetEntityInvincible(ped, true)
         SetBlockingOfNonTemporaryEvents(ped, true)
         SetPedRelationshipGroupHash(ped, GetHashKey("GUARD"))
@@ -132,7 +172,6 @@ Citizen.CreateThread(function()
     RequestModel(Config.QuestNPC.Model)
     while not HasModelLoaded(Config.QuestNPC.Model) do Citizen.Wait(10) end
     local qped = CreatePed(4, GetHashKey(Config.QuestNPC.Model), Config.QuestNPC.Coords.x, Config.QuestNPC.Coords.y, Config.QuestNPC.Coords.z - 1.0, Config.QuestNPC.Coords.w, false, true)
-    FreezeEntityPosition(qped, true)
     SetEntityInvincible(qped, true)
     SetBlockingOfNonTemporaryEvents(qped, true)
     SetPedRelationshipGroupHash(qped, GetHashKey("PRISONER"))
@@ -161,60 +200,105 @@ AddEventHandler('playerSpawned', function()
 end)
 
 -- Événement de Premier Spawn & Tutoriel
+-- Événement de Premier Spawn & Tutoriel (Cinématique LSPD)
 RegisterNetEvent('prison:client:FirstSpawn')
 AddEventHandler('prison:client:FirstSpawn', function()
-    -- On attend que le joueur soit bien sur la map
     Citizen.Wait(2000)
+    local ped = PlayerPedId()
 
-    -- Création du personnage (ESX Skin)
-    TriggerEvent('esx_skin:openSaveableMenu')
+    -- Début de la cinématique
+    DoScreenFadeOut(1000)
+    Citizen.Wait(1500)
 
-    -- Spawn dans la prison
-    SetEntityCoords(PlayerPedId(), Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
-    TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
+    -- Spawn de la voiture de police
+    RequestModel(Config.Cutscene.VehicleModel)
+    while not HasModelLoaded(Config.Cutscene.VehicleModel) do Citizen.Wait(10) end
+    local policeCar = CreateVehicle(GetHashKey(Config.Cutscene.VehicleModel), Config.Cutscene.SpawnCar.x, Config.Cutscene.SpawnCar.y, Config.Cutscene.SpawnCar.z, Config.Cutscene.SpawnCar.w, false, false)
 
-    -- Apparition du Guide Tutoriel
-    RequestModel(Config.TutorialPath.Model)
-    while not HasModelLoaded(Config.TutorialPath.Model) do Citizen.Wait(10) end
-    local guidePed = CreatePed(4, GetHashKey(Config.TutorialPath.Model), Config.TutorialPath.SpawnCoord.x + 2.0, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z, 0.0, false, true)
-    SetEntityInvincible(guidePed, true)
+    -- Spawn du policier (conducteur)
+    RequestModel(Config.Cutscene.DriverModel)
+    while not HasModelLoaded(Config.Cutscene.DriverModel) do Citizen.Wait(10) end
+    local copPed = CreatePedInsideVehicle(policeCar, 4, GetHashKey(Config.Cutscene.DriverModel), -1, false, false)
 
-    Citizen.CreateThread(function()
-        for i=1, #Config.TutorialPath.Nodes do
-            local node = Config.TutorialPath.Nodes[i]
-            TaskGoStraightToCoord(guidePed, node.coords.x, node.coords.y, node.coords.z, 1.0, -1, 0.0, 0.0)
+    -- Placer le joueur dans la voiture (menotté)
+    SetPedIntoVehicle(ped, policeCar, 1)
 
-            -- Attendre que le PNJ arrive au node
-            while #(GetEntityCoords(guidePed) - node.coords) > 2.0 do
-                Citizen.Wait(500)
+    DoScreenFadeIn(1000)
+    TriggerEvent('esx:showNotification', '~r~LSPD :~s~ Allez, direction Bolingbroke pour un bon moment.')
+
+    -- Conduire jusqu'au point de drop
+    TaskVehicleDriveToCoordLongrange(copPed, policeCar, Config.Cutscene.DropoffCar.x, Config.Cutscene.DropoffCar.y, Config.Cutscene.DropoffCar.z, 15.0, 2883621, 5.0)
+
+    local driveTimeout = 0
+    while #(GetEntityCoords(policeCar) - vector3(Config.Cutscene.DropoffCar.x, Config.Cutscene.DropoffCar.y, Config.Cutscene.DropoffCar.z)) > 10.0 and driveTimeout < 30 do
+        Citizen.Wait(1000)
+        driveTimeout = driveTimeout + 1
+    end
+
+    -- Fin du trajet
+    TaskLeaveVehicle(ped, policeCar, 0)
+    Citizen.Wait(2000)
+    DeleteVehicle(policeCar)
+    DeleteEntity(copPed)
+
+    -- Création du personnage (ESX Skin) APRÈS la cinématique
+    TriggerEvent('esx:showNotification', '~b~Créez votre détenu.~s~')
+    TriggerEvent('esx_skin:openSaveableMenu', function()
+        -- Ce callback est appelé quand le joueur a terminé de créer/sauvegarder son personnage.
+        SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
+        TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
+
+        -- Apparition du Guide Tutoriel
+        RequestModel(Config.TutorialPath.Model)
+        while not HasModelLoaded(Config.TutorialPath.Model) do Citizen.Wait(10) end
+        local guidePed = CreatePed(4, GetHashKey(Config.TutorialPath.Model), Config.TutorialPath.SpawnCoord.x + 2.0, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z, 0.0, false, true)
+        SetEntityInvincible(guidePed, true)
+
+        Citizen.CreateThread(function()
+            for i=1, #Config.TutorialPath.Nodes do
+                local node = Config.TutorialPath.Nodes[i]
+                TaskGoStraightToCoord(guidePed, node.coords.x, node.coords.y, node.coords.z, 1.0, -1, 0.0, 0.0)
+
+                -- Attendre que le PNJ arrive au node
+                while #(GetEntityCoords(guidePed) - node.coords) > 2.0 do
+                    Citizen.Wait(500)
+                end
+
+                -- Attendre le joueur
+                while #(GetEntityCoords(PlayerPedId()) - node.coords) > 5.0 do
+                    TriggerEvent('esx:showNotification', '~r~Le guide vous attend.')
+                    Citizen.Wait(2000)
+                end
+
+                TriggerEvent('chat:addMessage', { args = {"Guide", node.text} })
+                Citizen.Wait(5000) -- Temps de lecture
             end
 
-            -- Attendre le joueur
-            while #(GetEntityCoords(PlayerPedId()) - node.coords) > 5.0 do
-                TriggerEvent('esx:showNotification', '~r~Le guide vous attend.')
-                Citizen.Wait(2000)
-            end
-
-            TriggerEvent('chat:addMessage', { args = {"Guide", node.text} })
-            Citizen.Wait(5000) -- Temps de lecture
-        end
-
-        TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
-        DeleteEntity(guidePed)
+            TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
+            DeleteEntity(guidePed)
+        end)
+    end, function()
+        -- Cancel callback
+        SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
     end)
 end)
 
 -- Événement d'emprisonnement
 RegisterNetEvent('prison:client:JailPlayer')
-AddEventHandler('prison:client:JailPlayer', function(time)
+AddEventHandler('prison:client:JailPlayer', function(time, isLogin)
     local wasAlreadyJailed = isJailed
     isJailed = true
     jailTime = time
 
-    -- Téléportation en prison et retrait des armes
-    SetEntityCoords(PlayerPedId(), Config.PrisonCoords.x, Config.PrisonCoords.y, Config.PrisonCoords.z)
-    RemoveAllPedWeapons(PlayerPedId(), true)
-    TriggerEvent('esx:showNotification', 'Vous avez été emprisonné pour ' .. jailTime .. ' mois.')
+    local ped = PlayerPedId()
+
+    -- Téléportation en prison si ce n'est pas un login OU si on se connecte hors de la prison
+    if not isLogin or #(GetEntityCoords(ped) - Config.PrisonCoords) > Config.PrisonRadius then
+        SetEntityCoords(ped, Config.PrisonCoords.x, Config.PrisonCoords.y, Config.PrisonCoords.z)
+    end
+
+    RemoveAllPedWeapons(ped, true)
+    TriggerEvent('esx:showNotification', 'Vous purgez une peine de ' .. jailTime .. ' mois.')
 
     -- Boucle de prison
     if not wasAlreadyJailed then

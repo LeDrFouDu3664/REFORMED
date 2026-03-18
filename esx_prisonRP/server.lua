@@ -192,7 +192,7 @@ AddEventHandler('esx:playerLoaded', function(source, xPlayer)
         if result[1] then
             -- Gestion du jail_time existant
             if result[1].jail_time > 0 then
-                TriggerClientEvent('prison:client:JailPlayer', source, result[1].jail_time)
+                TriggerClientEvent('prison:client:JailPlayer', source, result[1].jail_time, true)
             -- Gestion du tout premier spawn (uniquement s'ils ne sont pas déjà en prison)
             elseif result[1].first_spawn == 1 then
                 MySQL.Async.execute('UPDATE users SET first_spawn = 0 WHERE identifier = @identifier', {

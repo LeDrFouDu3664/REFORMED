@@ -83,7 +83,16 @@ Config.GuardNPCs = {
     { model = 's_m_m_prisguard_01', coords = vector4(1679.50, 2512.40, 44.56, 120.0), text = "Respectez l'emploi du temps ou c'est l'isolement." }
 }
 
+-- Cinématique d'arrivée (Trailer LSPD)
+Config.Cutscene = {
+    VehicleModel = 'police3',
+    DriverModel = 's_m_y_cop_01',
+    SpawnCar = vector4(1867.50, 2617.20, 45.50, 180.0), -- Point de spawn de la voiture (Ex: Parking LSPD ou entrée prison)
+    DropoffCar = vector4(1845.50, 2585.80, 45.50, 180.0) -- Point où le joueur est déposé (Bureau des gardes)
+}
+
 -- Système de Vendeur Illégal (Spawn 1 fois/jour)
+-- Tu peux modifier et ajouter autant de points de spawn que tu veux.
 Config.BlackMarket = {
     Model = 'g_m_m_chigoon_01',
     Spawns = {
