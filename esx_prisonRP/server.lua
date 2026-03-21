@@ -13,6 +13,30 @@ end
 
 local playerCooldowns = {}
 
+-- Commande Staff pour définir un job
+RegisterCommand('setjobprison', function(source, args, rawCommand)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer and xPlayer.getGroup() ~= 'user' then
+        local targetId = tonumber(args[1])
+        local jobName = args[2]
+        local grade = tonumber(args[3]) or 0
+
+        if targetId and jobName then
+            local xTarget = ESX.GetPlayerFromId(targetId)
+            if xTarget then
+                xTarget.setJob(jobName, grade)
+                TriggerClientEvent('esx:showNotification', source, '~g~Métier défini avec succès pour ' .. xTarget.getName() .. '.')
+            else
+                TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.')
+            end
+        else
+            TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjobprison [ID] [job] [grade]')
+        end
+    else
+        TriggerClientEvent('esx:showNotification', source, '~r~Vous n\'avez pas la permission.')
+    end
+end, false)
+
 -- Commande pour mettre en prison
 RegisterCommand('jail', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)

@@ -22,6 +22,13 @@ local isJailed = false
 local jailTime = 0
 local createdBlips = {}
 
+-- Initialisation des templates de Chat (Beau Chat)
+Citizen.CreateThread(function()
+    TriggerEvent('chat:addTemplate', 'prison_system', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(255, 69, 0, 0.8); border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5);"><i class="fas fa-bullhorn"></i> <b>{0}</b>: <br>{1}</div>')
+    TriggerEvent('chat:addTemplate', 'prison_guide', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(30, 144, 255, 0.8); border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5);"><i class="fas fa-info-circle"></i> <b>{0}</b>: <br>{1}</div>')
+    TriggerEvent('chat:addTemplate', 'prison_npc', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(128, 128, 128, 0.8); border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5);"><i class="fas fa-user-secret"></i> <b>{0}</b>: <br>{1}</div>')
+end)
+
 -- Gestion Dynamique des Blips
 function RefreshBlips()
     -- Nettoyer les anciens blips
@@ -32,13 +39,13 @@ function RefreshBlips()
 
     local pedJob = ESX.PlayerData.job and ESX.PlayerData.job.name or 'unemployed'
 
-    -- Blip global de la Prison (Visible pour tout le monde)
+    -- Blip global de la Prison (Visible pour tout le monde, paramétré pour être bien visible sur la grande carte)
     local mainBlip = AddBlipForCoord(Config.PrisonCoords.x, Config.PrisonCoords.y, Config.PrisonCoords.z)
     SetBlipSprite(mainBlip, 188)
-    SetBlipDisplay(mainBlip, 4)
-    SetBlipScale(mainBlip, 1.2)
-    SetBlipColour(mainBlip, 1)
-    SetBlipAsShortRange(mainBlip, true)
+    SetBlipDisplay(mainBlip, 4) -- 4 = Rendu sur la minimap ET la carte principale
+    SetBlipScale(mainBlip, 1.5)
+    SetBlipColour(mainBlip, 49) -- Rouge bien visible
+    SetBlipAsShortRange(mainBlip, false) -- Visible de très loin
     BeginTextCommandSetBlipName("STRING")
     AddTextComponentString("Prison d'État")
     EndTextCommandSetBlipName(mainBlip)
@@ -287,7 +294,7 @@ AddEventHandler('prison:client:FirstSpawn', function()
                             Citizen.Wait(2000)
                         end
 
-                        TriggerEvent('chat:addMessage', { args = {"Guide", node.text} })
+                        TriggerEvent('chat:addMessage', { templateId = 'prison_guide', args = {"Guide", node.text} })
                         Citizen.Wait(5000) -- Temps de lecture
                     end
 
@@ -379,9 +386,9 @@ RegisterCommand('emploi_du_temps', function()
             end
         end
         TriggerEvent('chat:addMessage', {
-            color = {255, 165, 0},
+            templateId = 'prison_system',
             multiline = true,
-            args = {"Système", msg}
+            args = {"Horaires de la Prison", msg}
         })
     else
         TriggerEvent('esx:showNotification', 'Vous n\'êtes pas en prison.')
@@ -524,7 +531,7 @@ Citizen.CreateThread(function()
                 sleep = false
                 ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour parler')
                 if IsControlJustReleased(0, 38) then
-                    TriggerEvent('chat:addMessage', { args = {"Détenu Louche", Config.QuestNPC.Text} })
+                    TriggerEvent('chat:addMessage', { templateId = 'prison_npc', args = {"Détenu Louche", Config.QuestNPC.Text} })
                     TriggerServerEvent('prison:server:CompleteQuest')
                 end
             end
@@ -538,7 +545,7 @@ Citizen.CreateThread(function()
                 ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour voir la marchandise')
                 if IsControlJustReleased(0, 38) then
                     -- Exemple simple: Acheter le premier item (peut être converti en menu esx_menu_default)
-                    TriggerEvent('chat:addMessage', { args = {"Vendeur", "Achat: " .. Config.BlackMarket.Items[1].label .. " pour " .. Config.BlackMarket.Items[1].price .. "$ (Tape /acheter_illegal 1)"} })
+                    TriggerEvent('chat:addMessage', { templateId = 'prison_npc', args = {"Vendeur", "Achat: " .. Config.BlackMarket.Items[1].label .. " pour " .. Config.BlackMarket.Items[1].price .. "$ (Tape /acheter_illegal 1)"} })
                 end
             end
         end
@@ -551,7 +558,7 @@ Citizen.CreateThread(function()
                 sleep = false
                 ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour parler au garde')
                 if IsControlJustReleased(0, 38) then
-                    TriggerEvent('chat:addMessage', { args = {"Garde", npcData.text} })
+                    TriggerEvent('chat:addMessage', { templateId = 'prison_npc', args = {"Garde", npcData.text} })
                 end
             end
         end
