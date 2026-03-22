@@ -23,10 +23,32 @@ local jailTime = 0
 local createdBlips = {}
 
 -- Initialisation des templates de Chat (Beau Chat)
+-- Initialisation des templates de Chat (Beau Chat Réaliste)
 Citizen.CreateThread(function()
-    TriggerEvent('chat:addTemplate', 'prison_system', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(255, 69, 0, 0.8); border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5);"><i class="fas fa-bullhorn"></i> <b>{0}</b>: <br>{1}</div>')
-    TriggerEvent('chat:addTemplate', 'prison_guide', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(30, 144, 255, 0.8); border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5);"><i class="fas fa-info-circle"></i> <b>{0}</b>: <br>{1}</div>')
-    TriggerEvent('chat:addTemplate', 'prison_npc', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(128, 128, 128, 0.8); border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.5);"><i class="fas fa-user-secret"></i> <b>{0}</b>: <br>{1}</div>')
+    -- Haut-parleur / Interphone de la prison (Système)
+    TriggerEvent('chat:addTemplate', 'prison_system', '<div style="padding: 0.6vw; margin: 0.5vw; background: linear-gradient(90deg, rgba(139,0,0,0.9) 0%, rgba(205,92,92,0.8) 100%); border-left: 5px solid darkred; border-radius: 4px; color: white; font-family: Courier New, monospace; text-transform: uppercase;"><i class="fas fa-volume-up"></i> [HAUT-PARLEUR] {0}<br><span style="font-size: 0.9em; opacity: 0.9;">{1}</span></div>')
+
+    -- Radio / Talkie-Walkie des Gardes
+    TriggerEvent('chat:addTemplate', 'prison_radio', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(47,79,79,0.9); border-left: 5px solid lightblue; border-radius: 4px; color: white; font-family: Tahoma, sans-serif;"><i class="fas fa-broadcast-tower"></i> [RADIO PÉNITENTIAIRE] {0}: {1}</div>')
+
+    -- Discussion PNJ / Guide
+    TriggerEvent('chat:addTemplate', 'prison_guide', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(255,215,0,0.2); border-bottom: 2px solid gold; border-radius: 4px; color: white; font-style: italic;"><i class="fas fa-user-circle"></i> {0} murmure : "{1}"</div>')
+
+    TriggerEvent('chat:addTemplate', 'prison_npc', '<div style="padding: 0.5vw; margin: 0.5vw; background-color: rgba(0,0,0,0.6); border: 1px solid gray; border-radius: 4px; color: lightgray;"><i class="fas fa-mask"></i> {0} : {1}</div>')
+end)
+
+local isLockdown = false
+RegisterNetEvent('prison:client:SetLockdown')
+AddEventHandler('prison:client:SetLockdown', function(state)
+    isLockdown = state
+    if isLockdown then
+        TriggerEvent('chat:addMessage', { templateId = 'prison_system', args = {"SÉCURITÉ MAXIMUM", "LOCKDOWN INITIÉ. TOUS LES DÉTENUS DOIVENT RETOURNER DANS LEURS CELLULES IMMÉDIATEMENT."} })
+        PlaySoundFrontend(-1, "ALARM_TEXT", "DLC_PROLOGUE_ALARM_SOUNDS", true)
+        SetTimecycleModifier('NG_filmic02')
+    else
+        TriggerEvent('chat:addMessage', { templateId = 'prison_system', args = {"SÉCURITÉ", "FIN DU LOCKDOWN. RETOUR À LA NORMALE."} })
+        ClearTimecycleModifier()
+    end
 end)
 
 -- Gestion Dynamique des Blips
@@ -472,6 +494,16 @@ Citizen.CreateThread(function()
                         TriggerServerEvent('prison:server:GiveGuardWeapons')
                         TriggerEvent('esx:showNotification', 'Vous avez récupéré votre équipement de garde.')
                     end
+                end
+            end
+
+            -- Fouille d'un joueur proche (Gardes)
+            if IsControlJustReleased(0, 47) then -- Touche G (Exemple)
+                local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+                if closestPlayer ~= -1 and closestDistance < 2.0 then
+                    TriggerServerEvent('prison:server:SearchPlayer', GetPlayerServerId(closestPlayer))
+                else
+                    TriggerEvent('esx:showNotification', '~r~Personne à proximité.')
                 end
             end
         end

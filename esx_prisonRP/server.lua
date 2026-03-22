@@ -13,6 +13,36 @@ end
 
 local playerCooldowns = {}
 
+-- Commande Lockdown
+local isLockdownActive = false
+RegisterCommand('prisonlockdown', function(source, args, rawCommand)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer and (xPlayer.job.name == Config.Jobs.Garde or xPlayer.job.name == Config.Jobs.Police) then
+        isLockdownActive = not isLockdownActive
+        TriggerClientEvent('prison:client:SetLockdown', -1, isLockdownActive)
+
+        -- Si ox_inventory, on pourrait aussi lock le stash.
+    else
+        TriggerClientEvent('esx:showNotification', source, '~r~Seuls les gardes et la police peuvent initier un confinement.')
+    end
+end, false)
+
+-- Fouille de joueur (ox_inventory)
+RegisterServerEvent('prison:server:SearchPlayer')
+AddEventHandler('prison:server:SearchPlayer', function(targetId)
+    local source = source
+    local xPlayer = ESX.GetPlayerFromId(source)
+    local xTarget = ESX.GetPlayerFromId(targetId)
+
+    if xPlayer and xTarget and xPlayer.job.name == Config.Jobs.Garde then
+        if Config.InventorySystem == 'ox_inventory' then
+            exports.ox_inventory:forceOpenInventory(source, 'player', targetId)
+        else
+            TriggerClientEvent('esx:showNotification', source, '~r~Système ESX par défaut non supporté pour cette fouille avancée. Utilisez ox_inventory.')
+        end
+    end
+end)
+
 -- Commande Staff pour définir un job
 RegisterCommand('setjobprison', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)
