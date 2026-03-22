@@ -13,6 +13,32 @@ end
 
 local playerCooldowns = {}
 
+-- Helper Function : Vérifier si un joueur est Staff (ESX Group ou ID Discord)
+function IsPlayerStaff(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return false end
+
+    -- Vérification du groupe ESX
+    if xPlayer.getGroup() ~= 'user' then
+        return true
+    end
+
+    -- Vérification de l'ID Discord
+    for i = 0, GetNumPlayerIdentifiers(source) - 1 do
+        local identifier = GetPlayerIdentifier(source, i)
+        if string.find(identifier, "discord:") then
+            local discordId = string.gsub(identifier, "discord:", "")
+            for _, allowedId in ipairs(Config.StaffDiscordIDs) do
+                if discordId == allowedId then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
 -- Commande Lockdown
 local isLockdownActive = false
 RegisterCommand('prisonlockdown', function(source, args, rawCommand)
@@ -51,8 +77,7 @@ end)
 
 -- Commande Character Kill (CK) / Suppression de personnage
 RegisterCommand('ck', function(source, args, rawCommand)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if xPlayer and xPlayer.getGroup() ~= 'user' then
+    if IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
 
         if targetId then
@@ -82,8 +107,7 @@ end, false)
 
 -- Commande Staff pour définir un job
 RegisterCommand('setjobprison', function(source, args, rawCommand)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if xPlayer and xPlayer.getGroup() ~= 'user' then
+    if IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
         local jobName = args[2]
         local grade = tonumber(args[3]) or 0

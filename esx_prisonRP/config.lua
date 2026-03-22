@@ -1,5 +1,12 @@
 Config = {}
 
+-- Liste des ID Discord du Staff (Permet l'accès aux commandes /ck, /setjobprison, etc.)
+-- Mettez uniquement les IDs (ex: "123456789012345678"). Le bot Discord doit être lié au serveur FiveM pour que ça marche.
+Config.StaffDiscordIDs = {
+    "VOTRE_ID_DISCORD_ICI",
+    "UN_AUTRE_ID_ICI"
+}
+
 -- Bolingbroke Penitentiary
 Config.PrisonCoords = vector3(1677.233, 2509.694, 45.565)
 Config.PrisonRadius = 150.0 -- Rayon avant que le joueur soit téléporté s'il s'échappe
