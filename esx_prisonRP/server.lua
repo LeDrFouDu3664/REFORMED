@@ -43,6 +43,37 @@ AddEventHandler('prison:server:SearchPlayer', function(targetId)
     end
 end)
 
+-- Commande Character Kill (CK) / Suppression de personnage
+RegisterCommand('ck', function(source, args, rawCommand)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer and xPlayer.getGroup() ~= 'user' then
+        local targetId = tonumber(args[1])
+
+        if targetId then
+            local xTarget = ESX.GetPlayerFromId(targetId)
+            if xTarget then
+                local identifier = xTarget.identifier
+                xTarget.kick("Votre personnage a été supprimé suite à une Mort RP (CK).")
+
+                -- Suppression complète des données (Adaptable selon les tables de votre BDD)
+                MySQL.Async.execute('DELETE FROM users WHERE identifier = @identifier', { ['@identifier'] = identifier })
+                MySQL.Async.execute('DELETE FROM owned_vehicles WHERE owner = @identifier', { ['@identifier'] = identifier })
+                MySQL.Async.execute('DELETE FROM addon_account_data WHERE owner = @identifier', { ['@identifier'] = identifier })
+                MySQL.Async.execute('DELETE FROM addon_inventory_items WHERE owner = @identifier', { ['@identifier'] = identifier })
+                MySQL.Async.execute('DELETE FROM datastore_data WHERE owner = @identifier', { ['@identifier'] = identifier })
+
+                TriggerClientEvent('esx:showNotification', source, '~g~Personnage CK avec succès pour l\'ID ' .. targetId)
+            else
+                TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.')
+            end
+        else
+            TriggerClientEvent('esx:showNotification', source, '~y~Usage: /ck [ID]')
+        end
+    else
+        TriggerClientEvent('esx:showNotification', source, '~r~Vous n\'avez pas la permission.')
+    end
+end, false)
+
 -- Commande Staff pour définir un job
 RegisterCommand('setjobprison', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)

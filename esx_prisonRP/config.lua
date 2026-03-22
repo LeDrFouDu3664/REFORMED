@@ -133,10 +133,16 @@ Config.QuestNPC = {
     Reward = 'WEAPON_KNIFE'
 }
 
+-- Accueil et Choix de Rôle (Après cinématique)
+Config.ReceptionGuard = {
+    Model = 's_m_m_prisguard_01',
+    Coords = vector4(1855.93, 2601.95, 44.32, 270.0), -- Entrée de la prison (devant le portail)
+    Text = "Prends le temps de t'habiller (création de perso). Viens me parler quand t'es prêt pour ton affection."
+}
+
 -- Programmation du Chemin du Tutoriel (Guide PNJ)
 Config.TutorialPath = {
     Model = 'u_m_y_prisoner_01',
-    SpawnCoord = vector4(1855.93, 2601.95, 44.32, 270.0), -- Début (Entrée)
     Nodes = {
         { coords = vector3(1840.00, 2585.00, 45.56), text = "Voici le bureau des gardes. Reste loin si tu veux éviter les coups." },
         { coords = vector3(1770.00, 2570.00, 45.56), text = "Ici c'est l'infirmerie. Pratique quand on se fait planter." },

@@ -249,6 +249,74 @@ AddEventHandler('playerSpawned', function()
 end)
 
 -- Événement de Premier Spawn & Tutoriel
+local waitingForRoleChoice = false
+local receptionPed = nil
+
+-- Fonction pour démarrer le tutoriel après avoir choisi "Prisonnier"
+function StartPrisonerTutorial(ped)
+    SetEntityCoords(ped, Config.ReceptionGuard.Coords.x, Config.ReceptionGuard.Coords.y, Config.ReceptionGuard.Coords.z)
+    TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
+
+    -- Apparition du Guide Tutoriel
+    RequestModel(Config.TutorialPath.Model)
+    while not HasModelLoaded(Config.TutorialPath.Model) do Citizen.Wait(10) end
+    local guidePed = CreatePed(4, GetHashKey(Config.TutorialPath.Model), Config.ReceptionGuard.Coords.x + 2.0, Config.ReceptionGuard.Coords.y, Config.ReceptionGuard.Coords.z, 0.0, false, true)
+    SetEntityInvincible(guidePed, true)
+
+    Citizen.CreateThread(function()
+        for i=1, #Config.TutorialPath.Nodes do
+            local node = Config.TutorialPath.Nodes[i]
+            TaskGoStraightToCoord(guidePed, node.coords.x, node.coords.y, node.coords.z, 1.0, -1, 0.0, 0.0)
+
+            -- Attendre que le PNJ arrive au node
+            while #(GetEntityCoords(guidePed) - node.coords) > 2.0 do
+                Citizen.Wait(500)
+            end
+
+            -- Attendre le joueur
+            while #(GetEntityCoords(PlayerPedId()) - node.coords) > 5.0 do
+                TriggerEvent('esx:showNotification', '~r~Le guide vous attend.')
+                Citizen.Wait(2000)
+            end
+
+            TriggerEvent('chat:addMessage', { templateId = 'prison_guide', args = {"Guide", node.text} })
+            Citizen.Wait(5000) -- Temps de lecture
+        end
+
+        TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
+        DeleteEntity(guidePed)
+    end)
+end
+
+-- Fonction pour le choix de rôle
+function OpenRoleChoiceMenu(ped)
+    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'initial_job_choice', {
+        title    = 'Choix de votre destin',
+        align    = 'center',
+        elements = {
+            {label = 'Devenir Garde Pénitentiaire', value = 'garde'},
+            {label = 'Devenir Prisonnier (20 mois)', value = 'prisonnier'}
+        }
+    }, function(data, menu)
+        menu.close()
+        local choice = data.current.value
+
+        waitingForRoleChoice = false
+        if receptionPed and DoesEntityExist(receptionPed) then DeleteEntity(receptionPed) end
+
+        if choice == 'garde' then
+            TriggerServerEvent('prison:server:SetInitialRole', 'garde')
+            SetEntityCoords(ped, Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
+            TriggerEvent('esx:showNotification', '~g~Vous êtes maintenant Garde Pénitentiaire.~s~')
+        elseif choice == 'prisonnier' then
+            TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
+            StartPrisonerTutorial(ped)
+        end
+    end, function(data, menu)
+        -- Empêche de fermer avec Échap
+    end)
+end
+
 -- Événement de Premier Spawn & Tutoriel (Cinématique LSPD)
 RegisterNetEvent('prison:client:FirstSpawn')
 AddEventHandler('prison:client:FirstSpawn', function()
@@ -286,72 +354,28 @@ AddEventHandler('prison:client:FirstSpawn', function()
 
     -- Fin du trajet
     TaskLeaveVehicle(ped, policeCar, 0)
+    SetEntityCoords(ped, Config.ReceptionGuard.Coords.x, Config.ReceptionGuard.Coords.y, Config.ReceptionGuard.Coords.z)
     Citizen.Wait(2000)
     DeleteVehicle(policeCar)
     DeleteEntity(copPed)
 
+    -- Spawn du Garde d'Accueil
+    RequestModel(Config.ReceptionGuard.Model)
+    while not HasModelLoaded(Config.ReceptionGuard.Model) do Citizen.Wait(10) end
+    receptionPed = CreatePed(4, GetHashKey(Config.ReceptionGuard.Model), Config.ReceptionGuard.Coords.x, Config.ReceptionGuard.Coords.y, Config.ReceptionGuard.Coords.z - 1.0, Config.ReceptionGuard.Coords.w, false, true)
+    SetEntityInvincible(receptionPed, true)
+    SetBlockingOfNonTemporaryEvents(receptionPed, true)
+
     -- Création du personnage (ESX Skin) APRÈS la cinématique
     TriggerEvent('esx:showNotification', '~b~Créez votre personnage.~s~')
-    TriggerEvent('esx_skin:openSaveableMenu', function()
-        -- Menu de Choix : Garde ou Prisonnier
-        ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'initial_job_choice', {
-            title    = 'Choix de votre destin',
-            align    = 'center',
-            elements = {
-                {label = 'Devenir Garde Pénitentiaire', value = 'garde'},
-                {label = 'Devenir Prisonnier (20 mois)', value = 'prisonnier'}
-            }
-        }, function(data, menu)
-            menu.close()
-            local choice = data.current.value
 
-            if choice == 'garde' then
-                TriggerServerEvent('prison:server:SetInitialRole', 'garde')
-                SetEntityCoords(ped, Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
-                TriggerEvent('esx:showNotification', '~g~Vous êtes maintenant Garde Pénitentiaire.~s~')
-            elseif choice == 'prisonnier' then
-                TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
-                SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
-                TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
+    -- On ouvre le menu, on laisse le joueur le configurer.
+    -- esx_skin ferme le menu de lui-même à la fin. On n'attend pas de callback ici pour éviter les bugs.
+    TriggerEvent('esx_skin:openSaveableMenu')
 
-                -- Apparition du Guide Tutoriel
-                RequestModel(Config.TutorialPath.Model)
-                while not HasModelLoaded(Config.TutorialPath.Model) do Citizen.Wait(10) end
-                local guidePed = CreatePed(4, GetHashKey(Config.TutorialPath.Model), Config.TutorialPath.SpawnCoord.x + 2.0, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z, 0.0, false, true)
-                SetEntityInvincible(guidePed, true)
-
-                Citizen.CreateThread(function()
-                    for i=1, #Config.TutorialPath.Nodes do
-                        local node = Config.TutorialPath.Nodes[i]
-                        TaskGoStraightToCoord(guidePed, node.coords.x, node.coords.y, node.coords.z, 1.0, -1, 0.0, 0.0)
-
-                        -- Attendre que le PNJ arrive au node
-                        while #(GetEntityCoords(guidePed) - node.coords) > 2.0 do
-                            Citizen.Wait(500)
-                        end
-
-                        -- Attendre le joueur
-                        while #(GetEntityCoords(PlayerPedId()) - node.coords) > 5.0 do
-                            TriggerEvent('esx:showNotification', '~r~Le guide vous attend.')
-                            Citizen.Wait(2000)
-                        end
-
-                        TriggerEvent('chat:addMessage', { templateId = 'prison_guide', args = {"Guide", node.text} })
-                        Citizen.Wait(5000) -- Temps de lecture
-                    end
-
-                    TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
-                    DeleteEntity(guidePed)
-                end)
-            end
-        end, function(data, menu)
-            -- Interdire la fermeture du menu tant qu'aucun choix n'est fait
-        end)
-    end, function()
-        -- Si annulation de la création, le forcer en prisonnier par défaut
-        TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
-        SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
-    end)
+    -- On informe le joueur d'aller voir le garde une fois fini
+    TriggerEvent('chat:addMessage', { templateId = 'prison_npc', args = {"Garde d'Accueil", Config.ReceptionGuard.Text} })
+    waitingForRoleChoice = true
 end)
 
 -- Événement d'emprisonnement
@@ -677,6 +701,18 @@ Citizen.CreateThread(function()
                 ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour parler au garde')
                 if IsControlJustReleased(0, 38) then
                     TriggerEvent('chat:addMessage', { templateId = 'prison_npc', args = {"Garde", npcData.text} })
+                end
+            end
+        end
+
+        -- Interaction Garde d'Accueil (Tutoriel)
+        if waitingForRoleChoice and receptionPed then
+            local rdist = #(pedCoords - GetEntityCoords(receptionPed))
+            if rdist < 3.0 then
+                sleep = false
+                ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour choisir votre rôle')
+                if IsControlJustReleased(0, 38) then
+                    OpenRoleChoiceMenu(PlayerPedId())
                 end
             end
         end
