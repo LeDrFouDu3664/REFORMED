@@ -16,7 +16,24 @@ Config.InventorySystem = 'ox_inventory' -- 'esx' ou 'ox_inventory'
 Config.Locations = {
     Armory = vector3(1834.78, 2589.67, 46.01), -- Armurerie des gardes
     Infirmary = vector3(1769.75, 2568.16, 45.72), -- Infirmerie pour les EMS
-    PrisonerStash = vector3(1705.50, 2555.30, 45.56) -- Boîte d'effets personnels pour les prisonniers
+    PrisonerStash = vector3(1705.50, 2555.30, 45.56), -- Boîte d'effets personnels pour les prisonniers
+    Canteen = vector3(1722.50, 2561.30, 45.56), -- Endroit pour prendre à manger
+    Gym = vector3(1641.50, 2527.30, 45.56) -- Salle de musculation
+}
+
+-- Système d'Évasion
+Config.Escape = {
+    StartCoords = vector3(1703.10, 2465.20, 45.56), -- Point d'évasion (Ex: grille cassée ou tunnel)
+    ExitCoords = vector3(1740.10, 2445.20, 45.56),  -- Point d'arrivée après évasion (De l'autre côté du mur)
+    RequiredItem = 'lockpick', -- Objet requis pour s'échapper
+    Duration = 15000, -- Durée du crochetage/minage en ms
+    PoliceAlert = "ALERTE SÉCURITÉ : UN DÉTENU EST EN TRAIN DE S'ÉCHAPPER DU PÉNITENCIER !"
+}
+
+-- Système de Cantine (Nourriture donnée)
+Config.CanteenItems = {
+    Food = { item = 'bread', count = 1 },
+    Drink = { item = 'water', count = 1 }
 }
 
 -- Emploi du temps des prisonniers (Heures in-game 0-23)

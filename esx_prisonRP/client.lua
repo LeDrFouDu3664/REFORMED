@@ -112,6 +112,26 @@ function RefreshBlips()
             EndTextCommandSetBlipName(stashBlip)
             table.insert(createdBlips, stashBlip)
 
+            local canteenBlip = AddBlipForCoord(Config.Locations.Canteen.x, Config.Locations.Canteen.y, Config.Locations.Canteen.z)
+            SetBlipSprite(canteenBlip, 280)
+            SetBlipScale(canteenBlip, 0.8)
+            SetBlipColour(canteenBlip, 2)
+            SetBlipAsShortRange(canteenBlip, true)
+            BeginTextCommandSetBlipName("STRING")
+            AddTextComponentString("Cantine")
+            EndTextCommandSetBlipName(canteenBlip)
+            table.insert(createdBlips, canteenBlip)
+
+            local gymBlip = AddBlipForCoord(Config.Locations.Gym.x, Config.Locations.Gym.y, Config.Locations.Gym.z)
+            SetBlipSprite(gymBlip, 311)
+            SetBlipScale(gymBlip, 0.8)
+            SetBlipColour(gymBlip, 5)
+            SetBlipAsShortRange(gymBlip, true)
+            BeginTextCommandSetBlipName("STRING")
+            AddTextComponentString("Salle de Sport")
+            EndTextCommandSetBlipName(gymBlip)
+            table.insert(createdBlips, gymBlip)
+
             for jobName, jobData in pairs(Config.PrisonerJobs) do
                 for _, coord in pairs(jobData.Coords) do
                     local jobBlip = AddBlipForCoord(coord.x, coord.y, coord.z)
@@ -465,6 +485,33 @@ function StartPrisonWork(jobName)
     isWorking = false
 end
 
+-- Animation et process d'Évasion
+RegisterNetEvent('prison:client:StartEscape')
+AddEventHandler('prison:client:StartEscape', function()
+    if isWorking then return end
+    isWorking = true
+
+    local ped = PlayerPedId()
+    TaskStartScenarioInPlace(ped, "WORLD_HUMAN_WELDING", 0, true)
+    TriggerEvent('esx:showNotification', '~y~Vous tentez de forcer le passage...')
+
+    -- Attendre la durée configurée
+    Citizen.Wait(Config.Escape.Duration)
+
+    ClearPedTasksImmediately(ped)
+    isWorking = false
+    TriggerServerEvent('prison:server:CompleteEscape')
+end)
+
+RegisterNetEvent('prison:client:EscapeSuccess')
+AddEventHandler('prison:client:EscapeSuccess', function()
+    isJailed = false
+    jailTime = 0
+    SetEntityCoords(PlayerPedId(), Config.Escape.ExitCoords.x, Config.Escape.ExitCoords.y, Config.Escape.ExitCoords.z)
+    TriggerEvent('esx:showNotification', '~r~Vous vous êtes échappé ! Courez !')
+    RefreshBlips()
+end)
+
 -- Fonction pour ouvrir le coffre de prison
 function OpenPrisonStash()
     if Config.InventorySystem == 'ox_inventory' then
@@ -551,6 +598,45 @@ Citizen.CreateThread(function()
                     ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour ouvrir vos effets personnels')
                     if IsControlJustReleased(0, 38) then
                         OpenPrisonStash()
+                    end
+                end
+            end
+
+            -- Cantine
+            local canteenDist = #(pedCoords - Config.Locations.Canteen)
+            if canteenDist < 10.0 then
+                sleep = false
+                DrawMarker(20, Config.Locations.Canteen.x, Config.Locations.Canteen.y, Config.Locations.Canteen.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 255, 255, 255, 100, false, true, 2, false, nil, nil, false)
+                if canteenDist < 1.5 then
+                    ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour récupérer un plateau repas')
+                    if IsControlJustReleased(0, 38) then
+                        TriggerServerEvent('prison:server:GetFood')
+                    end
+                end
+            end
+
+            -- Gym (Musculation Libre)
+            local gymDist = #(pedCoords - Config.Locations.Gym)
+            if gymDist < 10.0 then
+                sleep = false
+                DrawMarker(20, Config.Locations.Gym.x, Config.Locations.Gym.y, Config.Locations.Gym.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 100, 100, 255, 100, false, true, 2, false, nil, nil, false)
+                if gymDist < 1.5 then
+                    ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour vous muscler')
+                    if IsControlJustReleased(0, 38) then
+                        StartPrisonWork('Workout') -- Utilise l'anim de gym définie dans le job
+                    end
+                end
+            end
+
+            -- Point d'Évasion
+            local escDist = #(pedCoords - Config.Escape.StartCoords)
+            if escDist < 10.0 then
+                sleep = false
+                DrawMarker(1, Config.Escape.StartCoords.x, Config.Escape.StartCoords.y, Config.Escape.StartCoords.z - 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 255, 0, 0, 100, false, false, 2, false, nil, nil, false)
+                if escDist < 1.5 then
+                    ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour forcer la sortie')
+                    if IsControlJustReleased(0, 38) then
+                        TriggerServerEvent('prison:server:AttemptEscape')
                     end
                 end
             end

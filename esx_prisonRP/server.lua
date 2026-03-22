@@ -208,6 +208,82 @@ end)
 -- Gestion du Vendor Spawn Quotidien
 local dailyVendorSpawn = nil
 
+-- Cantine : Récupérer son plateau repas
+local canteenCooldowns = {}
+RegisterServerEvent('prison:server:GetFood')
+AddEventHandler('prison:server:GetFood', function()
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return end
+
+    local currentTime = os.time()
+    if canteenCooldowns[src] and (currentTime - canteenCooldowns[src]) < 300 then
+        TriggerClientEvent('esx:showNotification', src, "~r~Vous avez déjà mangé. Attendez un peu.")
+        return
+    end
+
+    canteenCooldowns[src] = currentTime
+    xPlayer.addInventoryItem(Config.CanteenItems.Food.item, Config.CanteenItems.Food.count)
+    xPlayer.addInventoryItem(Config.CanteenItems.Drink.item, Config.CanteenItems.Drink.count)
+    TriggerClientEvent('esx:showNotification', src, "~g~Vous avez reçu un plateau repas.")
+end)
+
+-- Évasion de la Prison
+RegisterServerEvent('prison:server:AttemptEscape')
+AddEventHandler('prison:server:AttemptEscape', function()
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return end
+
+    local requiredItem = xPlayer.getInventoryItem(Config.Escape.RequiredItem)
+    if requiredItem and requiredItem.count > 0 then
+        -- Si l'item existe, on lance le process côté client
+        TriggerClientEvent('prison:client:StartEscape', src)
+    else
+        TriggerClientEvent('esx:showNotification', src, "~r~Il vous faut un outil pour forcer le passage (" .. Config.Escape.RequiredItem .. ").")
+    end
+end)
+
+RegisterServerEvent('prison:server:CompleteEscape')
+AddEventHandler('prison:server:CompleteEscape', function()
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return end
+
+    local playerPed = GetPlayerPed(src)
+    local playerCoords = GetEntityCoords(playerPed)
+    local dist = #(playerCoords - Config.Escape.StartCoords)
+
+    if dist > 5.0 then return end -- Sécurité anti-triche
+
+    local requiredItem = xPlayer.getInventoryItem(Config.Escape.RequiredItem)
+    if requiredItem and requiredItem.count > 0 then
+        -- Supprimer l'item (ex: lockpick cassé) avec une chance ou systématiquement
+        xPlayer.removeInventoryItem(Config.Escape.RequiredItem, 1)
+
+        -- Mettre à jour la DB pour dire qu'il n'est plus en prison physiquement (mais il est en cavale)
+        -- Si vous avez un script de "wanted", vous pouvez l'ajouter ici.
+        MySQL.Async.execute('UPDATE users SET jail_time = 0 WHERE identifier = @identifier', {
+            ['@identifier'] = xPlayer.identifier
+        })
+
+        -- Alerter la police et les gardes
+        local xPlayers = ESX.GetExtendedPlayers('job', Config.Jobs.Police)
+        local xGuards = ESX.GetExtendedPlayers('job', Config.Jobs.Garde)
+
+        local alertMsg = Config.Escape.PoliceAlert
+        for _, xPol in ipairs(xPlayers) do
+            TriggerClientEvent('chat:addMessage', xPol.source, { templateId = 'prison_system', args = {"ALERTE", alertMsg} })
+        end
+        for _, xGd in ipairs(xGuards) do
+            TriggerClientEvent('chat:addMessage', xGd.source, { templateId = 'prison_system', args = {"ALERTE", alertMsg} })
+        end
+
+        -- Confirmer l'évasion au joueur
+        TriggerClientEvent('prison:client:EscapeSuccess', src)
+    end
+end)
+
 -- Achat Vendeur Illégal
 RegisterServerEvent('prison:server:BuyBlackMarket')
 AddEventHandler('prison:server:BuyBlackMarket', function(itemIndex)
