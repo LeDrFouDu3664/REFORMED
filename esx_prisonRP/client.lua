@@ -20,6 +20,7 @@ end)
 
 local isJailed = false
 local jailTime = 0
+local isTutorialActive = false
 local createdBlips = {}
 
 -- Initialisation des templates de Chat (Beau Chat)
@@ -254,6 +255,7 @@ local receptionPed = nil
 
 -- Fonction pour démarrer le tutoriel après avoir choisi "Prisonnier"
 function StartPrisonerTutorial(ped)
+    isTutorialActive = true
     SetEntityCoords(ped, Config.ReceptionGuard.Coords.x, Config.ReceptionGuard.Coords.y, Config.ReceptionGuard.Coords.z)
     TriggerEvent('esx:showNotification', '~b~Tutoriel de la Prison~s~\nSuivez le guide pour comprendre votre nouvelle vie.')
 
@@ -285,6 +287,7 @@ function StartPrisonerTutorial(ped)
 
         TriggerEvent('esx:showNotification', 'Fin du tutoriel. Bienvenue en enfer.')
         DeleteEntity(guidePed)
+        isTutorialActive = false
     end)
 end
 
@@ -397,23 +400,23 @@ AddEventHandler('prison:client:JailPlayer', function(time, isLogin)
 
     RefreshBlips()
 
-    -- Boucle de prison
+    -- Boucle de prison (Peine Permanente / Fédérale)
+    -- Le jailTime ne diminue plus naturellement. Le joueur doit être sorti par un garde ou s'évader.
     if not wasAlreadyJailed then
         Citizen.CreateThread(function()
             while isJailed do
                 Citizen.Wait(1000)
-                jailTime = jailTime - 1
 
                 local pedCoords = GetEntityCoords(PlayerPedId())
                 local dist = #(pedCoords - Config.PrisonCoords)
 
-                -- Anti-évasion
-                if dist > Config.PrisonRadius then
+                -- Anti-évasion magique (suspendu pendant le tuto)
+                if not isTutorialActive and dist > Config.PrisonRadius then
                     SetEntityCoords(PlayerPedId(), Config.PrisonCoords.x, Config.PrisonCoords.y, Config.PrisonCoords.z)
-                    TriggerEvent('esx:showNotification', 'Vous ne pouvez pas vous échapper !')
+                    TriggerEvent('esx:showNotification', 'Le collier GPS vous ramène de force !')
                 end
 
-                -- Fin de peine
+                -- Fin de peine manuelle (si le temps est manuellement forcé à 0)
                 if jailTime <= 0 then
                     isJailed = false
                     TriggerServerEvent('prison:server:FinishJail')
@@ -553,17 +556,32 @@ Citizen.CreateThread(function()
         local pedCoords = GetEntityCoords(PlayerPedId())
         local sleep = true
 
-        -- Interaction Garde : Armurerie
-        if ESX.PlayerData.job and ESX.PlayerData.job.name == Config.Jobs.Garde then
+        -- Interaction Garde : Armureries
+        if ESX.PlayerData.job and ESX.PlayerData.job.name == 'garde' then
+            -- Équipement Standard
             local dist = #(pedCoords - Config.Locations.Armory)
             if dist < 10.0 then
                 sleep = false
                 DrawMarker(20, Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0, 150, 255, 100, false, true, 2, false, nil, nil, false)
                 if dist < 1.5 then
-                    ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour ouvrir l\'armurerie')
-                    if IsControlJustReleased(0, 38) then -- Touche E
-                        TriggerServerEvent('prison:server:GiveGuardWeapons')
-                        TriggerEvent('esx:showNotification', 'Vous avez récupéré votre équipement de garde.')
+                    ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour l\'équipement standard')
+                    if IsControlJustReleased(0, 38) then
+                        TriggerServerEvent('prison:server:GiveGuardWeapons', 'standard')
+                    end
+                end
+            end
+
+            -- Équipement Anti-Émeute (Si grade >= 3)
+            if ESX.PlayerData.job.grade >= 3 then
+                local rDist = #(pedCoords - Config.Locations.RiotGear)
+                if rDist < 10.0 then
+                    sleep = false
+                    DrawMarker(20, Config.Locations.RiotGear.x, Config.Locations.RiotGear.y, Config.Locations.RiotGear.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 255, 0, 0, 100, false, true, 2, false, nil, nil, false)
+                    if rDist < 1.5 then
+                        ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour l\'équipement Anti-Émeute')
+                        if IsControlJustReleased(0, 38) then
+                            TriggerServerEvent('prison:server:GiveGuardWeapons', 'riot')
+                        end
                     end
                 end
             end
@@ -575,6 +593,19 @@ Citizen.CreateThread(function()
                     TriggerServerEvent('prison:server:SearchPlayer', GetPlayerServerId(closestPlayer))
                 else
                     TriggerEvent('esx:showNotification', '~r~Personne à proximité.')
+                end
+            end
+        elseif ESX.PlayerData.job and ESX.PlayerData.job.name == 'garde_incendie' then
+            -- Équipement Incendie
+            local fDist = #(pedCoords - Config.Locations.FireGear)
+            if fDist < 10.0 then
+                sleep = false
+                DrawMarker(20, Config.Locations.FireGear.x, Config.Locations.FireGear.y, Config.Locations.FireGear.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 255, 100, 0, 100, false, true, 2, false, nil, nil, false)
+                if fDist < 1.5 then
+                    ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour l\'équipement Incendie')
+                    if IsControlJustReleased(0, 38) then
+                        TriggerServerEvent('prison:server:GiveGuardWeapons', 'fire')
+                    end
                 end
             end
         end

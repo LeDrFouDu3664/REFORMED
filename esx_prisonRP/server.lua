@@ -35,10 +35,16 @@ AddEventHandler('prison:server:SearchPlayer', function(targetId)
     local xTarget = ESX.GetPlayerFromId(targetId)
 
     if xPlayer and xTarget and xPlayer.job.name == Config.Jobs.Garde then
-        if Config.InventorySystem == 'ox_inventory' then
-            exports.ox_inventory:forceOpenInventory(source, 'player', targetId)
+        local ped = GetPlayerPed(source)
+        local targetPed = GetPlayerPed(targetId)
+        if #(GetEntityCoords(ped) - GetEntityCoords(targetPed)) < 5.0 then
+            if Config.InventorySystem == 'ox_inventory' then
+                exports.ox_inventory:forceOpenInventory(source, 'player', targetId)
+            else
+                TriggerClientEvent('esx:showNotification', source, '~r~Système ESX par défaut non supporté pour cette fouille avancée. Utilisez ox_inventory.')
+            end
         else
-            TriggerClientEvent('esx:showNotification', source, '~r~Système ESX par défaut non supporté pour cette fouille avancée. Utilisez ox_inventory.')
+            TriggerClientEvent('esx:showNotification', source, '~r~Joueur trop éloigné.')
         end
     end
 end)
@@ -104,9 +110,9 @@ RegisterCommand('jail', function(source, args, rawCommand)
 
     if xPlayer.job.name == Config.Jobs.Police or xPlayer.job.name == Config.Jobs.Garde then
         local targetId = tonumber(args[1])
-        local jailTime = tonumber(args[2])
+        local jailTime = tonumber(args[2]) or 99999 -- Prison fédérale permanente par défaut si aucun temps n'est défini
 
-        if targetId and jailTime then
+        if targetId then
             local xTarget = ESX.GetPlayerFromId(targetId)
             if xTarget then
                 MySQL.Async.execute('UPDATE users SET jail_time = @jail_time WHERE identifier = @identifier', {
@@ -114,7 +120,11 @@ RegisterCommand('jail', function(source, args, rawCommand)
                     ['@identifier'] = xTarget.identifier
                 })
                 TriggerClientEvent('prison:client:JailPlayer', targetId, jailTime)
-                TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' pour ' .. jailTime .. ' mois.')
+                if jailTime >= 99999 then
+                    TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' à perpétuité.')
+                else
+                    TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' pour ' .. jailTime .. ' mois.')
+                end
             else
                 TriggerClientEvent('esx:showNotification', source, 'Joueur introuvable.')
             end
@@ -147,12 +157,27 @@ end, false)
 
 -- Armement pour les gardes
 RegisterServerEvent('prison:server:GiveGuardWeapons')
-AddEventHandler('prison:server:GiveGuardWeapons', function()
+AddEventHandler('prison:server:GiveGuardWeapons', function(gearType)
     local xPlayer = ESX.GetPlayerFromId(source)
-    if xPlayer.job.name == Config.Jobs.Garde then
-        xPlayer.addWeapon('WEAPON_STUNGUN', 100)
-        xPlayer.addWeapon('WEAPON_NIGHTSTICK', 1)
-        xPlayer.addWeapon('WEAPON_FLASHLIGHT', 1)
+    if xPlayer and xPlayer.job.name == 'garde' then
+        if gearType == 'standard' then
+            xPlayer.addWeapon('WEAPON_STUNGUN', 100)
+            xPlayer.addWeapon('WEAPON_NIGHTSTICK', 1)
+            xPlayer.addWeapon('WEAPON_FLASHLIGHT', 1)
+        elseif gearType == 'riot' and xPlayer.job.grade >= 3 then
+            xPlayer.addWeapon('WEAPON_STUNGUN', 100)
+            xPlayer.addWeapon('WEAPON_NIGHTSTICK', 1)
+            xPlayer.addWeapon('WEAPON_PUMPSHOTGUN', 100)
+            xPlayer.addWeapon('WEAPON_SMG', 250)
+            -- Ajouter un gilet par balles
+            TriggerClientEvent('esx:showNotification', source, '~r~Équipement Anti-Émeute équipé.')
+        end
+    elseif xPlayer and xPlayer.job.name == 'garde_incendie' then
+        if gearType == 'fire' then
+            xPlayer.addWeapon('WEAPON_FIREEXTINGUISHER', 100)
+            xPlayer.addWeapon('WEAPON_HATCHET', 1)
+            TriggerClientEvent('esx:showNotification', source, '~b~Équipement Incendie équipé.')
+        end
     end
 end)
 
@@ -298,16 +323,17 @@ AddEventHandler('prison:server:CompleteEscape', function()
             ['@identifier'] = xPlayer.identifier
         })
 
-        -- Alerter la police et les gardes
-        local xPlayers = ESX.GetExtendedPlayers('job', Config.Jobs.Police)
-        local xGuards = ESX.GetExtendedPlayers('job', Config.Jobs.Garde)
-
+        -- Alerter la police et les gardes (Compatible ESX v1 / Legacy)
+        local allPlayers = ESX.GetPlayers()
         local alertMsg = Config.Escape.PoliceAlert
-        for _, xPol in ipairs(xPlayers) do
-            TriggerClientEvent('chat:addMessage', xPol.source, { templateId = 'prison_system', args = {"ALERTE", alertMsg} })
-        end
-        for _, xGd in ipairs(xGuards) do
-            TriggerClientEvent('chat:addMessage', xGd.source, { templateId = 'prison_system', args = {"ALERTE", alertMsg} })
+
+        for i=1, #allPlayers do
+            local xPlayerId = allPlayers[i]
+            local xTarget = ESX.GetPlayerFromId(xPlayerId)
+
+            if xTarget and (xTarget.job.name == Config.Jobs.Police or xTarget.job.name == Config.Jobs.Garde) then
+                TriggerClientEvent('chat:addMessage', xPlayerId, { templateId = 'prison_system', args = {"ALERTE", alertMsg} })
+            end
         end
 
         -- Confirmer l'évasion au joueur

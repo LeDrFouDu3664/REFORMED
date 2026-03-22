@@ -18,7 +18,9 @@ Config.Locations = {
     Infirmary = vector3(1769.75, 2568.16, 45.72), -- Infirmerie pour les EMS
     PrisonerStash = vector3(1705.50, 2555.30, 45.56), -- Boîte d'effets personnels pour les prisonniers
     Canteen = vector3(1722.50, 2561.30, 45.56), -- Endroit pour prendre à manger
-    Gym = vector3(1641.50, 2527.30, 45.56) -- Salle de musculation
+    Gym = vector3(1641.50, 2527.30, 45.56), -- Salle de musculation
+    RiotGear = vector3(1837.50, 2590.20, 46.01), -- Équipement Anti-Émeute (Garde Riot+)
+    FireGear = vector3(1839.20, 2592.50, 46.01) -- Équipement Pompier (Incendie)
 }
 
 -- Système d'Évasion
@@ -90,6 +92,29 @@ Config.PrisonerJobs = {
         },
         Reward = { timeReduction = 1, money = 0, msg = "Faire de l'exercice a allégé votre esprit (et votre peine)." },
         Anim = { dict = "amb@world_human_push_ups@male@base", name = "base" }
+    },
+    Library = {
+        Coords = {
+            vector3(1750.00, 2560.00, 45.56),
+            vector3(1752.50, 2560.00, 45.56)
+        },
+        Reward = { timeReduction = 0, money = 5, msg = "Vous avez gagné 5$ en triant des livres." },
+        Anim = { dict = "amb@prop_human_bum_bin@idle_b", name = "idle_d" }
+    },
+    Mechanic = {
+        Coords = {
+            vector3(1760.00, 2520.00, 45.56),
+            vector3(1762.50, 2520.00, 45.56)
+        },
+        Reward = { timeReduction = 0, money = 30, msg = "Vous avez gagné 30$ à l'atelier mécanique." },
+        Anim = { dict = "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", name = "machinic_loop_mechandplayer" }
+    },
+    Basketball = {
+        Coords = {
+            vector3(1650.00, 2510.00, 45.56)
+        },
+        Reward = { timeReduction = 0, money = 0, msg = "Vous jouez au basket avec les autres détenus." },
+        Anim = { dict = "anim@mp_player_intcelebrationmale@face_palm", name = "face_palm" }
     }
 }
 
