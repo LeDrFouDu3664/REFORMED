@@ -575,7 +575,7 @@ Citizen.CreateThread(function()
             end
         end
 
-        -- Interaction EMS : Infirmerie
+        -- Interaction EMS : Infirmerie (Service & Lits)
         if ESX.PlayerData.job and ESX.PlayerData.job.name == Config.Jobs.EMS then
             local dist = #(pedCoords - Config.Locations.Infirmary)
             if dist < 10.0 then
@@ -585,7 +585,38 @@ Citizen.CreateThread(function()
                     ESX.ShowHelpNotification('Appuyez sur ~INPUT_CONTEXT~ pour prendre votre service médical')
                     if IsControlJustReleased(0, 38) then -- Touche E
                         TriggerEvent('esx:showNotification', 'Vous êtes maintenant en position pour soigner les détenus.')
-                        -- (Tu peux ajouter ton script de soin EMS ici)
+                    end
+                end
+            end
+        end
+
+        -- Lits Infirmerie (Se soigner)
+        for _, bedCoords in ipairs(Config.InfirmaryBeds) do
+            local bDist = #(pedCoords - bedCoords)
+            if bDist < 3.0 then
+                sleep = false
+                DrawMarker(20, bedCoords.x, bedCoords.y, bedCoords.z - 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0, 255, 0, 100, false, true, 2, false, nil, nil, false)
+                if bDist < 1.5 then
+                    ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour vous coucher/soigner")
+                    if IsControlJustReleased(0, 38) then
+                        TriggerServerEvent('prison:server:UseInfirmaryBed')
+                    end
+                end
+            end
+        end
+
+        -- Fouille des poubelles (Prisonniers)
+        if isJailed and not isWorking then
+            for _, trashCoords in ipairs(Config.TrashSearchSpots) do
+                local tDist = #(pedCoords - trashCoords)
+                if tDist < 3.0 then
+                    sleep = false
+                    DrawMarker(1, trashCoords.x, trashCoords.y, trashCoords.z - 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 150, 75, 0, 100, false, false, 2, false, nil, nil, false)
+                    if tDist < 1.5 then
+                        ESX.ShowHelpNotification("Appuyez sur ~INPUT_CONTEXT~ pour fouiller")
+                        if IsControlJustReleased(0, 38) then
+                            StartPrisonWork('TrashSearch') -- Lancement du processus
+                        end
                     end
                 end
             end
@@ -705,6 +736,77 @@ Citizen.CreateThread(function()
             Citizen.Wait(1000)
         end
     end
+end)
+
+-- Commandes d'animation de force (Gardes)
+RegisterCommand('cuff', function()
+    local ped = PlayerPedId()
+    if ESX.PlayerData.job and (ESX.PlayerData.job.name == 'garde' or ESX.PlayerData.job.name == 'police') then
+        local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+        if closestPlayer ~= -1 and closestDistance <= 3.0 then
+            TriggerServerEvent('prison:server:ToggleCuff', GetPlayerServerId(closestPlayer))
+        else
+            TriggerEvent('esx:showNotification', '~r~Aucun joueur à proximité.')
+        end
+    end
+end, false)
+
+RegisterCommand('escort', function()
+    local ped = PlayerPedId()
+    if ESX.PlayerData.job and (ESX.PlayerData.job.name == 'garde' or ESX.PlayerData.job.name == 'police') then
+        local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+        if closestPlayer ~= -1 and closestDistance <= 3.0 then
+            TriggerServerEvent('prison:server:ToggleEscort', GetPlayerServerId(closestPlayer))
+        else
+            TriggerEvent('esx:showNotification', '~r~Aucun joueur à proximité.')
+        end
+    end
+end, false)
+
+-- Events Cuff & Escort Handler Client
+local isCuffed = false
+RegisterNetEvent('prison:client:ToggleCuffStatus')
+AddEventHandler('prison:client:ToggleCuffStatus', function()
+    isCuffed = not isCuffed
+    local ped = PlayerPedId()
+    if isCuffed then
+        RequestAnimDict('mp_arresting')
+        while not HasAnimDictLoaded('mp_arresting') do Citizen.Wait(10) end
+        TaskPlayAnim(ped, 'mp_arresting', 'idle', 8.0, -8, -1, 49, 0, 0, 0, 0)
+        SetEnableHandcuffs(ped, true)
+        DisablePlayerFiring(ped, true)
+        SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true)
+        SetPedCanPlayGestureAnims(ped, false)
+    else
+        ClearPedSecondaryTask(ped)
+        SetEnableHandcuffs(ped, false)
+        DisablePlayerFiring(ped, false)
+        SetPedCanPlayGestureAnims(ped, true)
+    end
+end)
+
+local isEscorted = false
+local escortingPed = nil
+RegisterNetEvent('prison:client:ToggleEscortStatus')
+AddEventHandler('prison:client:ToggleEscortStatus', function(copId)
+    isEscorted = not isEscorted
+    local ped = PlayerPedId()
+    escortingPed = copId
+
+    if isEscorted then
+        local targetPed = GetPlayerPed(GetPlayerFromServerId(copId))
+        AttachEntityToEntity(ped, targetPed, 11816, 0.54, 0.54, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
+    else
+        DetachEntity(ped, true, false)
+    end
+end)
+
+-- Soin via lit
+RegisterNetEvent('prison:client:HealInBed')
+AddEventHandler('prison:client:HealInBed', function()
+    local ped = PlayerPedId()
+    SetEntityHealth(ped, 200)
+    TriggerEvent('esx:showNotification', '~g~Vous avez été soigné.')
 end)
 
 -- Commande d'achat illégal temporaire

@@ -30,6 +30,23 @@ Config.Locations = {
     FireGear = vector3(1839.20, 2592.50, 46.01) -- Équipement Pompier (Incendie)
 }
 
+-- Nouvelles intéractions (Infirmerie & Fouille)
+Config.InfirmaryBeds = {
+    vector3(1771.20, 2566.50, 45.56),
+    vector3(1773.50, 2566.50, 45.56)
+}
+
+Config.TrashSearchSpots = {
+    vector3(1630.00, 2520.00, 45.56),
+    vector3(1660.00, 2510.00, 45.56)
+}
+
+Config.TrashLoot = {
+    { item = 'cigarette', chance = 50 },
+    { item = 'string', chance = 30 },
+    { item = 'lockpick', chance = 5 }
+}
+
 -- Système d'Évasion
 Config.Escape = {
     StartCoords = vector3(1703.10, 2465.20, 45.56), -- Point d'évasion (Ex: grille cassée ou tunnel)

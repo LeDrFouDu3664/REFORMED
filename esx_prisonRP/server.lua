@@ -15,6 +15,8 @@ local playerCooldowns = {}
 
 -- Helper Function : Vérifier si un joueur est Staff (ESX Group ou ID Discord)
 function IsPlayerStaff(source)
+    if source == 0 then return true end -- La console est toujours staff
+
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return false end
 
@@ -24,9 +26,9 @@ function IsPlayerStaff(source)
     end
 
     -- Vérification de l'ID Discord
-    for i = 0, GetNumPlayerIdentifiers(source) - 1 do
-        local identifier = GetPlayerIdentifier(source, i)
-        if string.find(identifier, "discord:") then
+    local identifiers = GetPlayerIdentifiers(source)
+    for _, identifier in ipairs(identifiers) do
+        if string.match(identifier, "^discord:") then
             local discordId = string.gsub(identifier, "discord:", "")
             for _, allowedId in ipairs(Config.StaffDiscordIDs) do
                 if discordId == allowedId then
@@ -52,6 +54,46 @@ RegisterCommand('prisonlockdown', function(source, args, rawCommand)
         TriggerClientEvent('esx:showNotification', source, '~r~Seuls les gardes et la police peuvent initier un confinement.')
     end
 end, false)
+
+-- Soin Infirmerie
+RegisterServerEvent('prison:server:UseInfirmaryBed')
+AddEventHandler('prison:server:UseInfirmaryBed', function()
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return end
+
+    local healthCost = 50
+    if xPlayer.getAccount('black_money').money >= healthCost or xPlayer.getMoney() >= healthCost then
+        if xPlayer.getAccount('black_money').money >= healthCost then
+            xPlayer.removeAccountMoney('black_money', healthCost)
+        else
+            xPlayer.removeMoney(healthCost)
+        end
+        TriggerClientEvent('prison:client:HealInBed', src)
+    else
+        TriggerClientEvent('esx:showNotification', src, "~r~Vous n'avez pas assez d'argent pour payer les soins (50$).")
+    end
+end)
+
+-- Garde: Actions menottes et escorte
+RegisterServerEvent('prison:server:ToggleCuff')
+AddEventHandler('prison:server:ToggleCuff', function(targetId)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if xPlayer and (xPlayer.job.name == 'garde' or xPlayer.job.name == 'police') then
+        TriggerClientEvent('prison:client:ToggleCuffStatus', targetId)
+        TriggerClientEvent('esx:showNotification', src, "~g~Vous avez menotté/démenotté le joueur.")
+    end
+end)
+
+RegisterServerEvent('prison:server:ToggleEscort')
+AddEventHandler('prison:server:ToggleEscort', function(targetId)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if xPlayer and (xPlayer.job.name == 'garde' or xPlayer.job.name == 'police') then
+        TriggerClientEvent('prison:client:ToggleEscortStatus', targetId, src)
+    end
+end)
 
 -- Fouille de joueur (ox_inventory)
 RegisterServerEvent('prison:server:SearchPlayer')
@@ -80,12 +122,14 @@ RegisterCommand('ck', function(source, args, rawCommand)
     -- Si la commande est lancée par la console (source == 0) ou un staff
     if source == 0 or IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
+        local reason = table.concat(args, " ", 2)
 
         if targetId then
             local xTarget = ESX.GetPlayerFromId(targetId)
             if xTarget then
                 local identifier = xTarget.identifier
-                DropPlayer(targetId, "Votre personnage a été supprimé (CK).")
+                if reason == "" then reason = "Mort RP" end
+                DropPlayer(targetId, "Votre personnage a été supprimé (CK). Motif : " .. reason)
 
                 -- Suppression complète des données
                 MySQL.Async.execute('DELETE FROM users WHERE identifier = @identifier', { ['@identifier'] = identifier })
@@ -95,15 +139,15 @@ RegisterCommand('ck', function(source, args, rawCommand)
                 MySQL.Async.execute('DELETE FROM datastore_data WHERE owner = @identifier', { ['@identifier'] = identifier })
 
                 if source ~= 0 then
-                    TriggerClientEvent('esx:showNotification', source, '~g~Personnage CK avec succès pour l\'ID ' .. targetId)
+                    TriggerClientEvent('esx:showNotification', source, '~g~Personnage CK avec succès pour l\'ID ' .. targetId .. '\nMotif : ' .. reason)
                 else
-                    print('Personnage CK avec succès pour l\'ID ' .. targetId)
+                    print('Personnage CK avec succès pour l\'ID ' .. targetId .. ' Motif : ' .. reason)
                 end
             else
                 if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.') else print('Joueur introuvable.') end
             end
         else
-            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /ck [ID]') else print('Usage: /ck [ID]') end
+            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /ck [ID] [Motif]') else print('Usage: /ck [ID] [Motif]') end
         end
     else
         TriggerClientEvent('esx:showNotification', source, '~r~Vous n\'avez pas la permission.')
@@ -111,7 +155,7 @@ RegisterCommand('ck', function(source, args, rawCommand)
 end, false)
 
 -- Commande Staff pour définir un job
-RegisterCommand('setjobprison', function(source, args, rawCommand)
+RegisterCommand('setjob', function(source, args, rawCommand)
     if source == 0 or IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
         local jobName = args[2]
@@ -121,12 +165,23 @@ RegisterCommand('setjobprison', function(source, args, rawCommand)
             local xTarget = ESX.GetPlayerFromId(targetId)
             if xTarget then
                 xTarget.setJob(jobName, grade)
-                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Métier défini avec succès pour ' .. xTarget.getName() .. '.') else print('Métier défini') end
+
+                -- Si on le setjob en prisonnier manuellement, on l'emprisonne
+                if jobName == 'prisonnier' then
+                    MySQL.Async.execute('UPDATE users SET jail_time = 99999 WHERE identifier = @identifier', {
+                        ['@identifier'] = xTarget.identifier
+                    }, function(rowsChanged)
+                        TriggerClientEvent('prison:client:JailPlayer', targetId, 99999, false)
+                    end)
+                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Vous avez placé ' .. xTarget.getName() .. ' en tant que Prisonnier.') end
+                else
+                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Métier défini avec succès : ' .. jobName .. ' pour ' .. xTarget.getName()) else print('Métier défini') end
+                end
             else
                 if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.') else print('Joueur introuvable.') end
             end
         else
-            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjobprison [ID] [job] [grade]') else print('Usage: /setjobprison [ID] [job] [grade]') end
+            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjob [ID] [job] [grade]') else print('Usage: /setjob [ID] [job] [grade]') end
         end
     else
         TriggerClientEvent('esx:showNotification', source, '~r~Vous n\'avez pas la permission.')
