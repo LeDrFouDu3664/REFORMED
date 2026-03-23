@@ -77,28 +77,33 @@ end)
 
 -- Commande Character Kill (CK) / Suppression de personnage
 RegisterCommand('ck', function(source, args, rawCommand)
-    if IsPlayerStaff(source) then
+    -- Si la commande est lancée par la console (source == 0) ou un staff
+    if source == 0 or IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
 
         if targetId then
             local xTarget = ESX.GetPlayerFromId(targetId)
             if xTarget then
                 local identifier = xTarget.identifier
-                xTarget.kick("Votre personnage a été supprimé suite à une Mort RP (CK).")
+                DropPlayer(targetId, "Votre personnage a été supprimé (CK).")
 
-                -- Suppression complète des données (Adaptable selon les tables de votre BDD)
+                -- Suppression complète des données
                 MySQL.Async.execute('DELETE FROM users WHERE identifier = @identifier', { ['@identifier'] = identifier })
                 MySQL.Async.execute('DELETE FROM owned_vehicles WHERE owner = @identifier', { ['@identifier'] = identifier })
                 MySQL.Async.execute('DELETE FROM addon_account_data WHERE owner = @identifier', { ['@identifier'] = identifier })
                 MySQL.Async.execute('DELETE FROM addon_inventory_items WHERE owner = @identifier', { ['@identifier'] = identifier })
                 MySQL.Async.execute('DELETE FROM datastore_data WHERE owner = @identifier', { ['@identifier'] = identifier })
 
-                TriggerClientEvent('esx:showNotification', source, '~g~Personnage CK avec succès pour l\'ID ' .. targetId)
+                if source ~= 0 then
+                    TriggerClientEvent('esx:showNotification', source, '~g~Personnage CK avec succès pour l\'ID ' .. targetId)
+                else
+                    print('Personnage CK avec succès pour l\'ID ' .. targetId)
+                end
             else
-                TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.')
+                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.') else print('Joueur introuvable.') end
             end
         else
-            TriggerClientEvent('esx:showNotification', source, '~y~Usage: /ck [ID]')
+            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /ck [ID]') else print('Usage: /ck [ID]') end
         end
     else
         TriggerClientEvent('esx:showNotification', source, '~r~Vous n\'avez pas la permission.')
@@ -107,7 +112,7 @@ end, false)
 
 -- Commande Staff pour définir un job
 RegisterCommand('setjobprison', function(source, args, rawCommand)
-    if IsPlayerStaff(source) then
+    if source == 0 or IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
         local jobName = args[2]
         local grade = tonumber(args[3]) or 0
@@ -116,12 +121,12 @@ RegisterCommand('setjobprison', function(source, args, rawCommand)
             local xTarget = ESX.GetPlayerFromId(targetId)
             if xTarget then
                 xTarget.setJob(jobName, grade)
-                TriggerClientEvent('esx:showNotification', source, '~g~Métier défini avec succès pour ' .. xTarget.getName() .. '.')
+                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Métier défini avec succès pour ' .. xTarget.getName() .. '.') else print('Métier défini') end
             else
-                TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.')
+                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.') else print('Joueur introuvable.') end
             end
         else
-            TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjobprison [ID] [job] [grade]')
+            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjobprison [ID] [job] [grade]') else print('Usage: /setjobprison [ID] [job] [grade]') end
         end
     else
         TriggerClientEvent('esx:showNotification', source, '~r~Vous n\'avez pas la permission.')
@@ -412,6 +417,7 @@ end)
 local firstSpawnPlayers = {}
 
 -- Choix initial (Garde ou Prisonnier)
+-- Rôle initial (Toujours Prisonnier)
 RegisterServerEvent('prison:server:SetInitialRole')
 AddEventHandler('prison:server:SetInitialRole', function(role)
     local source = source
@@ -426,15 +432,13 @@ AddEventHandler('prison:server:SetInitialRole', function(role)
     end
     firstSpawnPlayers[source] = nil
 
-    if role == 'garde' then
-        xPlayer.setJob('garde', 0)
-    elseif role == 'prisonnier' then
-        -- 20 mois de prison par défaut
-        MySQL.Async.execute('UPDATE users SET jail_time = 20 WHERE identifier = @identifier', {
+    if role == 'prisonnier' then
+        -- Prison à vie par défaut
+        MySQL.Async.execute('UPDATE users SET jail_time = 99999 WHERE identifier = @identifier', {
             ['@identifier'] = xPlayer.identifier
         }, function(rowsChanged)
             if rowsChanged > 0 then
-                TriggerClientEvent('prison:client:JailPlayer', source, 20, false)
+                TriggerClientEvent('prison:client:JailPlayer', source, 99999, false)
             end
         end)
     end
