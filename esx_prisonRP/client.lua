@@ -2,6 +2,9 @@ ESX = nil
 Citizen.CreateThread(function()
     while ESX == nil do
         TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+        if ESX == nil then
+            pcall(function() ESX = exports["es_extended"]:getSharedObject() end)
+        end
         Citizen.Wait(10)
     end
 
@@ -298,6 +301,10 @@ AddEventHandler('prison:client:FirstSpawn', function()
     DoScreenFadeOut(1000)
     Citizen.Wait(1500)
 
+    -- Charger la map autour de la destination
+    RequestCollisionAtCoord(Config.Cutscene.DropoffCar.x, Config.Cutscene.DropoffCar.y, Config.Cutscene.DropoffCar.z)
+    SetFocusPosAndVel(Config.Cutscene.DropoffCar.x, Config.Cutscene.DropoffCar.y, Config.Cutscene.DropoffCar.z, 0.0, 0.0, 0.0)
+
     -- Spawn de la voiture de police
     RequestModel(Config.Cutscene.VehicleModel)
     while not HasModelLoaded(Config.Cutscene.VehicleModel) do Citizen.Wait(10) end
@@ -325,22 +332,43 @@ AddEventHandler('prison:client:FirstSpawn', function()
 
     -- Fin du trajet
     TaskLeaveVehicle(ped, policeCar, 0)
+    Citizen.Wait(1000)
     SetEntityCoords(ped, Config.TutorialPath.SpawnCoord.x, Config.TutorialPath.SpawnCoord.y, Config.TutorialPath.SpawnCoord.z)
-    Citizen.Wait(2000)
+    Citizen.Wait(1000)
     DeleteVehicle(policeCar)
     DeleteEntity(copPed)
+    ClearFocus()
 
     -- Création du personnage (ESX Skin) APRÈS la cinématique
     TriggerEvent('esx:showNotification', '~b~Créez votre personnage.~s~')
 
     -- On passe un callback pour lancer le tutoriel une fois la création de personnage confirmée.
-    -- On force le statut de prisonnier
     TriggerEvent('esx_skin:openSaveableMenu', function()
-        -- Le joueur a fini de créer et sauvegarder son skin.
-        TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
-        StartPrisonerTutorial(ped)
+        -- Menu de Choix : Garde ou Prisonnier
+        ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'initial_job_choice', {
+            title    = 'Choix de votre destin',
+            align    = 'center',
+            elements = {
+                {label = 'Devenir Garde Pénitentiaire', value = 'garde'},
+                {label = 'Devenir Prisonnier (Fédéral)', value = 'prisonnier'}
+            }
+        }, function(data, menu)
+            menu.close()
+            local choice = data.current.value
+
+            if choice == 'garde' then
+                TriggerServerEvent('prison:server:SetInitialRole', 'garde')
+                SetEntityCoords(ped, Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
+                TriggerEvent('esx:showNotification', '~g~Vous êtes maintenant Garde Pénitentiaire.~s~')
+            elseif choice == 'prisonnier' then
+                TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
+                StartPrisonerTutorial(ped)
+            end
+        end, function(data, menu)
+            -- Empêche de fermer avec Échap
+        end)
     end, function()
-        -- Si le joueur annule (échap), on le met quand même en prison.
+        -- Si annulation (échap), forcer prisonnier
         TriggerServerEvent('prison:server:SetInitialRole', 'prisonnier')
         StartPrisonerTutorial(ped)
     end)

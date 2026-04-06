@@ -1,4 +1,5 @@
 ESX = nil
+
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
 if ESX == nil then
@@ -155,7 +156,8 @@ RegisterCommand('ck', function(source, args, rawCommand)
 end, false)
 
 -- Commande Staff pour définir un job
-RegisterCommand('setjob', function(source, args, rawCommand)
+-- Commande Staff pour définir un job en prison
+RegisterCommand('setjobprison', function(source, args, rawCommand)
     if source == 0 or IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
         local jobName = args[2]
@@ -164,9 +166,9 @@ RegisterCommand('setjob', function(source, args, rawCommand)
         if targetId and jobName then
             local xTarget = ESX.GetPlayerFromId(targetId)
             if xTarget then
+                -- Check si le job existe de manière sécurisée ou force l'action
                 xTarget.setJob(jobName, grade)
 
-                -- Si on le setjob en prisonnier manuellement, on l'emprisonne
                 if jobName == 'prisonnier' then
                     MySQL.Async.execute('UPDATE users SET jail_time = 99999 WHERE identifier = @identifier', {
                         ['@identifier'] = xTarget.identifier
@@ -175,13 +177,13 @@ RegisterCommand('setjob', function(source, args, rawCommand)
                     end)
                     if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Vous avez placé ' .. xTarget.getName() .. ' en tant que Prisonnier.') end
                 else
-                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Métier défini avec succès : ' .. jobName .. ' pour ' .. xTarget.getName()) else print('Métier défini') end
+                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Métier de prison défini avec succès : ' .. jobName) else print('Métier défini') end
                 end
             else
                 if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.') else print('Joueur introuvable.') end
             end
         else
-            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjob [ID] [job] [grade]') else print('Usage: /setjob [ID] [job] [grade]') end
+            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjobprison [ID] [job] [grade]') else print('Usage: /setjobprison [ID] [job] [grade]') end
         end
     else
         TriggerClientEvent('esx:showNotification', source, '~r~Vous n\'avez pas la permission.')
@@ -317,6 +319,23 @@ AddEventHandler('prison:server:RewardPrisoner', function(jobName)
             -- Donner l'argent sale / propre
             if moneyReward > 0 then
                 xPlayer.addAccountMoney('black_money', moneyReward)
+            end
+
+            -- Si c'est la fouille des poubelles
+            if jobName == 'TrashSearch' then
+                local roll = math.random(1, 100)
+                local found = false
+                for _, loot in ipairs(Config.TrashLoot) do
+                    if roll <= loot.chance then
+                        xPlayer.addInventoryItem(loot.item, 1)
+                        TriggerClientEvent('esx:showNotification', source, "~g~Vous avez trouvé : " .. loot.item)
+                        found = true
+                        break -- Seulement un item par fouille
+                    end
+                end
+                if not found then
+                    TriggerClientEvent('esx:showNotification', source, "~r~Vous n'avez rien trouvé d'intéressant.")
+                end
             end
         end
     end)
@@ -471,8 +490,7 @@ end)
 
 local firstSpawnPlayers = {}
 
--- Choix initial (Garde ou Prisonnier)
--- Rôle initial (Toujours Prisonnier)
+-- Rôle initial (Garde ou Prisonnier)
 RegisterServerEvent('prison:server:SetInitialRole')
 AddEventHandler('prison:server:SetInitialRole', function(role)
     local source = source
@@ -487,7 +505,9 @@ AddEventHandler('prison:server:SetInitialRole', function(role)
     end
     firstSpawnPlayers[source] = nil
 
-    if role == 'prisonnier' then
+    if role == 'garde' then
+        xPlayer.setJob('garde', 0)
+    elseif role == 'prisonnier' then
         -- Prison à vie par défaut
         MySQL.Async.execute('UPDATE users SET jail_time = 99999 WHERE identifier = @identifier', {
             ['@identifier'] = xPlayer.identifier

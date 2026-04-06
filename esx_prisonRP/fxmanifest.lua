@@ -3,10 +3,9 @@ game 'gta5'
 
 author 'Jules'
 description 'Prison RP Complet - Police, Garde, EMS'
-version '1.0.0'
+version '1.1.0'
 
 shared_scripts {
-    '@es_extended/imports.lua',
     'config.lua'
 }
 

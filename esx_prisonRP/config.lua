@@ -139,6 +139,11 @@ Config.PrisonerJobs = {
         },
         Reward = { timeReduction = 0, money = 0, msg = "Vous jouez au basket avec les autres détenus." },
         Anim = { dict = "anim@mp_player_intcelebrationmale@face_palm", name = "face_palm" }
+    },
+    TrashSearch = {
+        Coords = {}, -- Les coords sont gérées via Config.TrashSearchSpots
+        Reward = { timeReduction = 0, money = 0, msg = "Fouille en cours..." },
+        Anim = { dict = "amb@prop_human_bum_bin@idle_b", name = "idle_d" }
     }
 }
 
