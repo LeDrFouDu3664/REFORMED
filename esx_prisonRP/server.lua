@@ -130,14 +130,18 @@ RegisterCommand('ck', function(source, args, rawCommand)
             if xTarget then
                 local identifier = xTarget.identifier
                 if reason == "" then reason = "Mort RP" end
+                local targetName = xTarget.getName() or GetPlayerName(targetId)
+
                 DropPlayer(targetId, "Votre personnage a été supprimé (CK). Motif : " .. reason)
 
-                -- Suppression complète des données
-                MySQL.Async.execute('DELETE FROM users WHERE identifier = @identifier', { ['@identifier'] = identifier })
-                MySQL.Async.execute('DELETE FROM owned_vehicles WHERE owner = @identifier', { ['@identifier'] = identifier })
-                MySQL.Async.execute('DELETE FROM addon_account_data WHERE owner = @identifier', { ['@identifier'] = identifier })
-                MySQL.Async.execute('DELETE FROM addon_inventory_items WHERE owner = @identifier', { ['@identifier'] = identifier })
-                MySQL.Async.execute('DELETE FROM datastore_data WHERE owner = @identifier', { ['@identifier'] = identifier })
+                -- Suppression complète des données avec léger délai pour éviter les conflits de sauvegarde de déconnexion ESX
+                SetTimeout(3000, function()
+                    MySQL.Async.execute('DELETE FROM users WHERE identifier = @identifier', { ['@identifier'] = identifier })
+                    MySQL.Async.execute('DELETE FROM owned_vehicles WHERE owner = @identifier', { ['@identifier'] = identifier })
+                    MySQL.Async.execute('DELETE FROM addon_account_data WHERE owner = @identifier', { ['@identifier'] = identifier })
+                    MySQL.Async.execute('DELETE FROM addon_inventory_items WHERE owner = @identifier', { ['@identifier'] = identifier })
+                    MySQL.Async.execute('DELETE FROM datastore_data WHERE owner = @identifier', { ['@identifier'] = identifier })
+                end)
 
                 if source ~= 0 then
                     TriggerClientEvent('esx:showNotification', source, '~g~Personnage CK avec succès pour l\'ID ' .. targetId .. '\nMotif : ' .. reason)
@@ -166,21 +170,29 @@ RegisterCommand('setjobprison', function(source, args, rawCommand)
         if targetId and jobName then
             local xTarget = ESX.GetPlayerFromId(targetId)
             if xTarget then
-                -- Check si le job existe de manière sécurisée ou force l'action
+                -- Check si le job existe de manière sécurisée ou force l'action via l'objet ESX
                 xTarget.setJob(jobName, grade)
+
+                -- Forcer l'écriture base de données directement pour garantir compatibilité tous plugins
+                MySQL.Async.execute('UPDATE users SET job = @job, job_grade = @grade WHERE identifier = @identifier', {
+                    ['@job'] = jobName,
+                    ['@grade'] = grade,
+                    ['@identifier'] = xTarget.identifier
+                })
 
                 if jobName == 'prisonnier' then
                     MySQL.Async.execute('UPDATE users SET jail_time = 99999 WHERE identifier = @identifier', {
                         ['@identifier'] = xTarget.identifier
-                    }, function(rowsChanged)
+                    }, function()
+                        -- Exécuter le teleport client
                         TriggerClientEvent('prison:client:JailPlayer', targetId, 99999, false)
                     end)
-                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Vous avez placé ' .. xTarget.getName() .. ' en tant que Prisonnier.') end
+                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Joueur emprisonné à vie (Job: ' .. jobName .. ').') else print('Joueur emprisonné.') end
                 else
-                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Métier de prison défini avec succès : ' .. jobName) else print('Métier défini') end
+                    if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~g~Métier défini : ' .. jobName .. ' (' .. grade .. ').') else print('Métier défini') end
                 end
             else
-                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable.') else print('Joueur introuvable.') end
+                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~r~Joueur introuvable en ligne.') else print('Joueur introuvable.') end
             end
         else
             if source ~= 0 then TriggerClientEvent('esx:showNotification', source, '~y~Usage: /setjobprison [ID] [job] [grade]') else print('Usage: /setjobprison [ID] [job] [grade]') end

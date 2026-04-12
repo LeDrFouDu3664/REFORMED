@@ -837,6 +837,23 @@ AddEventHandler('prison:client:HealInBed', function()
     TriggerEvent('esx:showNotification', '~g~Vous avez été soigné.')
 end)
 
+-- Auto-heal passif permanent en prison (compatible tout perso/plugin)
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(5000) -- Toutes les 5 secondes
+        if isJailed then
+            local ped = PlayerPedId()
+            local health = GetEntityHealth(ped)
+            -- Sur FiveM, la santé max de base d'un ped masculin est 200 (100-200)
+            if health > 100 and health < 200 then
+                SetEntityHealth(ped, health + 2)
+            end
+        else
+            Citizen.Wait(5000)
+        end
+    end
+end)
+
 -- Commande d'achat illégal temporaire
 RegisterCommand('acheter_illegal', function(source, args)
     if isJailed then
