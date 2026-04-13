@@ -1,5 +1,8 @@
 Config = {}
 
+-- Système d'Administration ('esx', 'luxu_admin', ou 'standalone')
+Config.AdminSystem = 'luxu_admin'
+
 -- Liste des ID Discord du Staff (Permet l'accès aux commandes /ck, /setjobprison, etc.)
 -- Mettez uniquement les IDs (ex: "123456789012345678"). Le bot Discord doit être lié au serveur FiveM pour que ça marche.
 Config.StaffDiscordIDs = {
@@ -197,6 +200,7 @@ Config.ReceptionGuard = {
 -- Programmation du Chemin du Tutoriel (Guide PNJ)
 Config.TutorialPath = {
     Model = 'u_m_y_prisoner_01',
+    SpawnCoord = vector4(1855.93, 2601.95, 44.32, 270.0), -- Point de départ du tutoriel
     Nodes = {
         { coords = vector3(1840.00, 2585.00, 45.56), text = "Voici le bureau des gardes. Reste loin si tu veux éviter les coups." },
         { coords = vector3(1770.00, 2570.00, 45.56), text = "Ici c'est l'infirmerie. Pratique quand on se fait planter." },

@@ -14,19 +14,25 @@ end
 
 local playerCooldowns = {}
 
--- Helper Function : Vérifier si un joueur est Staff (ESX Group ou ID Discord)
+-- Helper Function : Vérifier si un joueur est Staff (AdminSystem ou ID Discord)
 function IsPlayerStaff(source)
     if source == 0 then return true end -- La console est toujours staff
 
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if not xPlayer then return false end
-
-    -- Vérification du groupe ESX
-    if xPlayer.getGroup() ~= 'user' then
-        return true
+    -- 1. Vérification via le système d'administration configuré
+    if Config.AdminSystem == 'luxu_admin' then
+        -- Vérification spécifique pour Luxu Admin
+        if exports['luxu_admin']:IsAdmin(source) then
+            return true
+        end
+    elseif Config.AdminSystem == 'esx' then
+        -- Vérification standard ESX
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if xPlayer and xPlayer.getGroup() ~= 'user' then
+            return true
+        end
     end
 
-    -- Vérification de l'ID Discord
+    -- 2. Vérification de l'ID Discord (Fallback universel / Standalone)
     local identifiers = GetPlayerIdentifiers(source)
     for _, identifier in ipairs(identifiers) do
         if string.match(identifier, "^discord:") then
