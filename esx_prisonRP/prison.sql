@@ -32,8 +32,8 @@ INSERT INTO `job_grades` (job_name, grade, name, label, salary, skin_male, skin_
 ('garde_incendie', 2, 'boss', 'Chef de Caserne', 3500, '{}', '{}');
 
 -- Création du métier de Prisonnier
-INSERT INTO `jobs` (name, label) VALUES ('prisonnier', 'Détenu');
+INSERT IGNORE INTO `jobs` (name, label) VALUES ('prisonnier', 'Détenu');
 
 -- Grades du métier de Prisonnier
-INSERT INTO `job_grades` (job_name, grade, name, label, salary, skin_male, skin_female) VALUES
+INSERT IGNORE INTO `job_grades` (job_name, grade, name, label, salary, skin_male, skin_female) VALUES
 ('prisonnier', 0, 'inmate', 'Prisonnier Fédéral', 0, '{}', '{}');

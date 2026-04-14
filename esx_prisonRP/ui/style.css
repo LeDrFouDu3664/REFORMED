@@ -106,36 +106,62 @@ body {
     align-items: center;
     font-size: 1.1vw;
     font-weight: 900;
-    color: #e0e0e0;
+    color: var(--hud-text-color, #e0e0e0);
+    text-shadow: 1px 1px 2px var(--hud-shadow-color, #000000);
 }
 
 .money-box {
     display: flex;
     align-items: center;
     gap: 0.3vw;
+    text-shadow: 1px 1px 2px var(--hud-shadow-color, #000000);
 }
 
-.status-icon-container {
-    position: relative;
-    width: 2.5vw;
-    height: 2.5vw;
+/* Statuts (Barres Plates Horizontales) */
+.status-bar-wrapper {
     display: flex;
-    justify-content: center;
     align-items: center;
-    font-size: 1.5vw;
-    text-shadow: 0 0 5px rgba(0,0,0,1);
+    width: 100%;
+    gap: 0.5vw;
 }
 
-/* Anneau de progression */
-.status-ring {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: 50%;
-    border: 3px solid currentColor;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-    transition: clip-path 0.3s;
-    filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));
+.status-icon {
+    font-size: 1vw;
+    width: 1.5vw;
+    text-align: center;
+    text-shadow: 1px 1px 2px var(--hud-shadow-color, #000000);
 }
+
+.status-bar-bg {
+    flex-grow: 1;
+    height: 0.8vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.status-bar-fg {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Color Picker */
+#hud-color-picker {
+    position: absolute;
+    top: 20vh;
+    left: 2vw;
+    background: rgba(20,20,20,0.9);
+    padding: 1vw;
+    border-radius: 8px;
+    color: white;
+    font-family: Arial, sans-serif;
+    border: 1px solid #555;
+    z-index: 1000;
+}
+#hud-color-picker label { display: block; margin-bottom: 0.5vh; }
+#hud-color-picker button { margin-top: 1vh; padding: 0.5vw; cursor: pointer; }
 
 /* Véhicule (Minimaliste et transparent) */
 .hud-vehicle-flex {

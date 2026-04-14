@@ -35,13 +35,11 @@ window.addEventListener('message', function(event) {
         document.getElementById('hud-bank').innerText = `${event.data.bank}$`;
         document.getElementById('hud-black').innerText = `${event.data.black}$`;
 
-        // MàJ Anneaux (Calcul du clip-path basique)
-        // Note: L'animation radiale parfaite en CSS nécessite un découpage complexe.
-        // Ici, on gère la couleur ou la hauteur visuelle de l'icône comme repère.
-        document.getElementById('ring-health').style.clipPath = `inset(${100 - event.data.health}% 0 0 0)`;
-        document.getElementById('ring-armor').style.clipPath = `inset(${100 - event.data.armor}% 0 0 0)`;
-        document.getElementById('ring-hunger').style.clipPath = `inset(${100 - event.data.hunger}% 0 0 0)`;
-        document.getElementById('ring-thirst').style.clipPath = `inset(${100 - event.data.thirst}% 0 0 0)`;
+        // MàJ Barres (Flat Design)
+        document.getElementById('bar-health').style.width = `${event.data.health}%`;
+        document.getElementById('bar-armor').style.width = `${event.data.armor}%`;
+        document.getElementById('bar-hunger').style.width = `${event.data.hunger}%`;
+        document.getElementById('bar-thirst').style.width = `${event.data.thirst}%`;
 
         // HUD Véhicule
         if (event.data.inVehicle) {
@@ -77,7 +75,38 @@ window.addEventListener('message', function(event) {
         handles.forEach(handle => {
             handle.style.display = event.data.state ? 'block' : 'none';
         });
+        document.getElementById('hud-color-picker').style.display = event.data.state ? 'block' : 'none';
     }
+});
+
+// Color Picker Logic
+const colorPrimary = document.getElementById('color-primary');
+const colorShadow = document.getElementById('color-shadow');
+const btnResetColors = document.getElementById('btn-reset-colors');
+
+function applyColors(primary, shadow) {
+    document.documentElement.style.setProperty('--hud-text-color', primary);
+    document.documentElement.style.setProperty('--hud-shadow-color', shadow);
+    localStorage.setItem('prisonHUD_colorPrimary', primary);
+    localStorage.setItem('prisonHUD_colorShadow', shadow);
+}
+
+// Charger couleurs
+const savedColorPrimary = localStorage.getItem('prisonHUD_colorPrimary');
+const savedColorShadow = localStorage.getItem('prisonHUD_colorShadow');
+if (savedColorPrimary && savedColorShadow) {
+    colorPrimary.value = savedColorPrimary;
+    colorShadow.value = savedColorShadow;
+    applyColors(savedColorPrimary, savedColorShadow);
+}
+
+colorPrimary.addEventListener('input', (e) => applyColors(e.target.value, colorShadow.value));
+colorShadow.addEventListener('input', (e) => applyColors(colorPrimary.value, e.target.value));
+
+btnResetColors.addEventListener('click', () => {
+    colorPrimary.value = '#ffffff';
+    colorShadow.value = '#000000';
+    applyColors('#ffffff', '#000000');
 });
 
 // Drag & Drop Multi-Widgets

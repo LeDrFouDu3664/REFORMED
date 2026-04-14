@@ -10,55 +10,76 @@
 <body>
     <div id="notification-container"></div>
 
-    <!-- Éléments 100% Séparés (Transparents, personnalisables) -->
+    <!-- Panneau de Personnalisation des Couleurs (Affiché uniquement en édition HUD) -->
+    <div id="hud-color-picker" style="display: none;">
+        <h3>Couleurs du HUD</h3>
+        <label>Principale : <input type="color" id="color-primary" value="#ffffff"></label><br>
+        <label>Ombres : <input type="color" id="color-shadow" value="#000000"></label><br>
+        <button id="btn-reset-colors">Réinitialiser</button>
+    </div>
+
+    <!-- Éléments 100% Séparés (Design Carré / Épuré) -->
     <div class="hud-widget" id="widget-id" style="top: 2vh; right: 2vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> ID</div>
-        <div class="hud-content" id="hud-id"><i class="fas fa-id-badge"></i> 0</div>
+        <div class="hud-content hud-text"><i class="fas fa-id-badge"></i> <span id="hud-id">0</span></div>
     </div>
 
     <div class="hud-widget" id="widget-time" style="top: 5vh; right: 2vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Heure</div>
-        <div class="hud-content" id="hud-time"><i class="fas fa-clock"></i> 00:00</div>
+        <div class="hud-content hud-text"><i class="fas fa-clock"></i> <span id="hud-time">00:00</span></div>
     </div>
 
     <div class="hud-widget" id="widget-date" style="top: 8vh; right: 2vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Date</div>
-        <div class="hud-content" id="hud-date"><i class="fas fa-calendar-alt"></i> 01/01/2000</div>
+        <div class="hud-content hud-text"><i class="fas fa-calendar-alt"></i> <span id="hud-date">01/01/2000</span></div>
     </div>
 
     <div class="hud-widget" id="widget-money" style="top: 12vh; right: 2vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Cash</div>
-        <div class="hud-content money-box"><i class="fas fa-wallet" style="color:lightgreen;"></i> <span id="hud-money">0$</span></div>
+        <div class="hud-content money-box"><i class="fas fa-wallet" style="color:#2ecc71;"></i> <span id="hud-money">0$</span></div>
     </div>
 
     <div class="hud-widget" id="widget-bank" style="top: 15vh; right: 2vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Banque</div>
-        <div class="hud-content money-box"><i class="fas fa-university" style="color:lightblue;"></i> <span id="hud-bank">0$</span></div>
+        <div class="hud-content money-box"><i class="fas fa-university" style="color:#3498db;"></i> <span id="hud-bank">0$</span></div>
     </div>
 
     <div class="hud-widget" id="widget-black" style="top: 18vh; right: 2vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Sale</div>
-        <div class="hud-content money-box"><i class="fas fa-skull-crossbones" style="color:red;"></i> <span id="hud-black">0$</span></div>
+        <div class="hud-content money-box"><i class="fas fa-skull-crossbones" style="color:#e74c3c;"></i> <span id="hud-black">0$</span></div>
     </div>
 
-    <div class="hud-widget" id="widget-health" style="bottom: 2vh; right: 11vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Cœur</div>
-        <div class="hud-content status-icon-container" style="color: #27ae60;"><i class="fas fa-heart"></i><div class="status-ring" id="ring-health"></div></div>
+    <!-- Nouveaux Statuts (Barres rectangulaires horizontales) -->
+    <div class="hud-widget" id="widget-health" style="bottom: 2vh; right: 2vw; width: 12vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Santé</div>
+        <div class="hud-content status-bar-wrapper">
+            <i class="fas fa-heart status-icon" style="color: #e74c3c;"></i>
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-health" style="background-color: #e74c3c;"></div></div>
+        </div>
     </div>
 
-    <div class="hud-widget" id="widget-armor" style="bottom: 2vh; right: 8vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Bouclier</div>
-        <div class="hud-content status-icon-container" style="color: #2980b9;"><i class="fas fa-shield-alt"></i><div class="status-ring" id="ring-armor"></div></div>
+    <div class="hud-widget" id="widget-armor" style="bottom: 5vh; right: 2vw; width: 12vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Armure</div>
+        <div class="hud-content status-bar-wrapper">
+            <i class="fas fa-shield-alt status-icon" style="color: #3498db;"></i>
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-armor" style="background-color: #3498db;"></div></div>
+        </div>
     </div>
 
-    <div class="hud-widget" id="widget-hunger" style="bottom: 2vh; right: 5vw;">
+    <div class="hud-widget" id="widget-hunger" style="bottom: 8vh; right: 2vw; width: 12vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Faim</div>
-        <div class="hud-content status-icon-container" style="color: #e67e22;"><i class="fas fa-hamburger"></i><div class="status-ring" id="ring-hunger"></div></div>
+        <div class="hud-content status-bar-wrapper">
+            <i class="fas fa-hamburger status-icon" style="color: #f1c40f;"></i>
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-hunger" style="background-color: #f1c40f;"></div></div>
+        </div>
     </div>
 
-    <div class="hud-widget" id="widget-thirst" style="bottom: 2vh; right: 2vw;">
+    <div class="hud-widget" id="widget-thirst" style="bottom: 11vh; right: 2vw; width: 12vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Soif</div>
-        <div class="hud-content status-icon-container" style="color: #3498db;"><i class="fas fa-tint"></i><div class="status-ring" id="ring-thirst"></div></div>
+        <div class="hud-content status-bar-wrapper">
+            <i class="fas fa-tint status-icon" style="color: #00a8ff;"></i>
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-thirst" style="background-color: #00a8ff;"></div></div>
+        </div>
     </div>
 
     <!-- Conteneur Véhicule -->
