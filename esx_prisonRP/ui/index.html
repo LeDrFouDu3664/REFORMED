@@ -12,13 +12,14 @@
 
     <!-- Panneau de Personnalisation des Couleurs (Affiché uniquement en édition HUD) -->
     <div id="hud-color-picker" style="display: none;">
-        <h3>Couleurs du HUD</h3>
-        <label>Principale : <input type="color" id="color-primary" value="#ffffff"></label><br>
+        <h3>Personnalisation du HUD</h3>
+        <label>Texte Principal : <input type="color" id="color-primary" value="#ffffff"></label><br>
         <label>Ombres : <input type="color" id="color-shadow" value="#000000"></label><br>
-        <button id="btn-reset-colors">Réinitialiser</button>
+        <label>Fond des Barres : <input type="color" id="color-bg" value="#000000"></label><br>
+        <button id="btn-reset-colors" style="margin-top: 10px; width: 100%; padding: 5px;">Réinitialiser par défaut</button>
     </div>
 
-    <!-- Éléments 100% Séparés (Design Carré / Épuré) -->
+    <!-- Éléments 100% Séparés (Design Carré / Épuré / Plat) -->
     <div class="hud-widget" id="widget-id" style="top: 2vh; right: 2vw;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> ID</div>
         <div class="hud-content hud-text"><i class="fas fa-id-badge"></i> <span id="hud-id">0</span></div>

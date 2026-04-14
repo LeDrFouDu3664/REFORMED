@@ -70,6 +70,9 @@ window.addEventListener('message', function(event) {
             document.getElementById('hud-vehicle').style.display = 'none';
         }
 
+    } else if (event.data.action === 'hideHUD') {
+        const widgets = document.querySelectorAll('.hud-widget');
+        widgets.forEach(w => w.style.display = 'none');
     } else if (event.data.action === 'toggleDragMode') {
         const handles = document.querySelectorAll('.hud-drag-handle');
         handles.forEach(handle => {
@@ -82,31 +85,40 @@ window.addEventListener('message', function(event) {
 // Color Picker Logic
 const colorPrimary = document.getElementById('color-primary');
 const colorShadow = document.getElementById('color-shadow');
+const colorBg = document.getElementById('color-bg');
 const btnResetColors = document.getElementById('btn-reset-colors');
 
-function applyColors(primary, shadow) {
+function applyColors(primary, shadow, bg) {
     document.documentElement.style.setProperty('--hud-text-color', primary);
     document.documentElement.style.setProperty('--hud-shadow-color', shadow);
+    document.documentElement.style.setProperty('--hud-bg-color', bg);
+
     localStorage.setItem('prisonHUD_colorPrimary', primary);
     localStorage.setItem('prisonHUD_colorShadow', shadow);
+    localStorage.setItem('prisonHUD_colorBg', bg);
 }
 
 // Charger couleurs
 const savedColorPrimary = localStorage.getItem('prisonHUD_colorPrimary');
 const savedColorShadow = localStorage.getItem('prisonHUD_colorShadow');
-if (savedColorPrimary && savedColorShadow) {
+const savedColorBg = localStorage.getItem('prisonHUD_colorBg');
+
+if (savedColorPrimary && savedColorShadow && savedColorBg) {
     colorPrimary.value = savedColorPrimary;
     colorShadow.value = savedColorShadow;
-    applyColors(savedColorPrimary, savedColorShadow);
+    colorBg.value = savedColorBg;
+    applyColors(savedColorPrimary, savedColorShadow, savedColorBg);
 }
 
-colorPrimary.addEventListener('input', (e) => applyColors(e.target.value, colorShadow.value));
-colorShadow.addEventListener('input', (e) => applyColors(colorPrimary.value, e.target.value));
+colorPrimary.addEventListener('input', (e) => applyColors(e.target.value, colorShadow.value, colorBg.value));
+colorShadow.addEventListener('input', (e) => applyColors(colorPrimary.value, e.target.value, colorBg.value));
+colorBg.addEventListener('input', (e) => applyColors(colorPrimary.value, colorShadow.value, e.target.value));
 
 btnResetColors.addEventListener('click', () => {
     colorPrimary.value = '#ffffff';
     colorShadow.value = '#000000';
-    applyColors('#ffffff', '#000000');
+    colorBg.value = '#000000';
+    applyColors('#ffffff', '#000000', '#000000');
 });
 
 // Drag & Drop Multi-Widgets

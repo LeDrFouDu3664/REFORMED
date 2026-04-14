@@ -117,7 +117,7 @@ body {
     text-shadow: 1px 1px 2px var(--hud-shadow-color, #000000);
 }
 
-/* Statuts (Barres Plates Horizontales) */
+/* Statuts (Barres Plates Horizontales - Design Ultra Plat) */
 .status-bar-wrapper {
     display: flex;
     align-items: center;
@@ -134,17 +134,17 @@ body {
 
 .status-bar-bg {
     flex-grow: 1;
-    height: 0.8vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
+    height: 1vh;
+    background-color: var(--hud-bg-color, rgba(0, 0, 0, 0.6));
+    border-radius: 0; /* Design plat/carré */
     overflow: hidden;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
 }
 
 .status-bar-fg {
     height: 100%;
     width: 100%;
-    transition: width 0.3s ease;
+    transition: width 0.3s ease-out;
 }
 
 /* Color Picker */
@@ -152,16 +152,20 @@ body {
     position: absolute;
     top: 20vh;
     left: 2vw;
-    background: rgba(20,20,20,0.9);
-    padding: 1vw;
-    border-radius: 8px;
+    background: rgba(15,15,15,0.95);
+    padding: 1.5vw;
+    border-radius: 2px;
     color: white;
-    font-family: Arial, sans-serif;
-    border: 1px solid #555;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border: 1px solid rgba(255,255,255,0.2);
     z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.8);
 }
-#hud-color-picker label { display: block; margin-bottom: 0.5vh; }
-#hud-color-picker button { margin-top: 1vh; padding: 0.5vw; cursor: pointer; }
+#hud-color-picker h3 { margin-top: 0; font-size: 1vw; border-bottom: 1px solid #555; padding-bottom: 0.5vh; }
+#hud-color-picker label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1vh; font-size: 0.8vw; font-weight: bold; }
+#hud-color-picker input[type="color"] { border: none; background: none; width: 2vw; height: 3vh; cursor: pointer; }
+#hud-color-picker button { margin-top: 1vh; padding: 0.5vw; cursor: pointer; background-color: #e74c3c; color: white; border: none; border-radius: 2px; font-weight: bold; transition: background 0.2s; }
+#hud-color-picker button:hover { background-color: #c0392b; }
 
 /* Véhicule (Minimaliste et transparent) */
 .hud-vehicle-flex {

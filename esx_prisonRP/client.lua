@@ -857,8 +857,10 @@ Citizen.CreateThread(function()
     while true do
         Citizen.Wait(200) -- Refresh plus rapide pour la vitesse du véhicule
 
-        -- Si ESX est bien chargé
-        if ESX and ESX.PlayerData then
+        -- Masquer le HUD NUI quand le menu pause est ouvert
+        if IsPauseMenuActive() then
+            SendNUIMessage({ action = 'hideHUD' })
+        elseif ESX and ESX.PlayerData then
             local ped = PlayerPedId()
 
             -- Calculs Santé/Armure
