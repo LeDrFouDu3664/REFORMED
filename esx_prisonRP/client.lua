@@ -840,6 +840,9 @@ end)
 -- Variables dynamiques HUD
 local currentHunger = 100
 local currentThirst = 100
+local seatbelt = false
+local cruiseControl = false
+local cruiseSpeed = 0
 
 -- Écoute des statuts pour la faim et soif (Si plugin esx_status présent)
 AddEventHandler('esx_status:onTick', function(status)
@@ -891,13 +894,35 @@ Citizen.CreateThread(function()
             local inVehicle = false
             local speed = 0
             local gear = 0
+            local fuel = 0
+            local indicatorL = false
+            local indicatorR = false
+
             if IsPedInAnyVehicle(ped, false) then
+                inVehicle = true
                 local vehicle = GetVehiclePedIsIn(ped, false)
                 if vehicle and vehicle ~= 0 then
-                    inVehicle = true
                     speed = math.floor(GetEntitySpeed(vehicle) * 3.6) -- Conversion m/s en km/h
                     gear = GetVehicleCurrentGear(vehicle)
+
+                    -- Essence (Legacy ESX Fuel, Ox_Fuel ou LegacyFuel natif)
+                    fuel = math.floor(GetVehicleFuelLevel(vehicle))
+
+                    -- Clignotants (0 = Eteint, 1 = Gauche, 2 = Droite, 3 = Warning)
+                    local lights = GetVehicleIndicatorLights(vehicle)
+                    if lights == 1 then indicatorL = true
+                    elseif lights == 2 then indicatorR = true
+                    elseif lights == 3 then indicatorL = true; indicatorR = true end
+
+                    -- Régulateur de Vitesse (Cruiser)
+                    if cruiseControl and GetPedInVehicleSeat(vehicle, -1) == ped then
+                        SetEntityMaxSpeed(vehicle, cruiseSpeed)
+                    end
                 end
+            else
+                -- Reset variables si on quitte le véhicule
+                seatbelt = false
+                cruiseControl = false
             end
 
             SendNUIMessage({
@@ -914,8 +939,59 @@ Citizen.CreateThread(function()
                 thirst = currentThirst,
                 inVehicle = inVehicle,
                 speed = speed,
-                gear = gear
+                gear = gear,
+                fuel = fuel,
+                seatbelt = seatbelt,
+                cruiseControl = cruiseControl,
+                indicatorL = indicatorL,
+                indicatorR = indicatorR
             })
+        end
+    end
+end)
+
+-- Commandes / Touches Véhicule (Ceinture, Régulateur)
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+        local ped = PlayerPedId()
+        if IsPedInAnyVehicle(ped, false) then
+            local vehicle = GetVehiclePedIsIn(ped, false)
+            if GetPedInVehicleSeat(vehicle, -1) == ped then
+                -- Ceinture (Touche K - 311 par défaut)
+                if IsControlJustReleased(0, 311) then
+                    seatbelt = not seatbelt
+                    if seatbelt then
+                        TriggerEvent('esx:showNotification', '~g~Ceinture attachée')
+                    else
+                        TriggerEvent('esx:showNotification', '~r~Ceinture détachée')
+                    end
+                end
+
+                -- Régulateur (Touche B - 29 par défaut)
+                if IsControlJustReleased(0, 29) then
+                    if cruiseControl then
+                        cruiseControl = false
+                        SetEntityMaxSpeed(vehicle, GetVehicleHandlingFloat(vehicle, 'CHandlingData', 'fInitialDriveMaxFlatVel'))
+                        TriggerEvent('esx:showNotification', '~r~Régulateur désactivé')
+                    else
+                        cruiseSpeed = GetEntitySpeed(vehicle)
+                        if cruiseSpeed > 5.0 then
+                            cruiseControl = true
+                            TriggerEvent('esx:showNotification', '~g~Régulateur activé à ' .. math.floor(cruiseSpeed * 3.6) .. ' km/h')
+                        else
+                            TriggerEvent('esx:showNotification', '~y~Vitesse trop faible pour le régulateur')
+                        end
+                    end
+                end
+
+                -- Physique Ceinture (Empêcher l'éjection si attachée)
+                if seatbelt then
+                    DisableControlAction(0, 75, true) -- F (Sortir)
+                end
+            end
+        else
+            Citizen.Wait(1000)
         end
     end
 end)
@@ -974,7 +1050,12 @@ Citizen.CreateThread(function()
         HideHudComponentThisFrame(17) -- Save Game
         HideHudComponentThisFrame(20) -- Weapon Stats
 
-        -- La minimap (19) et le Menu Pause restent actifs par défaut si non-masqués ici.
+        -- Disparition conditionnelle de la minimap
+        if IsPedInAnyVehicle(PlayerPedId(), false) then
+            DisplayRadar(true)
+        else
+            DisplayRadar(false)
+        end
     end
 end)
 

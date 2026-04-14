@@ -45,8 +45,19 @@
     <div class="hud-widget" id="hud-vehicle" style="bottom: 2vh; left: 15vw; display: none;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Véhicule</div>
         <div class="hud-content hud-vehicle-flex">
-            <div class="speed-box"><span id="hud-speed">0</span><span class="unit">KM/H</span></div>
-            <div class="gear-box"><i class="fas fa-cog"></i> <span id="hud-gear">N</span></div>
+            <div class="speed-row">
+                <span id="hud-speed">0</span><span class="unit">KM/H</span>
+            </div>
+            <div class="vehicle-indicators">
+                <i id="indicator-left" class="fas fa-arrow-left"></i>
+                <div class="gear-box"><i class="fas fa-cog"></i> <span id="hud-gear">N</span></div>
+                <i id="indicator-right" class="fas fa-arrow-right"></i>
+            </div>
+            <div class="vehicle-status">
+                <i id="hud-fuel" class="fas fa-gas-pump" style="color: #e74c3c;"></i>
+                <i id="hud-seatbelt" class="fas fa-user-slash" style="color: #e74c3c;"></i>
+                <i id="hud-cruise" class="fas fa-tachometer-alt" style="color: #95a5a6;"></i>
+            </div>
         </div>
     </div>
 

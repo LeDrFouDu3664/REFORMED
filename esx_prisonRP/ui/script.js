@@ -48,6 +48,26 @@ window.addEventListener('message', function(event) {
             document.getElementById('hud-vehicle').style.display = 'block';
             document.getElementById('hud-speed').innerText = event.data.speed;
             document.getElementById('hud-gear').innerText = event.data.gear === 0 ? 'R' : event.data.gear;
+
+            // Clignotants
+            document.getElementById('indicator-left').className = event.data.indicatorL ? 'fas fa-arrow-left active' : 'fas fa-arrow-left';
+            document.getElementById('indicator-right').className = event.data.indicatorR ? 'fas fa-arrow-right active' : 'fas fa-arrow-right';
+
+            // Essence (Rouge si < 15%)
+            const fuelEl = document.getElementById('hud-fuel');
+            if (event.data.fuel < 15) { fuelEl.style.color = '#e74c3c'; fuelEl.style.textShadow = '0 0 5px #e74c3c'; }
+            else { fuelEl.style.color = '#f1c40f'; fuelEl.style.textShadow = 'none'; }
+
+            // Ceinture
+            const seatbeltEl = document.getElementById('hud-seatbelt');
+            if (event.data.seatbelt) { seatbeltEl.style.color = '#2ecc71'; seatbeltEl.style.textShadow = '0 0 5px #2ecc71'; }
+            else { seatbeltEl.style.color = '#e74c3c'; seatbeltEl.style.textShadow = 'none'; }
+
+            // Régulateur
+            const cruiseEl = document.getElementById('hud-cruise');
+            if (event.data.cruiseControl) { cruiseEl.style.color = '#3498db'; cruiseEl.style.textShadow = '0 0 5px #3498db'; }
+            else { cruiseEl.style.color = '#95a5a6'; cruiseEl.style.textShadow = 'none'; }
+
         } else {
             document.getElementById('hud-vehicle').style.display = 'none';
         }
