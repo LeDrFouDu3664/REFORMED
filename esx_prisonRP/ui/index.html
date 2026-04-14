@@ -10,35 +10,55 @@
 <body>
     <div id="notification-container"></div>
 
-    <!-- Conteneur global d'information temporelle -->
-    <div class="hud-widget" id="hud-info" style="top: 5vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Infos</div>
-        <div class="hud-content">
-            <span id="hud-id"><i class="fas fa-id-badge"></i> ID: 0</span>
-            <span id="hud-time"><i class="fas fa-clock"></i> 00:00</span>
-            <span id="hud-date"><i class="fas fa-calendar-alt"></i> 01/01/2000</span>
-        </div>
+    <!-- Éléments 100% Séparés (Transparents, personnalisables) -->
+    <div class="hud-widget" id="widget-id" style="top: 2vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> ID</div>
+        <div class="hud-content" id="hud-id"><i class="fas fa-id-badge"></i> 0</div>
     </div>
 
-    <!-- Conteneur d'économie -->
-    <div class="hud-widget" id="hud-economy" style="top: 12vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Finances</div>
-        <div class="hud-content hud-economy-flex">
-            <div class="money-box"><i class="fas fa-wallet" style="color:lightgreen;"></i> <span id="hud-money">0$</span></div>
-            <div class="money-box"><i class="fas fa-university" style="color:lightblue;"></i> <span id="hud-bank">0$</span></div>
-            <div class="money-box"><i class="fas fa-skull-crossbones" style="color:red;"></i> <span id="hud-black">0$</span></div>
-        </div>
+    <div class="hud-widget" id="widget-time" style="top: 5vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Heure</div>
+        <div class="hud-content" id="hud-time"><i class="fas fa-clock"></i> 00:00</div>
     </div>
 
-    <!-- Conteneur de statuts vitaux (Santé, Faim, Soif) -->
-    <div class="hud-widget" id="hud-status" style="bottom: 2vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Statuts</div>
-        <div class="hud-content hud-status-flex">
-            <div class="status-icon-container" style="color: #27ae60;"><i class="fas fa-heart"></i><div class="status-ring" id="ring-health"></div></div>
-            <div class="status-icon-container" style="color: #2980b9;"><i class="fas fa-shield-alt"></i><div class="status-ring" id="ring-armor"></div></div>
-            <div class="status-icon-container" style="color: #e67e22;"><i class="fas fa-hamburger"></i><div class="status-ring" id="ring-hunger"></div></div>
-            <div class="status-icon-container" style="color: #3498db;"><i class="fas fa-tint"></i><div class="status-ring" id="ring-thirst"></div></div>
-        </div>
+    <div class="hud-widget" id="widget-date" style="top: 8vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Date</div>
+        <div class="hud-content" id="hud-date"><i class="fas fa-calendar-alt"></i> 01/01/2000</div>
+    </div>
+
+    <div class="hud-widget" id="widget-money" style="top: 12vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Cash</div>
+        <div class="hud-content money-box"><i class="fas fa-wallet" style="color:lightgreen;"></i> <span id="hud-money">0$</span></div>
+    </div>
+
+    <div class="hud-widget" id="widget-bank" style="top: 15vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Banque</div>
+        <div class="hud-content money-box"><i class="fas fa-university" style="color:lightblue;"></i> <span id="hud-bank">0$</span></div>
+    </div>
+
+    <div class="hud-widget" id="widget-black" style="top: 18vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Sale</div>
+        <div class="hud-content money-box"><i class="fas fa-skull-crossbones" style="color:red;"></i> <span id="hud-black">0$</span></div>
+    </div>
+
+    <div class="hud-widget" id="widget-health" style="bottom: 2vh; right: 11vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Cœur</div>
+        <div class="hud-content status-icon-container" style="color: #27ae60;"><i class="fas fa-heart"></i><div class="status-ring" id="ring-health"></div></div>
+    </div>
+
+    <div class="hud-widget" id="widget-armor" style="bottom: 2vh; right: 8vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Bouclier</div>
+        <div class="hud-content status-icon-container" style="color: #2980b9;"><i class="fas fa-shield-alt"></i><div class="status-ring" id="ring-armor"></div></div>
+    </div>
+
+    <div class="hud-widget" id="widget-hunger" style="bottom: 2vh; right: 5vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Faim</div>
+        <div class="hud-content status-icon-container" style="color: #e67e22;"><i class="fas fa-hamburger"></i><div class="status-ring" id="ring-hunger"></div></div>
+    </div>
+
+    <div class="hud-widget" id="widget-thirst" style="bottom: 2vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Soif</div>
+        <div class="hud-content status-icon-container" style="color: #3498db;"><i class="fas fa-tint"></i><div class="status-ring" id="ring-thirst"></div></div>
     </div>
 
     <!-- Conteneur Véhicule -->

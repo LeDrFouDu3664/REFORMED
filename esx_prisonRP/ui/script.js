@@ -27,7 +27,7 @@ window.addEventListener('message', function(event) {
         widgets.forEach(w => w.style.display = 'block'); // Afficher tous sauf véhicule par défaut
 
         // MàJ Textes
-        document.getElementById('hud-id').innerHTML = `<i class="fas fa-id-badge"></i> ID: ${event.data.id}`;
+        document.getElementById('hud-id').innerHTML = `<i class="fas fa-id-badge"></i> ${event.data.id}`;
         document.getElementById('hud-time').innerHTML = `<i class="fas fa-clock"></i> ${event.data.time}`;
         document.getElementById('hud-date').innerHTML = `<i class="fas fa-calendar-alt"></i> ${event.data.date}`;
 

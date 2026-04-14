@@ -100,32 +100,19 @@ body {
     margin-bottom: 0.5vh;
 }
 
-/* Infos */
-#hud-info .hud-content {
+/* Styles d'information génériques */
+.hud-content {
     display: flex;
-    gap: 1vw;
-    font-size: 0.9vw;
-    font-weight: 800;
+    align-items: center;
+    font-size: 1.1vw;
+    font-weight: 900;
     color: #e0e0e0;
 }
 
-/* Économie */
-.hud-economy-flex {
-    display: flex;
-    gap: 1vw;
-    font-size: 1vw;
-    font-weight: 900;
-}
 .money-box {
     display: flex;
     align-items: center;
     gap: 0.3vw;
-}
-
-/* Statuts (Belles icônes sans fond) */
-.hud-status-flex {
-    display: flex;
-    gap: 0.8vw;
 }
 
 .status-icon-container {

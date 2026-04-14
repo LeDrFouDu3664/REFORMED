@@ -958,8 +958,8 @@ Citizen.CreateThread(function()
         if IsPedInAnyVehicle(ped, false) then
             local vehicle = GetVehiclePedIsIn(ped, false)
             if GetPedInVehicleSeat(vehicle, -1) == ped then
-                -- Ceinture (Touche K - 311 par défaut)
-                if IsControlJustReleased(0, 311) then
+                -- Ceinture (Touche X - 73)
+                if IsControlJustReleased(0, 73) then
                     seatbelt = not seatbelt
                     if seatbelt then
                         TriggerEvent('esx:showNotification', '~g~Ceinture attachée')
@@ -968,8 +968,8 @@ Citizen.CreateThread(function()
                     end
                 end
 
-                -- Régulateur (Touche B - 29 par défaut)
-                if IsControlJustReleased(0, 29) then
+                -- Régulateur (Touche G - 47)
+                if IsControlJustReleased(0, 47) then
                     if cruiseControl then
                         cruiseControl = false
                         SetEntityMaxSpeed(vehicle, GetVehicleHandlingFloat(vehicle, 'CHandlingData', 'fInitialDriveMaxFlatVel'))
