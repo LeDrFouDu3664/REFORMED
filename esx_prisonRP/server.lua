@@ -28,10 +28,15 @@ function IsPlayerStaff(source)
             return true
         end
     elseif Config.AdminSystem == 'esx' then
-        -- Vérification standard ESX
+        -- Vérification standard ESX via les permissions configurées
         local xPlayer = ESX.GetPlayerFromId(source)
-        if xPlayer and xPlayer.getGroup() ~= 'user' then
-            return true
+        if xPlayer then
+            local group = xPlayer.getGroup()
+            for _, allowedGroup in ipairs(Config.CommandPermissions) do
+                if group == allowedGroup then
+                    return true
+                end
+            end
         end
     end
 
@@ -55,7 +60,7 @@ end
 local isLockdownActive = false
 RegisterCommand('prisonlockdown', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)
-    if xPlayer and (xPlayer.job.name == Config.Jobs.Garde or xPlayer.job.name == Config.Jobs.Police) then
+    if xPlayer and (xPlayer.job.name == Config.GuardJob or xPlayer.job.name == Config.PoliceJob) then
         isLockdownActive = not isLockdownActive
         TriggerClientEvent('prison:client:SetLockdown', -1, isLockdownActive)
 
@@ -90,7 +95,7 @@ RegisterServerEvent('prison:server:ToggleCuff')
 AddEventHandler('prison:server:ToggleCuff', function(targetId)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
-    if xPlayer and (xPlayer.job.name == 'garde' or xPlayer.job.name == 'police') then
+    if xPlayer and (xPlayer.job.name == Config.GuardJob or xPlayer.job.name == Config.PoliceJob) then
         TriggerClientEvent('prison:client:ToggleCuffStatus', targetId)
         TriggerClientEvent('esx:showNotification', src, "~g~Vous avez menotté/démenotté le joueur.")
     end
@@ -100,7 +105,7 @@ RegisterServerEvent('prison:server:ToggleEscort')
 AddEventHandler('prison:server:ToggleEscort', function(targetId)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
-    if xPlayer and (xPlayer.job.name == 'garde' or xPlayer.job.name == 'police') then
+    if xPlayer and (xPlayer.job.name == Config.GuardJob or xPlayer.job.name == Config.PoliceJob) then
         TriggerClientEvent('prison:client:ToggleEscortStatus', targetId, src)
     end
 end)
@@ -112,7 +117,7 @@ AddEventHandler('prison:server:SearchPlayer', function(targetId)
     local xPlayer = ESX.GetPlayerFromId(source)
     local xTarget = ESX.GetPlayerFromId(targetId)
 
-    if xPlayer and xTarget and xPlayer.job.name == Config.Jobs.Garde then
+    if xPlayer and xTarget and xPlayer.job.name == Config.GuardJob then
         local ped = GetPlayerPed(source)
         local targetPed = GetPlayerPed(targetId)
         if #(GetEntityCoords(ped) - GetEntityCoords(targetPed)) < 5.0 then
@@ -189,7 +194,7 @@ RegisterCommand('setjobprison', function(source, args, rawCommand)
                     ['@identifier'] = xTarget.identifier
                 })
 
-                if jobName == 'prisonnier' then
+                if jobName == Config.PrisonerJob then
                     MySQL.Async.execute('UPDATE users SET jail_time = 99999 WHERE identifier = @identifier', {
                         ['@identifier'] = xTarget.identifier
                     }, function()
@@ -215,7 +220,7 @@ end, false)
 RegisterCommand('jail', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)
 
-    if xPlayer.job.name == Config.Jobs.Police or xPlayer.job.name == Config.Jobs.Garde then
+    if xPlayer.job.name == Config.PoliceJob or xPlayer.job.name == Config.GuardJob then
         local targetId = tonumber(args[1])
         local jailTime = tonumber(args[2]) or 99999 -- Prison fédérale permanente par défaut si aucun temps n'est défini
 
@@ -247,7 +252,7 @@ end, false)
 RegisterCommand('unjail', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)
 
-    if xPlayer.job.name == Config.Jobs.Police or xPlayer.job.name == Config.Jobs.Garde then
+    if xPlayer.job.name == Config.PoliceJob or xPlayer.job.name == Config.GuardJob then
         local targetId = tonumber(args[1])
         if targetId then
             local xTarget = ESX.GetPlayerFromId(targetId)
@@ -266,7 +271,7 @@ end, false)
 RegisterServerEvent('prison:server:GiveGuardWeapons')
 AddEventHandler('prison:server:GiveGuardWeapons', function(gearType)
     local xPlayer = ESX.GetPlayerFromId(source)
-    if xPlayer and xPlayer.job.name == 'garde' then
+    if xPlayer and xPlayer.job.name == Config.GuardJob then
         if gearType == 'standard' then
             xPlayer.addWeapon('WEAPON_STUNGUN', 100)
             xPlayer.addWeapon('WEAPON_NIGHTSTICK', 1)
@@ -279,7 +284,7 @@ AddEventHandler('prison:server:GiveGuardWeapons', function(gearType)
             -- Ajouter un gilet par balles
             TriggerClientEvent('esx:showNotification', source, '~r~Équipement Anti-Émeute équipé.')
         end
-    elseif xPlayer and xPlayer.job.name == 'garde_incendie' then
+    elseif xPlayer and xPlayer.job.name == Config.FireJob then
         if gearType == 'fire' then
             xPlayer.addWeapon('WEAPON_FIREEXTINGUISHER', 100)
             xPlayer.addWeapon('WEAPON_HATCHET', 1)
@@ -455,7 +460,7 @@ AddEventHandler('prison:server:CompleteEscape', function()
             local xPlayerId = allPlayers[i]
             local xTarget = ESX.GetPlayerFromId(xPlayerId)
 
-            if xTarget and (xTarget.job.name == Config.Jobs.Police or xTarget.job.name == Config.Jobs.Garde) then
+            if xTarget and (xTarget.job.name == Config.PoliceJob or xTarget.job.name == Config.GuardJob) then
                 TriggerClientEvent('chat:addMessage', xPlayerId, { templateId = 'prison_system', args = {"ALERTE", alertMsg} })
             end
         end
@@ -527,8 +532,9 @@ AddEventHandler('prison:server:SetInitialRole', function(role)
     firstSpawnPlayers[source] = nil
 
     if role == 'garde' then
-        xPlayer.setJob('garde', 0)
+        xPlayer.setJob(Config.GuardJob, 0)
     elseif role == 'prisonnier' then
+        xPlayer.setJob(Config.PrisonerJob, 0)
         -- Prison à vie par défaut
         MySQL.Async.execute('UPDATE users SET jail_time = 99999 WHERE identifier = @identifier', {
             ['@identifier'] = xPlayer.identifier

@@ -1,7 +1,21 @@
 Config = {}
 
+-- Configuration des Noms de Métiers (Jobs)
+Config.PrisonerJob = 'prisonnier' -- Métier attribué aux détenus
+Config.GuardJob = 'garde'         -- Métier des gardiens de la prison
+Config.FireJob = 'garde_incendie' -- Unité Incendie de la prison
+Config.PoliceJob = 'police'       -- Forces de l'ordre générales
+Config.EMSJob = 'ambulance'       -- Services médicaux
+
 -- Système d'Administration ('esx', 'luxu_admin', ou 'standalone')
 Config.AdminSystem = 'luxu_admin'
+
+-- Permissions ESX (Groupes autorisés à utiliser /ck, /setjobprison)
+Config.CommandPermissions = {
+    'admin',
+    'superadmin',
+    'mod'
+}
 
 -- Liste des ID Discord du Staff (Permet l'accès aux commandes /ck, /setjobprison, etc.)
 -- Mettez uniquement les IDs (ex: "123456789012345678"). Le bot Discord doit être lié au serveur FiveM pour que ça marche.
@@ -15,11 +29,6 @@ Config.PrisonCoords = vector3(1677.233, 2509.694, 45.565)
 Config.PrisonRadius = 150.0 -- Rayon avant que le joueur soit téléporté s'il s'échappe
 Config.ReleaseCoords = vector3(1855.93, 2601.95, 45.32) -- Sortie de prison
 
-Config.Jobs = {
-    Police = 'police',
-    Garde = 'garde',
-    EMS = 'ambulance'
-}
 
 Config.InventorySystem = 'ox_inventory' -- 'esx' ou 'ox_inventory'
 

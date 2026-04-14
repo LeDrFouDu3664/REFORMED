@@ -76,10 +76,10 @@ function RefreshBlips()
     table.insert(createdBlips, mainBlip)
 
     -- Blips internes (seulement visibles par Gardes ou Prisonniers)
-    if isJailed or pedJob == Config.Jobs.Garde or pedJob == Config.Jobs.Police then
+    if isJailed or pedJob == Config.GuardJob or pedJob == Config.PoliceJob or pedJob == Config.FireJob then
 
         -- Armurerie (Uniquement forces de l'ordre)
-        if pedJob == Config.Jobs.Garde or pedJob == Config.Jobs.Police then
+        if pedJob == Config.GuardJob or pedJob == Config.PoliceJob then
             local armoryBlip = AddBlipForCoord(Config.Locations.Armory.x, Config.Locations.Armory.y, Config.Locations.Armory.z)
             SetBlipSprite(armoryBlip, 175)
             SetBlipScale(armoryBlip, 0.8)
@@ -550,7 +550,7 @@ Citizen.CreateThread(function()
         local sleep = true
 
         -- Interaction Garde : Armureries
-        if ESX.PlayerData.job and ESX.PlayerData.job.name == 'garde' then
+        if ESX.PlayerData.job and ESX.PlayerData.job.name == Config.GuardJob then
             -- Équipement Standard
             local dist = #(pedCoords - Config.Locations.Armory)
             if dist < 10.0 then
@@ -588,7 +588,7 @@ Citizen.CreateThread(function()
                     TriggerEvent('esx:showNotification', '~r~Personne à proximité.')
                 end
             end
-        elseif ESX.PlayerData.job and ESX.PlayerData.job.name == 'garde_incendie' then
+        elseif ESX.PlayerData.job and ESX.PlayerData.job.name == Config.FireJob then
             -- Équipement Incendie
             local fDist = #(pedCoords - Config.Locations.FireGear)
             if fDist < 10.0 then
@@ -604,7 +604,7 @@ Citizen.CreateThread(function()
         end
 
         -- Interaction EMS : Infirmerie (Service & Lits)
-        if ESX.PlayerData.job and ESX.PlayerData.job.name == Config.Jobs.EMS then
+        if ESX.PlayerData.job and ESX.PlayerData.job.name == Config.EMSJob then
             local dist = #(pedCoords - Config.Locations.Infirmary)
             if dist < 10.0 then
                 sleep = false
@@ -769,7 +769,7 @@ end)
 -- Commandes d'animation de force (Gardes)
 RegisterCommand('cuff', function()
     local ped = PlayerPedId()
-    if ESX.PlayerData.job and (ESX.PlayerData.job.name == 'garde' or ESX.PlayerData.job.name == 'police') then
+    if ESX.PlayerData.job and (ESX.PlayerData.job.name == Config.GuardJob or ESX.PlayerData.job.name == Config.PoliceJob) then
         local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
         if closestPlayer ~= -1 and closestDistance <= 3.0 then
             TriggerServerEvent('prison:server:ToggleCuff', GetPlayerServerId(closestPlayer))
@@ -781,7 +781,7 @@ end, false)
 
 RegisterCommand('escort', function()
     local ped = PlayerPedId()
-    if ESX.PlayerData.job and (ESX.PlayerData.job.name == 'garde' or ESX.PlayerData.job.name == 'police') then
+    if ESX.PlayerData.job and (ESX.PlayerData.job.name == Config.GuardJob or ESX.PlayerData.job.name == Config.PoliceJob) then
         local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
         if closestPlayer ~= -1 and closestDistance <= 3.0 then
             TriggerServerEvent('prison:server:ToggleEscort', GetPlayerServerId(closestPlayer))
