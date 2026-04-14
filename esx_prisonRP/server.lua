@@ -20,8 +20,11 @@ function IsPlayerStaff(source)
 
     -- 1. Vérification via le système d'administration configuré
     if Config.AdminSystem == 'luxu_admin' then
-        -- Vérification spécifique pour Luxu Admin
-        if exports['luxu_admin']:IsAdmin(source) then
+        -- Vérification spécifique pour Luxu Admin avec protection pcall
+        local success, result = pcall(function()
+            return exports['luxu_admin']:IsAdmin(source)
+        end)
+        if success and result then
             return true
         end
     elseif Config.AdminSystem == 'esx' then
@@ -166,7 +169,7 @@ RegisterCommand('ck', function(source, args, rawCommand)
 end, false)
 
 -- Commande Staff pour définir un job
--- Commande Staff pour définir un job en prison
+-- Commande Staff pour définir un job en prison (Renommée pour éviter les conflits ESX)
 RegisterCommand('setjobprison', function(source, args, rawCommand)
     if source == 0 or IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
