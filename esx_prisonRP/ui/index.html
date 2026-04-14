@@ -9,6 +9,30 @@
 </head>
 <body>
     <div id="notification-container"></div>
+
+    <div id="hud-container">
+        <div id="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Déplacer le HUD (Taper /hud pour fermer)</div>
+
+        <div class="hud-top-bar">
+            <span id="hud-id"><i class="fas fa-id-badge"></i> ID: 0</span>
+            <span id="hud-time"><i class="fas fa-clock"></i> 00:00</span>
+            <span id="hud-date"><i class="fas fa-calendar-alt"></i> 01/01/2000</span>
+        </div>
+
+        <div class="hud-economy">
+            <div class="money-box"><i class="fas fa-wallet" style="color:lightgreen;"></i> <span id="hud-money">0$</span></div>
+            <div class="money-box"><i class="fas fa-university" style="color:lightblue;"></i> <span id="hud-bank">0$</span></div>
+            <div class="money-box"><i class="fas fa-skull-crossbones" style="color:red;"></i> <span id="hud-black">0$</span></div>
+        </div>
+
+        <div class="hud-status">
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-health" style="background-color: #27ae60;"><i class="fas fa-heart"></i></div></div>
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-armor" style="background-color: #2980b9;"><i class="fas fa-shield-alt"></i></div></div>
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-hunger" style="background-color: #e67e22;"><i class="fas fa-hamburger"></i></div></div>
+            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-thirst" style="background-color: #3498db;"><i class="fas fa-tint"></i></div></div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

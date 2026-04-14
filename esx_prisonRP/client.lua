@@ -837,6 +837,109 @@ AddEventHandler('prison:client:HealInBed', function()
     TriggerEvent('esx:showNotification', '~g~Vous avez été soigné.')
 end)
 
+-- Variables dynamiques HUD
+local currentHunger = 100
+local currentThirst = 100
+
+-- Écoute des statuts pour la faim et soif (Si plugin esx_status présent)
+AddEventHandler('esx_status:onTick', function(status)
+    for k, v in ipairs(status) do
+        if v.name == 'hunger' then currentHunger = math.floor(v.percent) end
+        if v.name == 'thirst' then currentThirst = math.floor(v.percent) end
+    end
+end)
+
+-- Thread NUI HUD Global (Affichage HUD)
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(1000)
+
+        -- Si ESX est bien chargé
+        if ESX and ESX.PlayerData then
+            local ped = PlayerPedId()
+
+            -- Calculs Santé/Armure
+            -- Santé sur GTA V : 100 à 200 (Souvent, 100 = Mort) -> Formule (Santé - 100)
+            local health = GetEntityHealth(ped) - 100
+            if health < 0 then health = 0 end
+            if health > 100 then health = 100 end
+
+            local armor = GetPedArmour(ped)
+
+            -- Heure/Date
+            local year, month, day, hour, minute, second = GetLocalTime()
+            local timeStr = string.format("%02d:%02d", hour, minute)
+            local dateStr = string.format("%02d/%02d/%04d", day, month, year)
+
+            -- ID Joueur
+            local playerId = GetPlayerServerId(PlayerId())
+
+            -- Récupération Locale (Pas de callback spam)
+            local pData = ESX.GetPlayerData()
+            local money, bank, black = 0, 0, 0
+
+            if pData.accounts then
+                for i=1, #pData.accounts do
+                    local acc = pData.accounts[i]
+                    if acc.name == 'money' then money = acc.money
+                    elseif acc.name == 'bank' then bank = acc.money
+                    elseif acc.name == 'black_money' then black = acc.money end
+                end
+            end
+
+            SendNUIMessage({
+                action = 'updateHUD',
+                id = playerId,
+                time = timeStr,
+                date = dateStr,
+                money = money,
+                bank = bank,
+                black = black,
+                health = health,
+                armor = armor,
+                hunger = currentHunger,
+                thirst = currentThirst
+            })
+        end
+    end
+end)
+
+-- Écouteur pour la mise à jour asynchrone des comptes (optionnel pour la fluidité)
+RegisterNetEvent('esx:setAccountMoney')
+AddEventHandler('esx:setAccountMoney', function(account)
+    for i=1, #ESX.PlayerData.accounts do
+        if ESX.PlayerData.accounts[i].name == account.name then
+            ESX.PlayerData.accounts[i].money = account.money
+            break
+        end
+    end
+end)
+
+-- Commande /hud (Déplacement de l'interface)
+local hudEditMode = false
+RegisterCommand('hud', function()
+    hudEditMode = not hudEditMode
+    SetNuiFocus(hudEditMode, hudEditMode)
+    SendNUIMessage({
+        action = 'toggleDragMode',
+        state = hudEditMode
+    })
+
+    if hudEditMode then
+        TriggerEvent('esx:showNotification', '~y~Mode Édition HUD Activé.~s~ Déplacez l\'interface et retapez /hud pour valider.')
+    else
+        TriggerEvent('esx:showNotification', '~g~Position HUD Sauvegardée.')
+    end
+end, false)
+
+-- RegisterKeyMapping NUI Callback (Close HUD Edit with ESC)
+RegisterNUICallback('closeEdit', function(data, cb)
+    hudEditMode = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'toggleDragMode', state = false })
+    cb('ok')
+end)
+
 -- Auto-heal passif permanent en prison (compatible tout perso/plugin)
 Citizen.CreateThread(function()
     while true do

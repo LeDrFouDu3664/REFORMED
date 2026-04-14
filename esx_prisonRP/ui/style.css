@@ -70,3 +70,83 @@ body {
 @keyframes fadeOut {
     to { opacity: 0; transform: translateY(-20px); }
 }
+
+/* HUD System */
+#hud-container {
+    position: absolute;
+    bottom: 2vh;
+    right: 2vw;
+    background-color: rgba(15, 15, 15, 0.85);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 1vw;
+    color: white;
+    min-width: 15vw;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: none; /* Caché jusqu'à initialisation */
+}
+
+#hud-drag-handle {
+    display: none; /* Affiché seulement en mode d'édition */
+    background-color: #f39c12;
+    color: black;
+    text-align: center;
+    padding: 0.2vw;
+    font-weight: bold;
+    cursor: grab;
+    border-radius: 4px;
+    margin-bottom: 1vh;
+    font-size: 0.8vw;
+}
+
+.hud-top-bar {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 0.5vh;
+    margin-bottom: 1vh;
+    font-size: 0.8vw;
+    font-weight: bold;
+    color: #ccc;
+}
+
+.hud-economy {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1vh;
+    font-size: 0.9vw;
+    font-weight: bold;
+}
+
+.money-box {
+    display: flex;
+    align-items: center;
+    gap: 0.3vw;
+}
+
+.hud-status {
+    display: flex;
+    gap: 0.5vw;
+    justify-content: space-between;
+}
+
+.status-bar-bg {
+    width: 23%;
+    height: 2vh;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.status-bar-fg {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.7vw;
+}

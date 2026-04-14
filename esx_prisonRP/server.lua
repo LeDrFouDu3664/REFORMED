@@ -218,9 +218,7 @@ end, false)
 
 -- Commande pour mettre en prison
 RegisterCommand('jail', function(source, args, rawCommand)
-    local xPlayer = ESX.GetPlayerFromId(source)
-
-    if xPlayer.job.name == Config.PoliceJob or xPlayer.job.name == Config.GuardJob then
+    if source == 0 or IsPlayerStaff(source) then
         local targetId = tonumber(args[1])
         local jailTime = tonumber(args[2]) or 99999 -- Prison fédérale permanente par défaut si aucun temps n'est défini
 
@@ -232,19 +230,49 @@ RegisterCommand('jail', function(source, args, rawCommand)
                     ['@identifier'] = xTarget.identifier
                 })
                 TriggerClientEvent('prison:client:JailPlayer', targetId, jailTime)
-                if jailTime >= 99999 then
-                    TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' à perpétuité.')
+                if source ~= 0 then
+                    if jailTime >= 99999 then
+                        TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' à perpétuité.')
+                    else
+                        TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' pour ' .. jailTime .. ' mois.')
+                    end
                 else
-                    TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' pour ' .. jailTime .. ' mois.')
+                    print('Joueur emprisonné avec succès.')
                 end
             else
-                TriggerClientEvent('esx:showNotification', source, 'Joueur introuvable.')
+                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, 'Joueur introuvable.') else print('Joueur introuvable.') end
             end
         else
-            TriggerClientEvent('esx:showNotification', source, 'Usage: /jail [ID] [TEMPS (en mois)]')
+            if source ~= 0 then TriggerClientEvent('esx:showNotification', source, 'Usage: /jail [ID] [TEMPS (en mois)]') else print('Usage: /jail [ID] [TEMPS]') end
         end
     else
-        TriggerClientEvent('esx:showNotification', source, 'Vous n\'avez pas la permission de faire cela.')
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if xPlayer and (xPlayer.job.name == Config.PoliceJob or xPlayer.job.name == Config.GuardJob) then
+            local targetId = tonumber(args[1])
+            local jailTime = tonumber(args[2]) or 99999
+
+            if targetId then
+                local xTarget = ESX.GetPlayerFromId(targetId)
+                if xTarget then
+                    MySQL.Async.execute('UPDATE users SET jail_time = @jail_time WHERE identifier = @identifier', {
+                        ['@jail_time'] = jailTime,
+                        ['@identifier'] = xTarget.identifier
+                    })
+                    TriggerClientEvent('prison:client:JailPlayer', targetId, jailTime, false)
+                    if jailTime >= 99999 then
+                        TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' à perpétuité.')
+                    else
+                        TriggerClientEvent('esx:showNotification', source, 'Vous avez emprisonné ' .. xTarget.getName() .. ' pour ' .. jailTime .. ' mois.')
+                    end
+                else
+                    TriggerClientEvent('esx:showNotification', source, 'Joueur introuvable.')
+                end
+            else
+                TriggerClientEvent('esx:showNotification', source, 'Usage: /jail [ID] [TEMPS (en mois)]')
+            end
+        else
+            TriggerClientEvent('esx:showNotification', source, 'Vous n\'avez pas la permission de faire cela.')
+        end
     end
 end, false)
 
@@ -252,7 +280,7 @@ end, false)
 RegisterCommand('unjail', function(source, args, rawCommand)
     local xPlayer = ESX.GetPlayerFromId(source)
 
-    if xPlayer.job.name == Config.PoliceJob or xPlayer.job.name == Config.GuardJob then
+    if source == 0 or IsPlayerStaff(source) or (xPlayer and (xPlayer.job.name == Config.PoliceJob or xPlayer.job.name == Config.GuardJob)) then
         local targetId = tonumber(args[1])
         if targetId then
             local xTarget = ESX.GetPlayerFromId(targetId)
@@ -261,7 +289,7 @@ RegisterCommand('unjail', function(source, args, rawCommand)
                     ['@identifier'] = xTarget.identifier
                 })
                 TriggerClientEvent('prison:client:UnjailPlayer', targetId)
-                TriggerClientEvent('esx:showNotification', source, 'Vous avez libéré ' .. xTarget.getName())
+                if source ~= 0 then TriggerClientEvent('esx:showNotification', source, 'Vous avez libéré ' .. xTarget.getName()) else print('Joueur libéré.') end
             end
         end
     end
@@ -467,6 +495,24 @@ AddEventHandler('prison:server:CompleteEscape', function()
 
         -- Confirmer l'évasion au joueur
         TriggerClientEvent('prison:client:EscapeSuccess', src)
+    end
+end)
+
+-- Callbacks HUD
+ESX.RegisterServerCallback('prison:server:getPlayerData', function(source, cb)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer then
+        local money = xPlayer.getMoney() or 0
+        local bank = xPlayer.getAccount('bank') and xPlayer.getAccount('bank').money or 0
+        local black = xPlayer.getAccount('black_money') and xPlayer.getAccount('black_money').money or 0
+
+        cb({
+            money = money,
+            bank = bank,
+            black = black
+        })
+    else
+        cb({money = 0, bank = 0, black = 0})
     end
 end)
 
