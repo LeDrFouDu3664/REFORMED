@@ -940,6 +940,28 @@ RegisterNUICallback('closeEdit', function(data, cb)
     cb('ok')
 end)
 
+-- Masquer le HUD natif de GTA (Sauf minimap et menu pause)
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+        -- Masquer les composants spécifiques du HUD
+        HideHudComponentThisFrame(1)  -- Wanted Stars
+        HideHudComponentThisFrame(2)  -- Weapon Icon
+        HideHudComponentThisFrame(3)  -- Cash
+        HideHudComponentThisFrame(4)  -- MP Cash
+        HideHudComponentThisFrame(6)  -- Vehicle Name
+        HideHudComponentThisFrame(7)  -- Area Name
+        HideHudComponentThisFrame(8)  -- Vehicle Class
+        HideHudComponentThisFrame(9)  -- Street Name
+        HideHudComponentThisFrame(13) -- Cash Change
+        HideHudComponentThisFrame(14) -- Reticle
+        HideHudComponentThisFrame(17) -- Save Game
+        HideHudComponentThisFrame(20) -- Weapon Stats
+
+        -- La minimap (19) et le Menu Pause restent actifs par défaut si non-masqués ici.
+    end
+end)
+
 -- Auto-heal passif permanent en prison (compatible tout perso/plugin)
 Citizen.CreateThread(function()
     while true do
