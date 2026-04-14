@@ -35,11 +35,11 @@ window.addEventListener('message', function(event) {
         document.getElementById('hud-bank').innerText = `${event.data.bank}$`;
         document.getElementById('hud-black').innerText = `${event.data.black}$`;
 
-        // MàJ Barres (Flat Design)
-        document.getElementById('bar-health').style.width = `${event.data.health}%`;
-        document.getElementById('bar-armor').style.width = `${event.data.armor}%`;
-        document.getElementById('bar-hunger').style.width = `${event.data.hunger}%`;
-        document.getElementById('bar-thirst').style.width = `${event.data.thirst}%`;
+        // MàJ Hexagones (Calcul du stroke-dashoffset pour 280 total)
+        document.getElementById('poly-health').style.strokeDashoffset = 280 - (280 * (event.data.health / 100));
+        document.getElementById('poly-armor').style.strokeDashoffset = 280 - (280 * (event.data.armor / 100));
+        document.getElementById('poly-hunger').style.strokeDashoffset = 280 - (280 * (event.data.hunger / 100));
+        document.getElementById('poly-thirst').style.strokeDashoffset = 280 - (280 * (event.data.thirst / 100));
 
         // HUD Véhicule
         if (event.data.inVehicle) {

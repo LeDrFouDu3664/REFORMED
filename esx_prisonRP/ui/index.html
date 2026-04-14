@@ -19,87 +19,90 @@
         <button id="btn-reset-colors" style="margin-top: 10px; width: 100%; padding: 5px;">Réinitialiser par défaut</button>
     </div>
 
-    <!-- Éléments 100% Séparés (Design Carré / Épuré / Plat) -->
-    <div class="hud-widget" id="widget-id" style="top: 2vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> ID</div>
-        <div class="hud-content hud-text"><i class="fas fa-id-badge"></i> <span id="hud-id">0</span></div>
-    </div>
-
-    <div class="hud-widget" id="widget-time" style="top: 5vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Heure</div>
-        <div class="hud-content hud-text"><i class="fas fa-clock"></i> <span id="hud-time">00:00</span></div>
-    </div>
-
-    <div class="hud-widget" id="widget-date" style="top: 8vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Date</div>
-        <div class="hud-content hud-text"><i class="fas fa-calendar-alt"></i> <span id="hud-date">01/01/2000</span></div>
-    </div>
-
-    <div class="hud-widget" id="widget-money" style="top: 12vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Cash</div>
-        <div class="hud-content money-box"><i class="fas fa-wallet" style="color:#2ecc71;"></i> <span id="hud-money">0$</span></div>
-    </div>
-
-    <div class="hud-widget" id="widget-bank" style="top: 15vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Banque</div>
-        <div class="hud-content money-box"><i class="fas fa-university" style="color:#3498db;"></i> <span id="hud-bank">0$</span></div>
-    </div>
-
-    <div class="hud-widget" id="widget-black" style="top: 18vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Sale</div>
-        <div class="hud-content money-box"><i class="fas fa-skull-crossbones" style="color:#e74c3c;"></i> <span id="hud-black">0$</span></div>
-    </div>
-
-    <!-- Nouveaux Statuts (Barres rectangulaires horizontales) -->
-    <div class="hud-widget" id="widget-health" style="bottom: 2vh; right: 2vw; width: 12vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Santé</div>
-        <div class="hud-content status-bar-wrapper">
-            <i class="fas fa-heart status-icon" style="color: #e74c3c;"></i>
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-health" style="background-color: #e74c3c;"></div></div>
+    <!-- Player Card (Infos & Argent combinés, ultra esthétique, effet verre) -->
+    <div class="hud-widget glass-panel" id="widget-player" style="top: 2vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Joueur</div>
+        <div class="hud-content player-card">
+            <div class="info-row">
+                <div class="info-item"><i class="fas fa-id-badge"></i> <span id="hud-id">0</span></div>
+                <div class="info-item"><i class="fas fa-clock"></i> <span id="hud-time">00:00</span></div>
+            </div>
+            <div class="divider"></div>
+            <div class="economy-row">
+                <div class="eco-item cash"><i class="fas fa-wallet"></i> <span id="hud-money">0</span>$</div>
+                <div class="eco-item bank"><i class="fas fa-university"></i> <span id="hud-bank">0</span>$</div>
+                <div class="eco-item black"><i class="fas fa-skull-crossbones"></i> <span id="hud-black">0</span>$</div>
+            </div>
         </div>
     </div>
 
-    <div class="hud-widget" id="widget-armor" style="bottom: 5vh; right: 2vw; width: 12vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Armure</div>
-        <div class="hud-content status-bar-wrapper">
-            <i class="fas fa-shield-alt status-icon" style="color: #3498db;"></i>
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-armor" style="background-color: #3498db;"></div></div>
+    <!-- Statuts Vitaux (Hexagones / Diamants dynamiques en bas à droite) -->
+    <div class="hud-widget" id="widget-status" style="bottom: 2vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Santé & Survie</div>
+        <div class="hud-content status-cluster">
+
+            <div class="status-hex health-hex">
+                <svg viewBox="0 0 100 100">
+                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
+                    <path class="fg-hex" id="poly-health" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
+                </svg>
+                <i class="fas fa-heart"></i>
+            </div>
+
+            <div class="status-hex armor-hex">
+                <svg viewBox="0 0 100 100">
+                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
+                    <path class="fg-hex" id="poly-armor" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
+                </svg>
+                <i class="fas fa-shield-alt"></i>
+            </div>
+
+            <div class="status-hex hunger-hex">
+                <svg viewBox="0 0 100 100">
+                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
+                    <path class="fg-hex" id="poly-hunger" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
+                </svg>
+                <i class="fas fa-hamburger"></i>
+            </div>
+
+            <div class="status-hex thirst-hex">
+                <svg viewBox="0 0 100 100">
+                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
+                    <path class="fg-hex" id="poly-thirst" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
+                </svg>
+                <i class="fas fa-tint"></i>
+            </div>
+
         </div>
     </div>
 
-    <div class="hud-widget" id="widget-hunger" style="bottom: 8vh; right: 2vw; width: 12vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Faim</div>
-        <div class="hud-content status-bar-wrapper">
-            <i class="fas fa-hamburger status-icon" style="color: #f1c40f;"></i>
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-hunger" style="background-color: #f1c40f;"></div></div>
-        </div>
-    </div>
-
-    <div class="hud-widget" id="widget-thirst" style="bottom: 11vh; right: 2vw; width: 12vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Soif</div>
-        <div class="hud-content status-bar-wrapper">
-            <i class="fas fa-tint status-icon" style="color: #00a8ff;"></i>
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-thirst" style="background-color: #00a8ff;"></div></div>
-        </div>
-    </div>
-
-    <!-- Conteneur Véhicule -->
-    <div class="hud-widget" id="hud-vehicle" style="bottom: 2vh; left: 15vw; display: none;">
+    <!-- DashBoard Véhicule (Cyberpunk / Digital) -->
+    <div class="hud-widget glass-panel" id="hud-vehicle" style="bottom: 5vh; left: 18vw; display: none;">
         <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Véhicule</div>
-        <div class="hud-content hud-vehicle-flex">
-            <div class="speed-row">
-                <span id="hud-speed">0</span><span class="unit">KM/H</span>
+        <div class="hud-content dash-container">
+
+            <div class="dash-speedometer">
+                <div class="speed-value" id="hud-speed">0</div>
+                <div class="speed-metrics">
+                    <span class="unit">KM/H</span>
+                    <span class="gear" id="hud-gear">1</span>
+                </div>
             </div>
-            <div class="vehicle-indicators">
-                <i id="indicator-left" class="fas fa-arrow-left"></i>
-                <div class="gear-box"><i class="fas fa-cog"></i> <span id="hud-gear">N</span></div>
-                <i id="indicator-right" class="fas fa-arrow-right"></i>
+
+            <div class="dash-indicators">
+                <i id="indicator-left" class="fas fa-caret-left"></i>
+                <div class="dash-fuel">
+                    <i class="fas fa-gas-pump" id="hud-fuel-icon"></i>
+                    <div class="fuel-bar-bg"><div class="fuel-bar-fg" id="hud-fuel-bar"></div></div>
+                </div>
+                <i id="indicator-right" class="fas fa-caret-right"></i>
             </div>
-            <div class="vehicle-status">
-                <i id="hud-fuel" class="fas fa-gas-pump" style="color: #e74c3c;"></i>
-                <i id="hud-seatbelt" class="fas fa-user-slash" style="color: #e74c3c;"></i>
-                <i id="hud-cruise" class="fas fa-tachometer-alt" style="color: #95a5a6;"></i>
+
+            <div class="dash-toggles">
+                <div class="toggle-icon" id="hud-seatbelt"><i class="fas fa-user-slash"></i></div>
+                <div class="toggle-icon" id="hud-cruise"><i class="fas fa-tachometer-alt"></i></div>
             </div>
+
         </div>
     </div>
 
