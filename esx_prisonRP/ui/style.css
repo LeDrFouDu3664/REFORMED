@@ -71,23 +71,24 @@ body {
     to { opacity: 0; transform: translateY(-20px); }
 }
 
-/* HUD System */
-#hud-container {
+/* Multi-Widgets HUD System */
+.hud-widget {
     position: absolute;
-    bottom: 2vh;
-    right: 2vw;
-    background-color: rgba(15, 15, 15, 0.85);
+    background-color: rgba(20, 20, 20, 0.85);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
-    padding: 1vw;
     color: white;
-    min-width: 15vw;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: none; /* Caché jusqu'à initialisation */
+    display: none; /* Rendu visible par script.js une fois actif */
+    pointer-events: auto;
 }
 
-#hud-drag-handle {
+.hud-content {
+    padding: 0.8vw;
+}
+
+.hud-drag-handle {
     display: none; /* Affiché seulement en mode d'édition */
     background-color: #f39c12;
     color: black;
@@ -95,58 +96,84 @@ body {
     padding: 0.2vw;
     font-weight: bold;
     cursor: grab;
-    border-radius: 4px;
-    margin-bottom: 1vh;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     font-size: 0.8vw;
 }
 
-.hud-top-bar {
+/* Infos */
+#hud-info .hud-content {
     display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding-bottom: 0.5vh;
-    margin-bottom: 1vh;
+    gap: 1vw;
     font-size: 0.8vw;
     font-weight: bold;
     color: #ccc;
 }
 
-.hud-economy {
+/* Économie */
+.hud-economy-flex {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 1vh;
+    gap: 1vw;
     font-size: 0.9vw;
     font-weight: bold;
 }
-
 .money-box {
     display: flex;
     align-items: center;
     gap: 0.3vw;
 }
 
-.hud-status {
+/* Statuts circulaires */
+.hud-status-flex {
     display: flex;
-    gap: 0.5vw;
-    justify-content: space-between;
+    gap: 1vw;
 }
 
-.status-bar-bg {
-    width: 23%;
-    height: 2vh;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+.status-icon-container {
     position: relative;
-    overflow: hidden;
+    width: 3vw;
+    height: 3vw;
+    background-color: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2vw;
 }
 
-.status-bar-fg {
-    height: 100%;
-    width: 100%;
-    transition: width 0.3s ease;
+/* Pseudo-anneau pour imiter la progression radiale */
+.status-ring {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    border: 3px solid currentColor;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    transition: clip-path 0.3s;
+}
+
+/* Véhicule */
+.hud-vehicle-flex {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    color: rgba(255,255,255,0.8);
-    font-size: 0.7vw;
+    gap: 0.5vh;
+}
+
+.speed-box {
+    font-size: 2vw;
+    font-weight: bold;
+    font-style: italic;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+.speed-box .unit {
+    font-size: 0.8vw;
+    color: #ccc;
+    margin-left: 0.2vw;
+}
+
+.gear-box {
+    font-size: 1vw;
+    color: #f39c12;
 }

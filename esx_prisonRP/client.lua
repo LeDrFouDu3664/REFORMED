@@ -852,7 +852,7 @@ end)
 -- Thread NUI HUD Global (Affichage HUD)
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(1000)
+        Citizen.Wait(200) -- Refresh plus rapide pour la vitesse du véhicule
 
         -- Si ESX est bien chargé
         if ESX and ESX.PlayerData then
@@ -887,6 +887,19 @@ Citizen.CreateThread(function()
                 end
             end
 
+            -- Données Véhicule
+            local inVehicle = false
+            local speed = 0
+            local gear = 0
+            if IsPedInAnyVehicle(ped, false) then
+                local vehicle = GetVehiclePedIsIn(ped, false)
+                if vehicle and vehicle ~= 0 then
+                    inVehicle = true
+                    speed = math.floor(GetEntitySpeed(vehicle) * 3.6) -- Conversion m/s en km/h
+                    gear = GetVehicleCurrentGear(vehicle)
+                end
+            end
+
             SendNUIMessage({
                 action = 'updateHUD',
                 id = playerId,
@@ -898,7 +911,10 @@ Citizen.CreateThread(function()
                 health = health,
                 armor = armor,
                 hunger = currentHunger,
-                thirst = currentThirst
+                thirst = currentThirst,
+                inVehicle = inVehicle,
+                speed = speed,
+                gear = gear
             })
         end
     end

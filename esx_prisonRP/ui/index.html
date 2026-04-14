@@ -10,26 +10,43 @@
 <body>
     <div id="notification-container"></div>
 
-    <div id="hud-container">
-        <div id="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Déplacer le HUD (Taper /hud pour fermer)</div>
-
-        <div class="hud-top-bar">
+    <!-- Conteneur global d'information temporelle -->
+    <div class="hud-widget" id="hud-info" style="top: 5vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Infos</div>
+        <div class="hud-content">
             <span id="hud-id"><i class="fas fa-id-badge"></i> ID: 0</span>
             <span id="hud-time"><i class="fas fa-clock"></i> 00:00</span>
             <span id="hud-date"><i class="fas fa-calendar-alt"></i> 01/01/2000</span>
         </div>
+    </div>
 
-        <div class="hud-economy">
+    <!-- Conteneur d'économie -->
+    <div class="hud-widget" id="hud-economy" style="top: 12vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Finances</div>
+        <div class="hud-content hud-economy-flex">
             <div class="money-box"><i class="fas fa-wallet" style="color:lightgreen;"></i> <span id="hud-money">0$</span></div>
             <div class="money-box"><i class="fas fa-university" style="color:lightblue;"></i> <span id="hud-bank">0$</span></div>
             <div class="money-box"><i class="fas fa-skull-crossbones" style="color:red;"></i> <span id="hud-black">0$</span></div>
         </div>
+    </div>
 
-        <div class="hud-status">
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-health" style="background-color: #27ae60;"><i class="fas fa-heart"></i></div></div>
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-armor" style="background-color: #2980b9;"><i class="fas fa-shield-alt"></i></div></div>
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-hunger" style="background-color: #e67e22;"><i class="fas fa-hamburger"></i></div></div>
-            <div class="status-bar-bg"><div class="status-bar-fg" id="bar-thirst" style="background-color: #3498db;"><i class="fas fa-tint"></i></div></div>
+    <!-- Conteneur de statuts vitaux (Santé, Faim, Soif) -->
+    <div class="hud-widget" id="hud-status" style="bottom: 2vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Statuts</div>
+        <div class="hud-content hud-status-flex">
+            <div class="status-icon-container" style="color: #27ae60;"><i class="fas fa-heart"></i><div class="status-ring" id="ring-health"></div></div>
+            <div class="status-icon-container" style="color: #2980b9;"><i class="fas fa-shield-alt"></i><div class="status-ring" id="ring-armor"></div></div>
+            <div class="status-icon-container" style="color: #e67e22;"><i class="fas fa-hamburger"></i><div class="status-ring" id="ring-hunger"></div></div>
+            <div class="status-icon-container" style="color: #3498db;"><i class="fas fa-tint"></i><div class="status-ring" id="ring-thirst"></div></div>
+        </div>
+    </div>
+
+    <!-- Conteneur Véhicule -->
+    <div class="hud-widget" id="hud-vehicle" style="bottom: 2vh; left: 15vw; display: none;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Véhicule</div>
+        <div class="hud-content hud-vehicle-flex">
+            <div class="speed-box"><span id="hud-speed">0</span><span class="unit">KM/H</span></div>
+            <div class="gear-box"><i class="fas fa-cog"></i> <span id="hud-gear">N</span></div>
         </div>
     </div>
 

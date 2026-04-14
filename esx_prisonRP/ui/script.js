@@ -23,7 +23,8 @@ window.addEventListener('message', function(event) {
             notification.remove();
         }, 8500);
     } else if (event.data.action === 'updateHUD') {
-        document.getElementById('hud-container').style.display = 'block';
+        const widgets = document.querySelectorAll('.hud-widget');
+        widgets.forEach(w => w.style.display = 'block'); // Afficher tous sauf véhicule par défaut
 
         // MàJ Textes
         document.getElementById('hud-id').innerHTML = `<i class="fas fa-id-badge"></i> ID: ${event.data.id}`;
@@ -34,62 +35,75 @@ window.addEventListener('message', function(event) {
         document.getElementById('hud-bank').innerText = `${event.data.bank}$`;
         document.getElementById('hud-black').innerText = `${event.data.black}$`;
 
-        // MàJ Barres (en %)
-        document.getElementById('bar-health').style.width = `${event.data.health}%`;
-        document.getElementById('bar-armor').style.width = `${event.data.armor}%`;
-        document.getElementById('bar-hunger').style.width = `${event.data.hunger}%`;
-        document.getElementById('bar-thirst').style.width = `${event.data.thirst}%`;
+        // MàJ Anneaux (Calcul du clip-path basique)
+        // Note: L'animation radiale parfaite en CSS nécessite un découpage complexe.
+        // Ici, on gère la couleur ou la hauteur visuelle de l'icône comme repère.
+        document.getElementById('ring-health').style.clipPath = `inset(${100 - event.data.health}% 0 0 0)`;
+        document.getElementById('ring-armor').style.clipPath = `inset(${100 - event.data.armor}% 0 0 0)`;
+        document.getElementById('ring-hunger').style.clipPath = `inset(${100 - event.data.hunger}% 0 0 0)`;
+        document.getElementById('ring-thirst').style.clipPath = `inset(${100 - event.data.thirst}% 0 0 0)`;
+
+        // HUD Véhicule
+        if (event.data.inVehicle) {
+            document.getElementById('hud-vehicle').style.display = 'block';
+            document.getElementById('hud-speed').innerText = event.data.speed;
+            document.getElementById('hud-gear').innerText = event.data.gear === 0 ? 'R' : event.data.gear;
+        } else {
+            document.getElementById('hud-vehicle').style.display = 'none';
+        }
 
     } else if (event.data.action === 'toggleDragMode') {
-        const handle = document.getElementById('hud-drag-handle');
-        if (event.data.state) {
-            handle.style.display = 'block';
-        } else {
-            handle.style.display = 'none';
-        }
+        const handles = document.querySelectorAll('.hud-drag-handle');
+        handles.forEach(handle => {
+            handle.style.display = event.data.state ? 'block' : 'none';
+        });
     }
 });
 
-// Script de Drag & Drop (Déplacer le HUD)
-const hudContainer = document.getElementById('hud-container');
-const dragHandle = document.getElementById('hud-drag-handle');
+// Drag & Drop Multi-Widgets
 let isDragging = false;
+let currentWidget = null;
 let offsetX, offsetY;
 
-// Restauration de la position sauvegardée
-const savedX = localStorage.getItem('prisonHUD_x');
-const savedY = localStorage.getItem('prisonHUD_y');
+const widgets = document.querySelectorAll('.hud-widget');
 
-if (savedX && savedY) {
-    hudContainer.style.left = savedX;
-    hudContainer.style.top = savedY;
-    hudContainer.style.bottom = 'auto'; // Disable default bottom/right if saved
-    hudContainer.style.right = 'auto';
-}
+widgets.forEach(widget => {
+    // Restauration
+    const savedX = localStorage.getItem(`${widget.id}_x`);
+    const savedY = localStorage.getItem(`${widget.id}_y`);
+    if (savedX && savedY) {
+        widget.style.left = savedX;
+        widget.style.top = savedY;
+        widget.style.bottom = 'auto';
+        widget.style.right = 'auto';
+    }
 
-dragHandle.addEventListener('mousedown', function(e) {
-    isDragging = true;
-    offsetX = e.clientX - hudContainer.getBoundingClientRect().left;
-    offsetY = e.clientY - hudContainer.getBoundingClientRect().top;
+    const handle = widget.querySelector('.hud-drag-handle');
+    handle.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        currentWidget = widget;
+        offsetX = e.clientX - widget.getBoundingClientRect().left;
+        offsetY = e.clientY - widget.getBoundingClientRect().top;
+    });
 });
 
 window.addEventListener('mousemove', function(e) {
-    if (isDragging) {
+    if (isDragging && currentWidget) {
         let x = e.clientX - offsetX;
         let y = e.clientY - offsetY;
-        hudContainer.style.left = `${x}px`;
-        hudContainer.style.top = `${y}px`;
-        hudContainer.style.bottom = 'auto';
-        hudContainer.style.right = 'auto';
+        currentWidget.style.left = `${x}px`;
+        currentWidget.style.top = `${y}px`;
+        currentWidget.style.bottom = 'auto';
+        currentWidget.style.right = 'auto';
     }
 });
 
 window.addEventListener('mouseup', function(e) {
-    if (isDragging) {
+    if (isDragging && currentWidget) {
         isDragging = false;
-        // Sauvegarder la position en local
-        localStorage.setItem('prisonHUD_x', hudContainer.style.left);
-        localStorage.setItem('prisonHUD_y', hudContainer.style.top);
+        localStorage.setItem(`${currentWidget.id}_x`, currentWidget.style.left);
+        localStorage.setItem(`${currentWidget.id}_y`, currentWidget.style.top);
+        currentWidget = null;
     }
 });
 
