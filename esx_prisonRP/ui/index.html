@@ -15,94 +15,86 @@
         <h3>Personnalisation du HUD</h3>
         <label>Texte Principal : <input type="color" id="color-primary" value="#ffffff"></label><br>
         <label>Ombres : <input type="color" id="color-shadow" value="#000000"></label><br>
-        <label>Fond des Barres : <input type="color" id="color-bg" value="#000000"></label><br>
+        <label>Fond des Barres : <input type="color" id="color-bg" value="#0a142d"></label><br>
         <button id="btn-reset-colors" style="margin-top: 10px; width: 100%; padding: 5px;">Réinitialiser par défaut</button>
     </div>
 
-    <!-- Player Card (Infos & Argent combinés, ultra esthétique, effet verre) -->
-    <div class="hud-widget glass-panel" id="widget-player" style="top: 2vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Joueur</div>
-        <div class="hud-content player-card">
-            <div class="info-row">
-                <div class="info-item"><i class="fas fa-id-badge"></i> <span id="hud-id">0</span></div>
-                <div class="info-item"><i class="fas fa-clock"></i> <span id="hud-time">00:00</span></div>
+    <!-- 1. Les jauges à gauche (Jauges de vie & Micro) -->
+    <div class="hud-widget" id="hud-vitals" style="bottom: 5vh; left: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Vitals</div>
+        <div class="hud-content vitals-container">
+            <div class="vital-circle" id="circle-health-container">
+                <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-health" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                <i class="fas fa-heart vital-icon"></i>
             </div>
-            <div class="divider"></div>
-            <div class="economy-row">
-                <div class="eco-item cash"><i class="fas fa-wallet"></i> <span id="hud-money">0</span>$</div>
-                <div class="eco-item bank"><i class="fas fa-university"></i> <span id="hud-bank">0</span>$</div>
-                <div class="eco-item black"><i class="fas fa-skull-crossbones"></i> <span id="hud-black">0</span>$</div>
+            <div class="vital-circle" id="circle-armor-container">
+                <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-armor" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                <i class="fas fa-shield-alt vital-icon"></i>
+            </div>
+            <div class="vital-circle" id="circle-hunger-container">
+                <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-hunger" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                <i class="fas fa-hamburger vital-icon"></i>
+            </div>
+            <div class="vital-circle" id="circle-thirst-container">
+                <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-thirst" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                <i class="fas fa-tint vital-icon"></i>
+            </div>
+            <div class="vital-circle" id="circle-mic-container">
+                <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-mic" stroke-dasharray="100, 100" stroke-dashoffset="100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                <i class="fas fa-microphone vital-icon" id="mic-icon"></i>
             </div>
         </div>
     </div>
 
-    <!-- Statuts Vitaux (Hexagones / Diamants dynamiques en bas à droite) -->
-    <div class="hud-widget" id="widget-status" style="bottom: 2vh; right: 2vw;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Santé & Survie</div>
-        <div class="hud-content status-cluster">
-
-            <div class="status-hex health-hex">
-                <svg viewBox="0 0 100 100">
-                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
-                    <path class="fg-hex" id="poly-health" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
-                </svg>
-                <i class="fas fa-heart"></i>
-            </div>
-
-            <div class="status-hex armor-hex">
-                <svg viewBox="0 0 100 100">
-                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
-                    <path class="fg-hex" id="poly-armor" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
-                </svg>
-                <i class="fas fa-shield-alt"></i>
-            </div>
-
-            <div class="status-hex hunger-hex">
-                <svg viewBox="0 0 100 100">
-                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
-                    <path class="fg-hex" id="poly-hunger" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
-                </svg>
-                <i class="fas fa-hamburger"></i>
-            </div>
-
-            <div class="status-hex thirst-hex">
-                <svg viewBox="0 0 100 100">
-                    <path class="bg-hex" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z"></path>
-                    <path class="fg-hex" id="poly-thirst" d="M50 5 L95 25 L95 75 L50 95 L5 75 L5 25 Z" stroke-dasharray="280" stroke-dashoffset="0"></path>
-                </svg>
-                <i class="fas fa-tint"></i>
-            </div>
-
+    <!-- 2. L'argent en haut à droite -->
+    <div class="hud-widget" id="hud-economy" style="top: 2vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Économie</div>
+        <div class="hud-content economy-container">
+            <div class="eco-item cash-item"><i class="fas fa-wallet"></i> <span id="hud-money">0$</span></div>
+            <div class="eco-item bank-item"><i class="fas fa-university"></i> <span id="hud-bank">0$</span></div>
+            <div class="eco-item black-item"><i class="fas fa-skull-crossbones"></i> <span id="hud-black">0$</span></div>
         </div>
     </div>
 
-    <!-- DashBoard Véhicule (Cyberpunk / Digital) -->
-    <div class="hud-widget glass-panel" id="hud-vehicle" style="bottom: 5vh; left: 18vw; display: none;">
-        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Véhicule</div>
-        <div class="hud-content dash-container">
+    <!-- 3. Raccourcis / Infos au centre-haut -->
+    <div class="hud-widget" id="hud-shortcuts" style="top: 2vh; left: 50vw; transform: translateX(-50%);">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Informations</div>
+        <div class="hud-content info-container">
+            <span><i class="fas fa-id-badge"></i> <span id="hud-id">0</span></span>
+            <span><i class="fas fa-clock"></i> <span id="hud-time">00:00</span></span>
+            <span><i class="fas fa-calendar-alt"></i> <span id="hud-date">01/01</span></span>
+        </div>
+    </div>
 
-            <div class="dash-speedometer">
-                <div class="speed-value" id="hud-speed">0</div>
-                <div class="speed-metrics">
-                    <span class="unit">KM/H</span>
-                    <span class="gear" id="hud-gear">1</span>
+    <!-- 4 & 5. Compteur Vitesse (Milieu bas) et Voyants -->
+    <div class="hud-widget" id="hud-vehicle" style="bottom: 2vh; left: 50vw; transform: translateX(-50%); display: none;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Compteur</div>
+        <div class="hud-content speedo-container">
+            <!-- SVG Demi-Cercle (Compteur) -->
+            <div class="speedo-dial">
+                <svg viewBox="0 0 100 50" class="speedo-svg">
+                    <path class="speedo-bg" d="M 10 45 A 35 35 0 0 1 90 45" fill="none" />
+                    <path class="speedo-fg" id="speedo-path" d="M 10 45 A 35 35 0 0 1 90 45" fill="none" stroke-dasharray="110" stroke-dashoffset="110" />
+                </svg>
+                <div class="speed-texts">
+                    <div class="speed-value" id="hud-speed">0</div>
+                    <div class="speed-unit">KM/H</div>
+                    <div class="speed-gear" id="hud-gear">N</div>
                 </div>
             </div>
 
-            <div class="dash-indicators">
-                <i id="indicator-left" class="fas fa-caret-left"></i>
-                <div class="dash-fuel">
-                    <i class="fas fa-gas-pump" id="hud-fuel-icon"></i>
-                    <div class="fuel-bar-bg"><div class="fuel-bar-fg" id="hud-fuel-bar"></div></div>
+            <!-- Voyants (En bas) -->
+            <div class="vehicle-indicators">
+                <i id="indicator-left" class="fas fa-arrow-left icon-gray"></i>
+                <i id="hud-engine" class="fas fa-wrench icon-gray"></i>
+                <div class="fuel-group">
+                    <i id="hud-fuel" class="fas fa-gas-pump icon-gray"></i>
+                    <div class="fuel-mini-bar-bg"><div class="fuel-mini-bar-fg" id="hud-fuel-bar"></div></div>
                 </div>
-                <i id="indicator-right" class="fas fa-caret-right"></i>
+                <i id="hud-seatbelt" class="fas fa-user-slash icon-gray"></i>
+                <i id="hud-cruise" class="fas fa-tachometer-alt icon-gray"></i>
+                <i id="indicator-right" class="fas fa-arrow-right icon-gray"></i>
             </div>
-
-            <div class="dash-toggles">
-                <div class="toggle-icon" id="hud-seatbelt"><i class="fas fa-user-slash"></i></div>
-                <div class="toggle-icon" id="hud-cruise"><i class="fas fa-tachometer-alt"></i></div>
-            </div>
-
         </div>
     </div>
 

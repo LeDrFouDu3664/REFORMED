@@ -27,44 +27,80 @@ window.addEventListener('message', function(event) {
         widgets.forEach(w => w.style.display = 'block'); // Afficher tous sauf véhicule par défaut
 
         // MàJ Textes
-        document.getElementById('hud-id').innerHTML = `<i class="fas fa-id-badge"></i> ${event.data.id}`;
-        document.getElementById('hud-time').innerHTML = `<i class="fas fa-clock"></i> ${event.data.time}`;
-        document.getElementById('hud-date').innerHTML = `<i class="fas fa-calendar-alt"></i> ${event.data.date}`;
+        document.getElementById('hud-id').innerText = event.data.id;
+        document.getElementById('hud-time').innerText = event.data.time;
+        document.getElementById('hud-date').innerText = event.data.date;
 
         document.getElementById('hud-money').innerText = `${event.data.money}$`;
         document.getElementById('hud-bank').innerText = `${event.data.bank}$`;
         document.getElementById('hud-black').innerText = `${event.data.black}$`;
 
-        // MàJ Hexagones (Calcul du stroke-dashoffset pour 280 total)
-        document.getElementById('poly-health').style.strokeDashoffset = 280 - (280 * (event.data.health / 100));
-        document.getElementById('poly-armor').style.strokeDashoffset = 280 - (280 * (event.data.armor / 100));
-        document.getElementById('poly-hunger').style.strokeDashoffset = 280 - (280 * (event.data.hunger / 100));
-        document.getElementById('poly-thirst').style.strokeDashoffset = 280 - (280 * (event.data.thirst / 100));
+        // MàJ Cercles Vitaux (Calcul du stroke-dashoffset, dasharray = 100)
+        document.getElementById('circle-health').style.strokeDashoffset = 100 - event.data.health;
+        document.getElementById('circle-armor').style.strokeDashoffset = 100 - event.data.armor;
+        document.getElementById('circle-hunger').style.strokeDashoffset = 100 - event.data.hunger;
+        document.getElementById('circle-thirst').style.strokeDashoffset = 100 - event.data.thirst;
+
+        // MàJ Micro
+        const micCircle = document.getElementById('circle-mic');
+        const micIcon = document.getElementById('mic-icon');
+        if (event.data.isTalking) {
+            micCircle.style.strokeDashoffset = 0; // Plein quand on parle
+            micCircle.style.stroke = 'var(--mic-active)';
+            micIcon.style.color = 'var(--mic-active)';
+        } else {
+            micCircle.style.strokeDashoffset = 100; // Vide
+            micCircle.style.stroke = 'var(--mic-inactive)';
+            micIcon.style.color = 'var(--mic-inactive)';
+        }
 
         // HUD Véhicule
         if (event.data.inVehicle) {
-            document.getElementById('hud-vehicle').style.display = 'block';
+            document.getElementById('hud-vehicle').style.display = 'flex';
             document.getElementById('hud-speed').innerText = event.data.speed;
             document.getElementById('hud-gear').innerText = event.data.gear === 0 ? 'R' : event.data.gear;
 
-            // Clignotants
-            document.getElementById('indicator-left').className = event.data.indicatorL ? 'fas fa-arrow-left active' : 'fas fa-arrow-left';
-            document.getElementById('indicator-right').className = event.data.indicatorR ? 'fas fa-arrow-right active' : 'fas fa-arrow-right';
+            // Compteur Vitesse (Demi-cercle, dasharray = 110 max)
+            const speedoMax = 250; // Vitesse max estimée pour remplir la jauge
+            let speedPercent = (event.data.speed / speedoMax) * 100;
+            if (speedPercent > 100) speedPercent = 100;
+            const offset = 110 - (110 * (speedPercent / 100));
+            document.getElementById('speedo-path').style.strokeDashoffset = offset;
 
-            // Essence (Rouge si < 15%)
-            const fuelEl = document.getElementById('hud-fuel');
-            if (event.data.fuel < 15) { fuelEl.style.color = '#e74c3c'; fuelEl.style.textShadow = '0 0 5px #e74c3c'; }
-            else { fuelEl.style.color = '#f1c40f'; fuelEl.style.textShadow = 'none'; }
+            // Changer la couleur en fonction de la vitesse
+            if (speedPercent > 80) document.getElementById('speedo-path').style.stroke = 'var(--black-color)';
+            else if (speedPercent > 50) document.getElementById('speedo-path').style.stroke = 'var(--hunger-color)';
+            else document.getElementById('speedo-path').style.stroke = 'var(--primary-color)';
+
+            // Clignotants
+            document.getElementById('indicator-left').className = event.data.indicatorL ? 'fas fa-arrow-left icon-active-green' : 'fas fa-arrow-left icon-gray';
+            document.getElementById('indicator-right').className = event.data.indicatorR ? 'fas fa-arrow-right icon-active-green' : 'fas fa-arrow-right icon-gray';
+
+            // Moteur
+            const engineEl = document.getElementById('hud-engine');
+            if (event.data.engineHealth < 400) engineEl.className = 'fas fa-wrench icon-active-red';
+            else if (event.data.engineHealth < 800) engineEl.className = 'fas fa-wrench icon-active-yellow';
+            else engineEl.className = 'fas fa-wrench icon-gray';
+
+            // Essence Bar & Icon
+            const fuelIcon = document.getElementById('hud-fuel');
+            const fuelBar = document.getElementById('hud-fuel-bar');
+            fuelBar.style.width = `${event.data.fuel}%`;
+            if (event.data.fuel < 20) {
+                fuelIcon.className = 'fas fa-gas-pump icon-active-red';
+                fuelBar.style.backgroundColor = 'var(--black-color)';
+            } else {
+                fuelIcon.className = 'fas fa-gas-pump icon-gray';
+                fuelBar.style.backgroundColor = 'var(--hunger-color)';
+            }
 
             // Ceinture
             const seatbeltEl = document.getElementById('hud-seatbelt');
-            if (event.data.seatbelt) { seatbeltEl.style.color = '#2ecc71'; seatbeltEl.style.textShadow = '0 0 5px #2ecc71'; }
-            else { seatbeltEl.style.color = '#e74c3c'; seatbeltEl.style.textShadow = 'none'; }
+            seatbeltEl.className = event.data.seatbelt ? 'fas fa-user icon-active-green' : 'fas fa-user-slash icon-active-red';
 
             // Régulateur
             const cruiseEl = document.getElementById('hud-cruise');
-            if (event.data.cruiseControl) { cruiseEl.style.color = '#3498db'; cruiseEl.style.textShadow = '0 0 5px #3498db'; }
-            else { cruiseEl.style.color = '#95a5a6'; cruiseEl.style.textShadow = 'none'; }
+            cruiseEl.className = event.data.cruiseControl ? 'fas fa-tachometer-alt icon-active-blue' : 'fas fa-tachometer-alt icon-gray';
 
         } else {
             document.getElementById('hud-vehicle').style.display = 'none';
@@ -89,9 +125,9 @@ const colorBg = document.getElementById('color-bg');
 const btnResetColors = document.getElementById('btn-reset-colors');
 
 function applyColors(primary, shadow, bg) {
-    document.documentElement.style.setProperty('--hud-text-color', primary);
-    document.documentElement.style.setProperty('--hud-shadow-color', shadow);
-    document.documentElement.style.setProperty('--hud-bg-color', bg);
+    document.documentElement.style.setProperty('--primary-color', primary);
+    document.documentElement.style.setProperty('--shadow-color', shadow);
+    document.documentElement.style.setProperty('--bg-color', bg);
 
     localStorage.setItem('prisonHUD_colorPrimary', primary);
     localStorage.setItem('prisonHUD_colorShadow', shadow);

@@ -892,11 +892,15 @@ Citizen.CreateThread(function()
                 end
             end
 
+            -- Données Vocales
+            local isTalking = NetworkIsPlayerTalking(PlayerId())
+
             -- Données Véhicule
             local inVehicle = false
             local speed = 0
             local gear = 0
             local fuel = 0
+            local engineHealth = 1000
             local indicatorL = false
             local indicatorR = false
 
@@ -906,6 +910,7 @@ Citizen.CreateThread(function()
                 if vehicle and vehicle ~= 0 then
                     speed = math.floor(GetEntitySpeed(vehicle) * 3.6) -- Conversion m/s en km/h
                     gear = GetVehicleCurrentGear(vehicle)
+                    engineHealth = GetVehicleEngineHealth(vehicle)
 
                     -- Essence (Legacy ESX Fuel, Ox_Fuel ou LegacyFuel natif)
                     fuel = math.floor(GetVehicleFuelLevel(vehicle))
@@ -939,10 +944,12 @@ Citizen.CreateThread(function()
                 armor = armor,
                 hunger = currentHunger,
                 thirst = currentThirst,
+                isTalking = isTalking,
                 inVehicle = inVehicle,
                 speed = speed,
                 gear = gear,
                 fuel = fuel,
+                engineHealth = engineHealth,
                 seatbelt = seatbelt,
                 cruiseControl = cruiseControl,
                 indicatorL = indicatorL,

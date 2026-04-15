@@ -1,275 +1,377 @@
-body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap');
+
+:root {
+    --primary-color: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.7);
+    --bg-color: rgba(10, 20, 45, 0.75); /* Dark transparent blue */
+    --border-radius: 8px;
+    --transition-speed: 0.3s;
+
+    /* Accents */
+    --health-color: #2ecc71;
+    --armor-color: #3498db;
+    --hunger-color: #f1c40f;
+    --thirst-color: #00a8ff;
+    --mic-active: #9b59b6;
+    --mic-inactive: #95a5a6;
+
+    --money-color: #2ecc71;
+    --bank-color: #3498db;
+    --black-color: #e74c3c;
 }
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    overflow: hidden;
+    background: transparent !important;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--primary-color);
+}
+
+/* -------------------------------------
+   NOTIFICATIONS
+------------------------------------- */
 #notification-container {
     position: absolute;
     top: 5vh;
     left: 2vw;
     width: 20vw;
-    max-height: 50vh;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 1vh;
+    gap: 10px;
+    pointer-events: none;
 }
 
 .notification {
-    background-color: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 1vw;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-    animation: slideIn 0.5s ease-out forwards, fadeOut 0.5s ease-in forwards 8s;
-    opacity: 0;
-    word-wrap: break-word;
-}
-
-.notification-system {
-    background: linear-gradient(90deg, rgba(139,0,0,0.9) 0%, rgba(205,92,92,0.8) 100%);
-    border-left: 5px solid darkred;
-    font-family: 'Courier New', Courier, monospace;
-    text-transform: uppercase;
-}
-
-.notification-radio {
-    background-color: rgba(47,79,79,0.9);
-    border-left: 5px solid lightblue;
-    font-family: Tahoma, sans-serif;
-}
-
-.notification-guide {
-    background-color: rgba(255,215,0,0.2);
-    border-bottom: 2px solid gold;
-    font-style: italic;
-}
-
-.notification-npc {
-    background-color: rgba(30,30,30,0.8);
-    border: 1px solid gray;
-}
-
-.header {
-    font-weight: bold;
-    margin-bottom: 0.5vh;
+    background: var(--bg-color);
+    border-left: 4px solid var(--primary-color);
+    padding: 12px 15px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 10px var(--shadow-color);
     font-size: 0.9vw;
+    color: var(--primary-color);
+    animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(5px);
 }
 
-.message {
-    font-size: 0.85vw;
-    opacity: 0.9;
+.notification i {
+    margin-right: 8px;
+    font-size: 1vw;
 }
 
 @keyframes slideIn {
-    from { transform: translateX(-100%); opacity: 0; }
+    from { transform: translateX(-110%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes fadeOut {
-    to { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* Multi-Widgets HUD System (Design Transparent & Épuré) */
+/* -------------------------------------
+   HUD WIDGETS (Draggable Base)
+------------------------------------- */
 .hud-widget {
     position: absolute;
-    background-color: transparent;
-    color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: none; /* Rendu visible par script.js une fois actif */
-    pointer-events: auto;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    pointer-events: none;
+    transition: opacity var(--transition-speed);
 }
 
-.hud-content {
-    padding: 0.5vw;
+.hud-widget.edit-mode {
+    pointer-events: auto;
+    border: 1px dashed rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .hud-drag-handle {
-    display: none; /* Affiché seulement en mode d'édition */
-    background-color: rgba(243, 156, 18, 0.8);
-    color: black;
+    display: none;
+    background: #e67e22;
+    color: #fff;
+    padding: 2px 5px;
+    font-size: 0.7vw;
+    cursor: move;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
     text-align: center;
-    padding: 0.2vw;
     font-weight: bold;
-    cursor: grab;
-    border-radius: 4px;
-    font-size: 0.8vw;
-    text-shadow: none;
-    margin-bottom: 0.5vh;
 }
 
-/* Effet Verre Cyberpunk */
-.glass-panel {
-    background: rgba(10, 10, 15, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+.hud-widget.edit-mode .hud-drag-handle {
+    display: block;
 }
 
-/* Player Card (Info & Eco) */
-.player-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5vh;
-}
-
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 2vw;
-}
-
-.info-item {
-    font-size: 0.9vw;
-    font-weight: 800;
-    color: var(--hud-text-color, #e0e0e0);
-    letter-spacing: 1px;
-}
-
-.divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    margin: 0.5vh 0;
-}
-
-.economy-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 1vw;
-    font-size: 1vw;
-    font-weight: 900;
-}
-
-.eco-item {
+.hud-content {
+    background: var(--bg-color);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px var(--shadow-color);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
-    gap: 0.3vw;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-}
-.eco-item.cash i { color: #2ecc71; }
-.eco-item.bank i { color: #3498db; }
-.eco-item.black i { color: #e74c3c; }
-
-/* Cluster Statuts (Hexagones) */
-.status-cluster {
-    display: flex;
-    gap: 1vw;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.status-hex {
+/* -------------------------------------
+   COLOR PICKER
+------------------------------------- */
+#hud-color-picker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 15, 15, 0.95);
+    border: 1px solid #333;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    z-index: 9999;
+    pointer-events: auto;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+#hud-color-picker h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2vw; text-align: center; }
+#hud-color-picker label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9vw; }
+#hud-color-picker input[type="color"] { border: none; width: 40px; height: 30px; cursor: pointer; background: transparent; }
+#btn-reset-colors { background: #e74c3c; border: none; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-weight: bold; }
+#btn-reset-colors:hover { background: #c0392b; }
+
+/* -------------------------------------
+   1. VITALS (Left)
+------------------------------------- */
+.vitals-container {
+    flex-direction: column;
+    gap: 8px;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+}
+
+.vital-circle {
     position: relative;
-    width: 3vw;
+    width: 3.5vw;
     height: 3.5vw;
+    background: var(--bg-color);
+    border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.status-hex svg {
+.vital-circle svg {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     transform: rotate(-90deg);
 }
 
-.status-hex .bg-hex {
-    fill: rgba(0, 0, 0, 0.4);
-    stroke: rgba(255,255,255,0.1);
-    stroke-width: 2;
+.circle-bg {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.5);
+    stroke-width: 3;
 }
 
-.status-hex .fg-hex {
-    fill: transparent;
-    stroke-width: 4;
-    transition: stroke-dashoffset 0.5s ease-out;
+.circle-fg {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.4s ease-out;
 }
 
-.health-hex .fg-hex { stroke: #e74c3c; filter: drop-shadow(0 0 4px #e74c3c); }
-.armor-hex .fg-hex { stroke: #3498db; filter: drop-shadow(0 0 4px #3498db); }
-.hunger-hex .fg-hex { stroke: #f1c40f; filter: drop-shadow(0 0 4px #f1c40f); }
-.thirst-hex .fg-hex { stroke: #00a8ff; filter: drop-shadow(0 0 4px #00a8ff); }
+#circle-health { stroke: var(--health-color); }
+#circle-armor { stroke: var(--armor-color); }
+#circle-hunger { stroke: var(--hunger-color); }
+#circle-thirst { stroke: var(--thirst-color); }
+#circle-mic { stroke: var(--mic-inactive); }
 
-.status-hex i {
-    position: absolute;
+.vital-icon {
     font-size: 1.2vw;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    z-index: 2;
+    text-shadow: 1px 1px 2px var(--shadow-color);
+}
+#circle-health-container .vital-icon { color: var(--health-color); }
+#circle-armor-container .vital-icon { color: var(--armor-color); }
+#circle-hunger-container .vital-icon { color: var(--hunger-color); }
+#circle-thirst-container .vital-icon { color: var(--thirst-color); }
+#circle-mic-container .vital-icon { color: var(--mic-inactive); transition: color 0.2s; }
+
+/* -------------------------------------
+   2. ECONOMY (Top Right)
+------------------------------------- */
+.economy-container {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    padding: 10px 15px;
+    min-width: 10vw;
 }
 
-/* Color Picker */
-#hud-color-picker {
+.eco-item {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.1vw;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 3px var(--shadow-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cash-item i { color: var(--money-color); }
+.bank-item i { color: var(--bank-color); }
+.black-item i { color: var(--black-color); }
+
+/* -------------------------------------
+   3. SHORTCUTS / INFO (Top Center)
+------------------------------------- */
+.info-container {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9vw;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 20px; /* Pill shape */
+}
+
+.info-container span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.info-container i {
+    color: var(--armor-color);
+}
+
+/* -------------------------------------
+   4. SPEEDOMETER (Bottom Center)
+------------------------------------- */
+.speedo-container {
+    flex-direction: column;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    align-items: center;
+}
+
+.speedo-dial {
+    position: relative;
+    width: 15vw;
+    height: 7.5vw; /* Half circle */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    overflow: hidden;
+}
+
+.speedo-svg {
     position: absolute;
-    top: 20vh;
-    left: 2vw;
-    background: rgba(15,15,15,0.95);
-    padding: 1.5vw;
-    border-radius: 2px;
-    color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    border: 1px solid rgba(255,255,255,0.2);
-    z-index: 1000;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    bottom: 0;
+    width: 100%;
+    height: 100%;
 }
-#hud-color-picker h3 { margin-top: 0; font-size: 1vw; border-bottom: 1px solid #555; padding-bottom: 0.5vh; }
-#hud-color-picker label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1vh; font-size: 0.8vw; font-weight: bold; }
-#hud-color-picker input[type="color"] { border: none; background: none; width: 2vw; height: 3vh; cursor: pointer; }
-#hud-color-picker button { margin-top: 1vh; padding: 0.5vw; cursor: pointer; background-color: #e74c3c; color: white; border: none; border-radius: 2px; font-weight: bold; transition: background 0.2s; }
-#hud-color-picker button:hover { background-color: #c0392b; }
 
-/* Véhicule (Minimaliste et transparent) */
-.hud-vehicle-flex {
+.speedo-bg {
+    stroke: rgba(0, 0, 0, 0.5);
+    stroke-width: 6;
+    stroke-linecap: round;
+}
+
+.speedo-fg {
+    stroke: var(--primary-color);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s;
+}
+
+.speed-texts {
+    position: absolute;
+    bottom: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3vh;
+    line-height: 1;
 }
 
-.speed-row {
-    font-size: 2.5vw;
-    font-weight: 900;
-    font-style: italic;
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+.speed-value {
+    font-family: 'Oswald', sans-serif;
+    font-size: 3vw;
+    font-weight: 700;
+    text-shadow: 2px 2px 5px var(--shadow-color);
+    color: var(--primary-color);
 }
 
-.speed-row .unit {
-    font-size: 1vw;
-    color: #ccc;
-    margin-left: 0.2vw;
-    font-style: normal;
+.speed-unit {
+    font-size: 0.8vw;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 5px;
 }
 
+.speed-gear {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.2vw;
+    color: var(--health-color);
+    background: var(--bg-color);
+    padding: 2px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* -------------------------------------
+   5. INDICATORS
+------------------------------------- */
 .vehicle-indicators {
     display: flex;
-    gap: 1vw;
+    gap: 15px;
+    margin-top: 10px;
+    background: var(--bg-color);
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     align-items: center;
+}
+
+.icon-gray {
+    color: rgba(255, 255, 255, 0.3);
     font-size: 1.2vw;
-    color: #555; /* Éteint par défaut */
+    transition: color 0.3s;
 }
 
-.vehicle-indicators .active {
-    color: #2ecc71;
-    text-shadow: 0 0 8px #2ecc71;
-}
+.icon-active-green { color: var(--health-color) !important; text-shadow: 0 0 8px var(--health-color); }
+.icon-active-red { color: var(--black-color) !important; text-shadow: 0 0 8px var(--black-color); }
+.icon-active-yellow { color: var(--hunger-color) !important; text-shadow: 0 0 8px var(--hunger-color); }
+.icon-active-blue { color: var(--armor-color) !important; text-shadow: 0 0 8px var(--armor-color); }
 
-.gear-box {
-    font-size: 1.2vw;
-    color: #f39c12;
-    font-weight: bold;
-}
-
-.vehicle-status {
+/* Fuel Mini Bar */
+.fuel-group {
     display: flex;
-    gap: 1vw;
-    font-size: 1vw;
-    margin-top: 0.5vh;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
 }
-
-/* Effets actifs/inactifs gérés en JS */
-.vehicle-status i {
-    transition: color 0.3s, text-shadow 0.3s;
+.fuel-mini-bar-bg {
+    width: 2vw;
+    height: 4px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.fuel-mini-bar-fg {
+    height: 100%;
+    width: 100%;
+    background-color: var(--hunger-color);
+    transition: width 0.5s ease;
 }
