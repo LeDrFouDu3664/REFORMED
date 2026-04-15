@@ -26,81 +26,84 @@ window.addEventListener('message', function(event) {
         const widgets = document.querySelectorAll('.hud-widget');
         widgets.forEach(w => w.style.display = 'block'); // Afficher tous sauf véhicule par défaut
 
-        // MàJ Textes
+        // MàJ Textes & Header Info
         document.getElementById('hud-id').innerText = event.data.id;
+        document.getElementById('hud-players').innerText = event.data.playerCount;
         document.getElementById('hud-time').innerText = event.data.time;
-        document.getElementById('hud-date').innerText = event.data.date;
+        document.getElementById('hud-date').innerText = event.data.date.replace(/\//g, '.'); // Format 11.09.2022
 
-        document.getElementById('hud-money').innerText = `${event.data.money}$`;
-        document.getElementById('hud-bank').innerText = `${event.data.bank}$`;
-        document.getElementById('hud-black').innerText = `${event.data.black}$`;
+        document.getElementById('hud-money').innerText = event.data.money.toLocaleString();
+        document.getElementById('hud-bank').innerText = event.data.bank.toLocaleString();
+        if(event.data.black > 0) {
+            document.querySelector('.black-text').style.display = 'block';
+            document.getElementById('hud-black').innerText = event.data.black.toLocaleString();
+        } else {
+            document.querySelector('.black-text').style.display = 'none';
+        }
 
         // MàJ Cercles Vitaux (Calcul du stroke-dashoffset, dasharray = 100)
+        // Les cercles sont dessinés pour faire 100 de circonférence.
+        // Mais ils ne font pas un tour complet (style image), on va masquer un quart environ en tournant l'offset,
+        // En fait laissons le calcul standard, le SVG les remplit bien.
         document.getElementById('circle-health').style.strokeDashoffset = 100 - event.data.health;
         document.getElementById('circle-armor').style.strokeDashoffset = 100 - event.data.armor;
         document.getElementById('circle-hunger').style.strokeDashoffset = 100 - event.data.hunger;
         document.getElementById('circle-thirst').style.strokeDashoffset = 100 - event.data.thirst;
 
         // MàJ Micro
-        const micCircle = document.getElementById('circle-mic');
         const micIcon = document.getElementById('mic-icon');
         if (event.data.isTalking) {
-            micCircle.style.strokeDashoffset = 0; // Plein quand on parle
-            micCircle.style.stroke = 'var(--mic-active)';
-            micIcon.style.color = 'var(--mic-active)';
+            micIcon.className = 'fas fa-microphone icon-active-green';
         } else {
-            micCircle.style.strokeDashoffset = 100; // Vide
-            micCircle.style.stroke = 'var(--mic-inactive)';
-            micIcon.style.color = 'var(--mic-inactive)';
+            micIcon.className = 'fas fa-microphone-slash';
         }
 
         // HUD Véhicule
         if (event.data.inVehicle) {
             document.getElementById('hud-vehicle').style.display = 'flex';
             document.getElementById('hud-speed').innerText = event.data.speed;
-            document.getElementById('hud-gear').innerText = event.data.gear === 0 ? 'R' : event.data.gear;
 
-            // Compteur Vitesse (Demi-cercle, dasharray = 110 max)
-            const speedoMax = 250; // Vitesse max estimée pour remplir la jauge
+            // Vitesse (Inner Arc, Dasharray = 290)
+            const speedoMax = 250;
             let speedPercent = (event.data.speed / speedoMax) * 100;
             if (speedPercent > 100) speedPercent = 100;
-            const offset = 110 - (110 * (speedPercent / 100));
-            document.getElementById('speedo-path').style.strokeDashoffset = offset;
+            const speedOffset = 290 - (290 * (speedPercent / 100));
+            document.getElementById('speed-path').style.strokeDashoffset = speedOffset;
 
-            // Changer la couleur en fonction de la vitesse
-            if (speedPercent > 80) document.getElementById('speedo-path').style.stroke = 'var(--black-color)';
-            else if (speedPercent > 50) document.getElementById('speedo-path').style.stroke = 'var(--hunger-color)';
-            else document.getElementById('speedo-path').style.stroke = 'var(--primary-color)';
+            // Changer la couleur en fonction de la vitesse (Jaune -> Vert selon l'image)
+            if (speedPercent > 80) document.getElementById('speed-path').style.stroke = 'var(--health-color)';
+            else document.getElementById('speed-path').style.stroke = 'var(--hunger-color)';
 
-            // Clignotants
-            document.getElementById('indicator-left').className = event.data.indicatorL ? 'fas fa-arrow-left icon-active-green' : 'fas fa-arrow-left icon-gray';
-            document.getElementById('indicator-right').className = event.data.indicatorR ? 'fas fa-arrow-right icon-active-green' : 'fas fa-arrow-right icon-gray';
+            // RPM (Outer Arc, Dasharray = 350)
+            // L'image utilise l'arc extérieur pour un effet de jauge blanche (ou RPM)
+            // On va le mapper sur l'RPM du véhicule
+            let rpmPercent = event.data.rpm * 100; // RPM est entre 0.0 et 1.0 (ou 0.2 au ralenti)
+            if (rpmPercent < 20) rpmPercent = 20; // base idle
+            if (rpmPercent > 100) rpmPercent = 100;
+            const rpmOffset = 350 - (350 * (rpmPercent / 100));
+            document.getElementById('rpm-path').style.strokeDashoffset = rpmOffset;
 
-            // Moteur
-            const engineEl = document.getElementById('hud-engine');
-            if (event.data.engineHealth < 400) engineEl.className = 'fas fa-wrench icon-active-red';
-            else if (event.data.engineHealth < 800) engineEl.className = 'fas fa-wrench icon-active-yellow';
-            else engineEl.className = 'fas fa-wrench icon-gray';
+            // Clignotants (Left Indicator = Headlights in new design)
+            document.getElementById('indicator-left').className = event.data.indicatorL ? 'fas fa-lightbulb icon-active-blue' : 'fas fa-lightbulb';
 
-            // Essence Bar & Icon
+            // Moteur (Moteur de couleur blanche si OK, sinon rouge)
+            const engineEl = document.getElementById('hud-engine-bottom');
+            if (event.data.engineHealth < 400) engineEl.className = 'fas fa-car-battery icon-active';
+            else if (event.data.engineHealth < 800) engineEl.className = 'fas fa-car-battery icon-active';
+            else engineEl.className = 'fas fa-car-battery';
+
+            // Essence Icon
             const fuelIcon = document.getElementById('hud-fuel');
-            const fuelBar = document.getElementById('hud-fuel-bar');
-            fuelBar.style.width = `${event.data.fuel}%`;
             if (event.data.fuel < 20) {
-                fuelIcon.className = 'fas fa-gas-pump icon-active-red';
-                fuelBar.style.backgroundColor = 'var(--black-color)';
+                fuelIcon.className = 'fas fa-gas-pump icon-active';
             } else {
-                fuelIcon.className = 'fas fa-gas-pump icon-gray';
-                fuelBar.style.backgroundColor = 'var(--hunger-color)';
+                fuelIcon.className = 'fas fa-gas-pump icon-active-green';
             }
 
-            // Ceinture
-            const seatbeltEl = document.getElementById('hud-seatbelt');
-            seatbeltEl.className = event.data.seatbelt ? 'fas fa-user icon-active-green' : 'fas fa-user-slash icon-active-red';
-
-            // Régulateur
-            const cruiseEl = document.getElementById('hud-cruise');
-            cruiseEl.className = event.data.cruiseControl ? 'fas fa-tachometer-alt icon-active-blue' : 'fas fa-tachometer-alt icon-gray';
+            // Engine Health side icon (Petit voyant gauche du compteur)
+            const engineSideEl = document.getElementById('hud-engine');
+            if (event.data.engineHealth < 900) engineSideEl.className = 'fas fa-engine-warning icon-active';
+            else engineSideEl.className = 'fas fa-engine-warning';
 
         } else {
             document.getElementById('hud-vehicle').style.display = 'none';

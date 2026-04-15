@@ -895,9 +895,14 @@ Citizen.CreateThread(function()
             -- Données Vocales
             local isTalking = NetworkIsPlayerTalking(PlayerId())
 
+            -- Nombre de joueurs
+            local players = GetActivePlayers()
+            local playerCount = #players
+
             -- Données Véhicule
             local inVehicle = false
             local speed = 0
+            local rpm = 0
             local gear = 0
             local fuel = 0
             local engineHealth = 1000
@@ -909,6 +914,7 @@ Citizen.CreateThread(function()
                 local vehicle = GetVehiclePedIsIn(ped, false)
                 if vehicle and vehicle ~= 0 then
                     speed = math.floor(GetEntitySpeed(vehicle) * 3.6) -- Conversion m/s en km/h
+                    rpm = GetVehicleCurrentRpm(vehicle)
                     gear = GetVehicleCurrentGear(vehicle)
                     engineHealth = GetVehicleEngineHealth(vehicle)
 
@@ -935,6 +941,7 @@ Citizen.CreateThread(function()
             SendNUIMessage({
                 action = 'updateHUD',
                 id = playerId,
+                playerCount = playerCount,
                 time = timeStr,
                 date = dateStr,
                 money = money,
@@ -947,6 +954,7 @@ Citizen.CreateThread(function()
                 isTalking = isTalking,
                 inVehicle = inVehicle,
                 speed = speed,
+                rpm = rpm,
                 gear = gear,
                 fuel = fuel,
                 engineHealth = engineHealth,

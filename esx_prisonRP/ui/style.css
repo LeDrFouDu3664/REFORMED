@@ -143,119 +143,169 @@ body {
 #btn-reset-colors:hover { background: #c0392b; }
 
 /* -------------------------------------
-   1. VITALS (Left)
+   1. TOP RIGHT INFO & MONEY
 ------------------------------------- */
-.vitals-container {
-    flex-direction: column;
-    gap: 8px;
+.server-info-container {
     background: transparent !important;
-    box-shadow: none !important;
     border: none !important;
-    backdrop-filter: none !important;
-    padding: 0 !important;
+    box-shadow: none !important;
+    display: flex;
+    gap: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 1.2vw;
+    color: var(--health-color); /* Yellowish/Green from image */
+}
+
+.info-tag {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.info-val { color: var(--primary-color); }
+
+.money-container {
+    flex-direction: column;
+    align-items: flex-end;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    gap: 15px;
+}
+
+.logo-zone {
+    display: flex;
+    align-items: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.5vw;
+}
+.logo-icon { color: var(--health-color); margin-right: 8px; }
+.logo-text { color: var(--health-color); font-weight: 700; }
+.logo-sub { color: var(--health-color); font-weight: 400; font-size: 0.8vw; transform: rotate(-90deg); margin-left: 2px;}
+
+.money-texts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+.cash-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.8vw;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+.bank-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9vw;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* -------------------------------------
+   2. LEFT SIDE PANEL
+------------------------------------- */
+.left-panel-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex;
+    align-items: flex-start;
+    gap: 2vw;
+}
+
+.vitals-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 .vital-circle {
     position: relative;
-    width: 3.5vw;
-    height: 3.5vw;
-    background: var(--bg-color);
-    border-radius: 50%;
+    width: 3vw;
+    height: 3vw;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 4px 10px var(--shadow-color);
-    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .vital-circle svg {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    transform: rotate(-90deg);
+    transform: rotate(90deg); /* Start from left instead of top */
 }
 
-.circle-bg {
-    fill: none;
-    stroke: rgba(0, 0, 0, 0.5);
-    stroke-width: 3;
-}
-
-.circle-fg {
-    fill: none;
-    stroke-width: 3;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.4s ease-out;
-}
+.circle-bg { fill: none; stroke: rgba(255, 255, 255, 0.2); stroke-width: 3; }
+.circle-fg { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease-out; }
 
 #circle-health { stroke: var(--health-color); }
 #circle-armor { stroke: var(--armor-color); }
 #circle-hunger { stroke: var(--hunger-color); }
 #circle-thirst { stroke: var(--thirst-color); }
-#circle-mic { stroke: var(--mic-inactive); }
 
 .vital-icon {
-    font-size: 1.2vw;
+    font-size: 1vw;
+    color: rgba(255, 255, 255, 0.6);
     z-index: 2;
-    text-shadow: 1px 1px 2px var(--shadow-color);
 }
-#circle-health-container .vital-icon { color: var(--health-color); }
-#circle-armor-container .vital-icon { color: var(--armor-color); }
-#circle-hunger-container .vital-icon { color: var(--hunger-color); }
-#circle-thirst-container .vital-icon { color: var(--thirst-color); }
-#circle-mic-container .vital-icon { color: var(--mic-inactive); transition: color 0.2s; }
 
-/* -------------------------------------
-   2. ECONOMY (Top Right)
-------------------------------------- */
-.economy-container {
+.time-date {
+    margin-top: 15px;
+    display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 5px;
-    padding: 10px 15px;
-    min-width: 10vw;
-}
-
-.eco-item {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.1vw;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    letter-spacing: 1px;
-    text-shadow: 1px 1px 3px var(--shadow-color);
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 1.2vw;
+    color: var(--primary-color);
 }
+.date-text { font-size: 0.9vw; margin-top: 2px; }
 
-.cash-item i { color: var(--money-color); }
-.bank-item i { color: var(--bank-color); }
-.black-item i { color: var(--black-color); }
-
-/* -------------------------------------
-   3. SHORTCUTS / INFO (Top Center)
-------------------------------------- */
-.info-container {
+/* Shortcuts Column */
+.shortcuts-col {
     display: flex;
+    flex-direction: column;
     gap: 15px;
-    font-size: 0.9vw;
-    font-weight: 600;
-    padding: 8px 20px;
-    border-radius: 20px; /* Pill shape */
+    margin-top: 10px;
 }
-
-.info-container span {
+.shortcut-item, .mic-status, .radio-status {
     display: flex;
     align-items: center;
-    gap: 5px;
-    color: rgba(255, 255, 255, 0.9);
+    gap: 15px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2vw;
 }
 
-.info-container i {
-    color: var(--armor-color);
+.keybind {
+    width: 2vw;
+    height: 2vw;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8vw;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.keybind.long {
+    width: auto;
+    padding: 0 10px;
+    border-radius: 20px;
+}
+
+.comms-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 6vw;
 }
 
 /* -------------------------------------
-   4. SPEEDOMETER (Bottom Center)
+   3. SPEEDOMETER (Bottom Center)
 ------------------------------------- */
 .speedo-container {
     flex-direction: column;
@@ -268,110 +318,79 @@ body {
 
 .speedo-dial {
     position: relative;
-    width: 15vw;
-    height: 7.5vw; /* Half circle */
+    width: 18vw;
+    height: 12vw;
     display: flex;
     justify-content: center;
-    align-items: flex-end;
-    overflow: hidden;
+    align-items: center;
 }
 
 .speedo-svg {
     position: absolute;
-    bottom: 0;
     width: 100%;
     height: 100%;
 }
 
-.speedo-bg {
-    stroke: rgba(0, 0, 0, 0.5);
-    stroke-width: 6;
-    stroke-linecap: round;
-}
+.speedo-bg-outer { stroke: rgba(255, 255, 255, 0.2); stroke-width: 4; stroke-linecap: round; }
+.speedo-fg-outer { stroke: var(--primary-color); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
 
-.speedo-fg {
-    stroke: var(--primary-color);
-    stroke-width: 6;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.1s linear, stroke 0.3s;
-}
+.speedo-bg-inner { stroke: rgba(255, 255, 255, 0.1); stroke-width: 6; stroke-linecap: round; }
+.speedo-fg-inner { stroke: var(--health-color); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
 
 .speed-texts {
-    position: absolute;
-    bottom: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    line-height: 1;
+    z-index: 2;
+    margin-top: 2vw;
 }
 
 .speed-value {
     font-family: 'Oswald', sans-serif;
-    font-size: 3vw;
-    font-weight: 700;
-    text-shadow: 2px 2px 5px var(--shadow-color);
+    font-size: 4vw;
+    font-weight: 800;
     color: var(--primary-color);
+    line-height: 1;
 }
 
 .speed-unit {
-    font-size: 0.8vw;
+    font-size: 1vw;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 2px;
 }
 
-.speed-gear {
-    font-family: 'Oswald', sans-serif;
+.engine-health-icon {
+    position: absolute;
+    bottom: 2vw;
+    left: 4vw;
+    color: rgba(255,255,255,0.5);
     font-size: 1.2vw;
-    color: var(--health-color);
-    background: var(--bg-color);
-    padding: 2px 10px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* -------------------------------------
-   5. INDICATORS
-------------------------------------- */
+/* Bottom Indicators */
 .vehicle-indicators {
     display: flex;
-    gap: 15px;
-    margin-top: 10px;
-    background: var(--bg-color);
-    padding: 8px 20px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 30px;
+    margin-top: 1vw;
+    background: transparent !important;
+    border: none !important;
     align-items: center;
 }
 
-.icon-gray {
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 1.2vw;
-    transition: color 0.3s;
-}
-
-.icon-active-green { color: var(--health-color) !important; text-shadow: 0 0 8px var(--health-color); }
-.icon-active-red { color: var(--black-color) !important; text-shadow: 0 0 8px var(--black-color); }
-.icon-active-yellow { color: var(--hunger-color) !important; text-shadow: 0 0 8px var(--hunger-color); }
-.icon-active-blue { color: var(--armor-color) !important; text-shadow: 0 0 8px var(--armor-color); }
-
-/* Fuel Mini Bar */
-.fuel-group {
+.indicator-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2vw;
 }
-.fuel-mini-bar-bg {
-    width: 2vw;
-    height: 4px;
-    background: rgba(0,0,0,0.5);
-    border-radius: 2px;
-    overflow: hidden;
+
+.indicator-item .keybind {
+    width: 1.8vw; height: 1.8vw; font-size: 0.7vw;
 }
-.fuel-mini-bar-fg {
-    height: 100%;
-    width: 100%;
-    background-color: var(--hunger-color);
-    transition: width 0.5s ease;
-}
+
+.icon-active { color: var(--primary-color) !important; }
+.icon-active-green { color: var(--health-color) !important; }
+.icon-active-blue { color: var(--armor-color) !important; }
