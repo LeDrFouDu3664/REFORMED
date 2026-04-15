@@ -179,12 +179,14 @@ widgets.forEach(widget => {
     }
 
     const handle = widget.querySelector('.hud-drag-handle');
-    handle.addEventListener('mousedown', function(e) {
-        isDragging = true;
-        currentWidget = widget;
-        offsetX = e.clientX - widget.getBoundingClientRect().left;
-        offsetY = e.clientY - widget.getBoundingClientRect().top;
-    });
+    if (handle) {
+        handle.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            currentWidget = widget;
+            offsetX = e.clientX - widget.getBoundingClientRect().left;
+            offsetY = e.clientY - widget.getBoundingClientRect().top;
+        });
+    }
 });
 
 window.addEventListener('mousemove', function(e) {

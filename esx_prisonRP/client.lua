@@ -855,7 +855,7 @@ end)
 -- Thread NUI HUD Global (Affichage HUD)
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(200) -- Refresh plus rapide pour la vitesse du véhicule
+        Citizen.Wait(50) -- Refresh plus rapide pour la vitesse du véhicule
 
         -- Masquer le HUD NUI quand le menu pause est ouvert
         if IsPauseMenuActive() then
