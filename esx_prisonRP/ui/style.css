@@ -29,7 +29,7 @@
 
 body {
     overflow: hidden;
-    background: transparent !important;
+    background: var(--bg-color) !important;
     font-family: 'Montserrat', sans-serif;
     color: var(--primary-color);
 }
@@ -146,9 +146,9 @@ body {
    1. TOP RIGHT INFO & MONEY
 ------------------------------------- */
 .server-info-container {
-    background: transparent !important;
+    background: var(--bg-color) !important;
     border: none !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow-color) !important;
     display: flex;
     gap: 20px;
     font-family: 'Montserrat', sans-serif;
@@ -167,9 +167,9 @@ body {
 .money-container {
     flex-direction: column;
     align-items: flex-end;
-    background: transparent !important;
+    background: var(--bg-color) !important;
     border: none !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow-color) !important;
     gap: 15px;
 }
 
@@ -206,9 +206,9 @@ body {
    2. LEFT SIDE PANEL
 ------------------------------------- */
 .left-panel-container {
-    background: transparent !important;
+    background: var(--bg-color) !important;
     border: none !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow-color) !important;
     display: flex;
     align-items: flex-start;
     gap: 2vw;
@@ -309,8 +309,8 @@ body {
 ------------------------------------- */
 .speedo-container {
     flex-direction: column;
-    background: transparent !important;
-    box-shadow: none !important;
+    background: var(--bg-color) !important;
+    box-shadow: var(--shadow-color) !important;
     border: none !important;
     backdrop-filter: none !important;
     align-items: center;
@@ -373,7 +373,7 @@ body {
     display: flex;
     gap: 30px;
     margin-top: 1vw;
-    background: transparent !important;
+    background: var(--bg-color) !important;
     border: none !important;
     align-items: center;
 }
