@@ -29,7 +29,7 @@
 
 body {
     overflow: hidden;
-    background: var(--bg-color) !important;
+    background: transparent !important;
     font-family: 'Montserrat', sans-serif;
     color: var(--primary-color);
 }

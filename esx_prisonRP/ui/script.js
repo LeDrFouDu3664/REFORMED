@@ -113,6 +113,15 @@ window.addEventListener('message', function(event) {
         const widgets = document.querySelectorAll('.hud-widget');
         widgets.forEach(w => w.style.display = 'none');
     } else if (event.data.action === 'toggleDragMode') {
+        const widgets = document.querySelectorAll('.hud-widget');
+        widgets.forEach(widget => {
+            if (event.data.state) {
+                widget.classList.add('edit-mode');
+            } else {
+                widget.classList.remove('edit-mode');
+            }
+        });
+
         const handles = document.querySelectorAll('.hud-drag-handle');
         handles.forEach(handle => {
             handle.style.display = event.data.state ? 'block' : 'none';
@@ -155,9 +164,9 @@ colorBg.addEventListener('input', (e) => applyColors(colorPrimary.value, colorSh
 
 btnResetColors.addEventListener('click', () => {
     colorPrimary.value = '#ffffff';
-    colorShadow.value = '#000000';
-    colorBg.value = '#000000';
-    applyColors('#ffffff', '#000000', '#000000');
+    colorShadow.value = 'rgba(0, 0, 0, 0.7)';
+    colorBg.value = 'rgba(10, 20, 45, 0.75)';
+    applyColors('#ffffff', 'rgba(0, 0, 0, 0.7)', 'rgba(10, 20, 45, 0.75)');
 });
 
 // Drag & Drop Multi-Widgets
