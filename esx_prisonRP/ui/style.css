@@ -1,0 +1,396 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap');
+
+:root {
+    --primary-color: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.7);
+    --bg-color: rgba(10, 20, 45, 0.75); /* Dark transparent blue */
+    --border-radius: 8px;
+    --transition-speed: 0.3s;
+
+    /* Accents */
+    --health-color: #2ecc71;
+    --armor-color: #3498db;
+    --hunger-color: #f1c40f;
+    --thirst-color: #00a8ff;
+    --mic-active: #9b59b6;
+    --mic-inactive: #95a5a6;
+
+    --money-color: #2ecc71;
+    --bank-color: #3498db;
+    --black-color: #e74c3c;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    overflow: hidden;
+    background: transparent !important;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--primary-color);
+}
+
+/* -------------------------------------
+   NOTIFICATIONS
+------------------------------------- */
+#notification-container {
+    position: absolute;
+    top: 5vh;
+    left: 2vw;
+    width: 20vw;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.notification {
+    background: var(--bg-color);
+    border-left: 4px solid var(--primary-color);
+    padding: 12px 15px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 10px var(--shadow-color);
+    font-size: 0.9vw;
+    color: var(--primary-color);
+    animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(5px);
+}
+
+.notification i {
+    margin-right: 8px;
+    font-size: 1vw;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-110%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* -------------------------------------
+   HUD WIDGETS (Draggable Base)
+------------------------------------- */
+.hud-widget {
+    position: absolute;
+    pointer-events: none;
+    transition: opacity var(--transition-speed);
+}
+
+.hud-widget.edit-mode {
+    pointer-events: auto;
+    border: 1px dashed rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.hud-drag-handle {
+    display: none;
+    background: #e67e22;
+    color: #fff;
+    padding: 2px 5px;
+    font-size: 0.7vw;
+    cursor: move;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.hud-widget.edit-mode .hud-drag-handle {
+    display: block;
+}
+
+.hud-content {
+    background: var(--bg-color);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px var(--shadow-color);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* -------------------------------------
+   COLOR PICKER
+------------------------------------- */
+#hud-color-picker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 15, 15, 0.95);
+    border: 1px solid #333;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    z-index: 9999;
+    pointer-events: auto;
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+#hud-color-picker h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2vw; text-align: center; }
+#hud-color-picker label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9vw; }
+#hud-color-picker input[type="color"] { border: none; width: 40px; height: 30px; cursor: pointer; background: transparent; }
+#btn-reset-colors { background: #e74c3c; border: none; color: white; cursor: pointer; border-radius: 4px; transition: 0.2s; font-weight: bold; }
+#btn-reset-colors:hover { background: #c0392b; }
+
+/* -------------------------------------
+   1. TOP RIGHT INFO & MONEY
+------------------------------------- */
+.server-info-container {
+    background: var(--bg-color) !important;
+    border: none !important;
+    box-shadow: var(--shadow-color) !important;
+    display: flex;
+    gap: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 1.2vw;
+    color: var(--health-color); /* Yellowish/Green from image */
+}
+
+.info-tag {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.info-val { color: var(--primary-color); }
+
+.money-container {
+    flex-direction: column;
+    align-items: flex-end;
+    background: var(--bg-color) !important;
+    border: none !important;
+    box-shadow: var(--shadow-color) !important;
+    gap: 15px;
+}
+
+.logo-zone {
+    display: flex;
+    align-items: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.5vw;
+}
+.logo-icon { color: var(--health-color); margin-right: 8px; }
+.logo-text { color: var(--health-color); font-weight: 700; }
+.logo-sub { color: var(--health-color); font-weight: 400; font-size: 0.8vw; transform: rotate(-90deg); margin-left: 2px;}
+
+.money-texts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+.cash-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.8vw;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+.bank-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9vw;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* -------------------------------------
+   2. LEFT SIDE PANEL
+------------------------------------- */
+.left-panel-container {
+    background: var(--bg-color) !important;
+    border: none !important;
+    box-shadow: var(--shadow-color) !important;
+    display: flex;
+    align-items: flex-start;
+    gap: 2vw;
+}
+
+.vitals-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.vital-circle {
+    position: relative;
+    width: 3vw;
+    height: 3vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vital-circle svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform: rotate(90deg); /* Start from left instead of top */
+}
+
+.circle-bg { fill: none; stroke: rgba(255, 255, 255, 0.2); stroke-width: 3; }
+.circle-fg { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease-out; }
+
+#circle-health { stroke: var(--health-color); }
+#circle-armor { stroke: var(--armor-color); }
+#circle-hunger { stroke: var(--hunger-color); }
+#circle-thirst { stroke: var(--thirst-color); }
+
+.vital-icon {
+    font-size: 1vw;
+    color: rgba(255, 255, 255, 0.6);
+    z-index: 2;
+}
+
+.time-date {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 1.2vw;
+    color: var(--primary-color);
+}
+.date-text { font-size: 0.9vw; margin-top: 2px; }
+
+/* Shortcuts Column */
+.shortcuts-col {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+.shortcut-item, .mic-status, .radio-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2vw;
+}
+
+.keybind {
+    width: 2vw;
+    height: 2vw;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8vw;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.keybind.long {
+    width: auto;
+    padding: 0 10px;
+    border-radius: 20px;
+}
+
+.comms-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 6vw;
+}
+
+/* -------------------------------------
+   3. SPEEDOMETER (Bottom Center)
+------------------------------------- */
+.speedo-container {
+    flex-direction: column;
+    background: var(--bg-color) !important;
+    box-shadow: var(--shadow-color) !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    align-items: center;
+}
+
+.speedo-dial {
+    position: relative;
+    width: 18vw;
+    height: 12vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.speedo-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.speedo-bg-outer { stroke: rgba(255, 255, 255, 0.2); stroke-width: 4; stroke-linecap: round; }
+.speedo-fg-outer { stroke: var(--primary-color); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
+
+.speedo-bg-inner { stroke: rgba(255, 255, 255, 0.1); stroke-width: 6; stroke-linecap: round; }
+.speedo-fg-inner { stroke: var(--health-color); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
+
+.speed-texts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    margin-top: 2vw;
+}
+
+.speed-value {
+    font-family: 'Oswald', sans-serif;
+    font-size: 4vw;
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.speed-unit {
+    font-size: 1vw;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 2px;
+}
+
+.engine-health-icon {
+    position: absolute;
+    bottom: 2vw;
+    left: 4vw;
+    color: rgba(255,255,255,0.5);
+    font-size: 1.2vw;
+}
+
+/* Bottom Indicators */
+.vehicle-indicators {
+    display: flex;
+    gap: 30px;
+    margin-top: 1vw;
+    background: var(--bg-color) !important;
+    border: none !important;
+    align-items: center;
+}
+
+.indicator-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2vw;
+}
+
+.indicator-item .keybind {
+    width: 1.8vw; height: 1.8vw; font-size: 0.7vw;
+}
+
+.icon-active { color: var(--primary-color) !important; }
+.icon-active-green { color: var(--health-color) !important; }
+.icon-active-blue { color: var(--armor-color) !important; }

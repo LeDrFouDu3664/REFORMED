@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Prison UI</title>
+</head>
+<body>
+    <div id="notification-container"></div>
+
+    <!-- Panneau de Personnalisation des Couleurs (Affiché uniquement en édition HUD) -->
+    <div id="hud-color-picker" style="display: none;">
+        <h3>Personnalisation du HUD</h3>
+        <label>Texte Principal : <input type="color" id="color-primary" value="#ffffff"></label><br>
+        <label>Ombres : <input type="color" id="color-shadow" value="#000000"></label><br>
+        <label>Fond des Barres : <input type="color" id="color-bg" value="#0a142d"></label><br>
+        <button id="btn-reset-colors" style="margin-top: 10px; width: 100%; padding: 5px;">Réinitialiser par défaut</button>
+    </div>
+
+    <!-- TOP RIGHT INFO (ID & Players) -->
+    <div class="hud-widget top-right-info" id="hud-top-right" style="top: 2vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Serveur Info</div>
+        <div class="hud-content server-info-container">
+            <span class="info-tag">ID: <span id="hud-id" class="info-val">0</span></span>
+            <span class="info-tag"><i class="fas fa-user"></i> <span id="hud-players" class="info-val">0</span></span>
+        </div>
+    </div>
+
+    <!-- MIDDLE RIGHT (Money & Logo) -->
+    <div class="hud-widget top-right-money" id="hud-money-widget" style="top: 8vh; right: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Argent</div>
+        <div class="hud-content money-container">
+            <div class="logo-zone">
+                <i class="fas fa-shield-alt logo-icon"></i>
+                <span class="logo-text">GREEN</span>
+                <span class="logo-sub">ZONE</span>
+            </div>
+            <div class="money-texts">
+                <div class="cash-text">$<span id="hud-money">0</span></div>
+                <div class="bank-text"><i class="fas fa-university"></i> $<span id="hud-bank">0</span></div>
+                <div class="black-text" style="display:none;">$<span id="hud-black">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEFT SIDE (Vitals, Time & Shortcuts) -->
+    <div class="hud-widget left-side-panel" id="hud-left-panel" style="top: 10vh; left: 2vw;">
+        <div class="hud-drag-handle"><i class="fas fa-arrows-alt"></i> Panneau Gauche</div>
+        <div class="hud-content left-panel-container">
+
+            <div class="vitals-col">
+                <div class="vital-circle" id="circle-health-container">
+                    <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-health" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                    <i class="fas fa-heart vital-icon"></i>
+                </div>
+                <div class="vital-circle" id="circle-armor-container">
+                    <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-armor" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                    <i class="fas fa-vest vital-icon"></i>
+                </div>
+                <div class="vital-circle" id="circle-hunger-container">
+                    <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-hunger" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                    <i class="fas fa-hamburger vital-icon"></i>
+                </div>
+                <div class="vital-circle" id="circle-thirst-container">
+                    <svg viewBox="0 0 36 36"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /><path class="circle-fg" id="circle-thirst" stroke-dasharray="100, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" /></svg>
+                    <i class="fas fa-tint vital-icon"></i>
+                </div>
+
+                <div class="time-date">
+                    <div><i class="far fa-clock"></i> <span id="hud-time">00:00</span></div>
+                    <div id="hud-date" class="date-text">01.01.2000</div>
+                </div>
+            </div>
+
+            <div class="shortcuts-col">
+                <div class="shortcut-item"><i class="fas fa-mobile-alt"></i> <div class="keybind">K</div></div>
+                <div class="shortcut-item"><i class="fas fa-th"></i> <div class="keybind">M</div></div>
+                <div class="shortcut-item"><i class="fas fa-backpack"></i> <div class="keybind">I</div></div>
+                <div class="shortcut-item"><i class="fas fa-mobile-alt"></i> <div class="keybind">G</div></div>
+                <div class="shortcut-item"><i class="fas fa-lock"></i> <div class="keybind">L</div></div>
+                <div class="shortcut-item"><i class="fas fa-mouse-pointer"></i> <div class="keybind">~</div></div>
+            </div>
+
+            <div class="comms-col">
+                <div class="mic-status">
+                    <div class="keybind">N</div>
+                    <i class="fas fa-microphone-slash" id="mic-icon"></i>
+                </div>
+                <div class="radio-status">
+                    <div class="keybind">TAP</div>
+                    <i class="fas fa-walkie-talkie"></i>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 4. Compteur Vitesse (Milieu bas) et Voyants -->
+    <div class="hud-widget" id="hud-vehicle" style="bottom: 2vh; left: 50vw; transform: translateX(-50%); display: none;">
+
+        <div class="hud-content speedo-container">
+
+            <div class="speedo-dial">
+                <!-- Dual Arc SVG -->
+                <svg viewBox="0 0 200 150" class="speedo-svg">
+                    <!-- RPM Arc (Outer, Grey/White) -->
+                    <path class="speedo-bg-outer" d="M 30 140 A 80 80 0 1 1 170 140" fill="none" />
+                    <path class="speedo-fg-outer" id="rpm-path" d="M 30 140 A 80 80 0 1 1 170 140" fill="none" stroke-dasharray="350" stroke-dashoffset="350" />
+
+                    <!-- Speed Arc (Inner, Green/Yellow) -->
+                    <path class="speedo-bg-inner" d="M 45 130 A 65 65 0 1 1 155 130" fill="none" />
+                    <path class="speedo-fg-inner" id="speed-path" d="M 45 130 A 65 65 0 1 1 155 130" fill="none" stroke-dasharray="290" stroke-dashoffset="290" />
+                </svg>
+
+                <div class="speed-texts">
+                    <div class="speed-value" id="hud-speed">0</div>
+                    <div class="speed-unit">KM/H</div>
+                    <div class="speed-gear" id="hud-gear" style="display:none;">N</div>
+                </div>
+
+                <div class="engine-health-icon">
+                    <i class="fas fa-engine-warning" id="hud-engine"></i>
+                </div>
+            </div>
+
+            <!-- Voyants (En bas) -->
+            <div class="vehicle-indicators">
+                <div class="indicator-item">
+                    <i id="indicator-left" class="fas fa-lightbulb"></i>
+                    <div class="keybind">H</div>
+                </div>
+                <div class="indicator-item">
+                    <i id="hud-engine-bottom" class="fas fa-car-battery"></i>
+                    <div class="keybind long">CTRL</div>
+                </div>
+                <div class="indicator-item">
+                    <i id="hud-door" class="fas fa-door-open"></i>
+                    <div class="keybind">L</div>
+                </div>
+                <div class="indicator-item">
+                    <i id="hud-fuel" class="fas fa-gas-pump"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
