@@ -35,3 +35,10 @@ AddEventHandler("prison:server:completeActivity", function(actName)
         end
     end
 end)
+
+AddEventHandler('playerDropped', function(reason)
+    local _source = source
+    if serverEscapeTools[_source] then
+        serverEscapeTools[_source] = nil
+    end
+end)
