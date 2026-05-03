@@ -36,14 +36,22 @@ Config.JobRewards = {
 Config.JobTimeReduction = 5
 
 -- Schedule (Real-world time)
+-- Schedule (Real-world time) - Extended and more interesting
 Config.Schedule = {
-    Reveil = "08:00",
+    Reveil = "07:00",
+    Douches = "07:30",
+    PetitDejeuner = "08:00",
     TravailMatin = "09:00",
-    RepasMidi = "12:00",
-    TempsLibre = "14:00",
-    TravailAprem = "16:00",
+    PromenadeMatin = "11:00",
+    RepasMidi = "12:30",
+    Inspection = "13:30",
+    TravailAprem = "14:30",
+    TempsLibre = "17:00",
     RepasSoir = "19:00",
-    CouvreFeu = "22:00"
+    Appel = "20:00",
+    CouvreFeu = "21:00",
+    RondeDeNuit = "00:00",
+    Dortoir = "01:00"
 }
 
 -- Locations
@@ -60,6 +68,10 @@ Config.Locations = {
         Metallier = vector3(1655.0, 2505.0, 45.0),
         Blanchisseur = vector3(1695.0, 2555.0, 45.0),
         Menuisier = vector3(1665.0, 2515.0, 45.0)
+    },
+    Activities = {
+        gym = vector3(1643.0, 2528.0, 45.0),
+        trash = vector3(1655.0, 2540.0, 45.0)
     },
     VendorSpawns = {
         vector3(1640.0, 2510.0, 45.0),

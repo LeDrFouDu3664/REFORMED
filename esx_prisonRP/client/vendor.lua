@@ -23,6 +23,7 @@ function SpawnVendor()
         end
 
         vendorPed = CreatePed(4, model, vendorCoords.x, vendorCoords.y, vendorCoords.z - 1.0, 0.0, false, true)
+        SetEntityAsMissionEntity(vendorPed, true, true)
         SetEntityInvincible(vendorPed, true)
         SetBlockingOfNonTemporaryEvents(vendorPed, true)
         FreezeEntityPosition(vendorPed, true)

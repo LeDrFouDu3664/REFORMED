@@ -2,13 +2,13 @@ local isDoingActivity = false
 
 local activities = {
     gym = {
-        coords = vector3(1643.0, 2528.0, 45.0),
+        coords = Config.Locations.Activities.gym,
         animDict = "amb@world_human_muscle_free_weights@male@barbell@base",
         animName = "base",
         label = "faire de la musculation"
     },
     trash = {
-        coords = vector3(1655.0, 2540.0, 45.0),
+        coords = Config.Locations.Activities.trash,
         animDict = "amb@prop_human_bum_bin@base",
         animName = "base",
         label = "fouiller la poubelle"

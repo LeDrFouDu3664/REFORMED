@@ -19,6 +19,16 @@ AddEventHandler("prison:server:completeActivity", function(actName)
 
     activeActivities[_source] = nil
 
+    local targetCoords = Config.Locations.Activities[actName]
+    if targetCoords then
+        local ped = GetPlayerPed(_source)
+        local pos = GetEntityCoords(ped)
+        if #(pos - targetCoords) > 10.0 then
+            print(("[Prison] Tentative d'exploit activité (distance) détectée par l'ID %s."):format(_source))
+            return
+        end
+    end
+
     if actName == "gym" then
         TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Vous vous sentez plus en forme !' } })
     elseif actName == "trash" then

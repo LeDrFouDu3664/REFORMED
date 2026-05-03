@@ -16,6 +16,7 @@ Citizen.CreateThread(function()
         local ped = CreatePed(4, modelHash, data.coords.x, data.coords.y, data.coords.z - 1.0, data.heading, false, true)
 
         -- Rendre le PNJ statique, invincible et passif
+        SetEntityAsMissionEntity(ped, true, true)
         SetEntityInvincible(ped, true)
         SetBlockingOfNonTemporaryEvents(ped, true)
         FreezeEntityPosition(ped, true)
