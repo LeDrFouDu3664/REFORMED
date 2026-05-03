@@ -38,3 +38,45 @@ AddEventHandler('onResourceStop', function(resourceName)
         end
     end
 end)
+
+Citizen.CreateThread(function()
+    while true do
+        local sleep = 1000
+        local ped = PlayerPedId()
+        local pos = GetEntityCoords(ped)
+
+        for _, data in ipairs(Config.Locations.Helpers) do
+            local dist = #(pos - data.coords)
+            if dist < 2.0 then
+                sleep = 0
+                SetTextComponentFormat("STRING")
+                AddTextComponentString("Appuyez sur ~INPUT_CONTEXT~ pour parler à " .. data.name)
+                DisplayHelpTextFromStringLabel(0, 0, 1, -1)
+
+                if IsControlJustReleased(0, 38) then
+                    if data.id == "accueil" then
+                        TriggerEvent("chat:addMessage", { args = { '^5['..data.name..']', 'Bienvenue à la prison fédérale. Restez calme.' } })
+                    elseif data.id == "armurerie" then
+                        local job = GetPlayerJob()
+                        local isGuard = false
+                        for _, gJob in ipairs(Config.GuardJobs) do
+                            if job == gJob then
+                                isGuard = true
+                                break
+                            end
+                        end
+                        if isGuard then
+                            TriggerEvent("chat:addMessage", { args = { '^5['..data.name..']', 'Voici votre équipement, officier.' } })
+                            -- Logic to open armory or give weapons
+                        else
+                            TriggerEvent("chat:addMessage", { args = { '^5['..data.name..']', 'L\'armurerie est réservée au personnel autorisé.' } })
+                        end
+                    elseif data.id == "atelier" then
+                        TriggerServerEvent("prison:server:requestMission", data.id)
+                    end
+                end
+            end
+        end
+        Citizen.Wait(sleep)
+    end
+end)

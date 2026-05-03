@@ -4,6 +4,12 @@ Config = {}
 Config.Framework = "auto" -- "esx", "qbcore", or "auto"
 
 -- General Settings
+Config.Settings = {
+    DisableWantedLevel = true, -- Empêche les PNJ d'appeler la police (avis de recherche)
+    EnableNPCSchedule = true,  -- Les PNJ suivent l'emploi du temps
+    EnableMissions = true      -- Activer le système de missions des PNJ
+}
+
 Config.PrisonerJobs = {
     "prisonnier",
 }
@@ -79,11 +85,32 @@ Config.Locations = {
         vector3(1660.0, 2550.0, 45.0)
     },
     Helpers = {
-        { model = "s_m_y_cop_01", coords = vector3(1679.5, 2515.0, 45.5), heading = 180.0, name = "Gardien d'accueil" },
-        { model = "s_m_m_prisguard_01", coords = vector3(1675.0, 2520.0, 45.5), heading = 90.0, name = "Chef d'atelier" }
+        { id = "accueil", model = "s_m_y_cop_01", coords = vector3(1679.5, 2515.0, 45.5), heading = 180.0, name = "Gardien d'accueil" },
+        { id = "armurerie", model = "s_m_y_cop_01", coords = vector3(1682.0, 2510.0, 45.5), heading = 90.0, name = "Armurier" },
+        { id = "atelier", model = "s_m_m_prisguard_01", coords = vector3(1675.0, 2520.0, 45.5), heading = 90.0, name = "Chef d'atelier" }
+    },
+    SchedulePoints = {
+        Cour = vector3(1650.0, 2540.0, 45.5),
+        Cantine = vector3(1670.0, 2520.0, 45.5),
+        Dortoir = vector3(1680.0, 2560.0, 45.5),
+        Douche = vector3(1660.0, 2555.0, 45.5),
+        Atelier = vector3(1665.0, 2505.0, 45.5)
     }
 }
 
 Config.Peds = {
-    VendorModel = "s_m_y_prisoner_01"
+    VendorModel = "s_m_y_prisoner_01",
+    PrisonerModels = {
+        "s_m_y_prisoner_01",
+        "u_m_y_prisoner_01"
+    }
+}
+
+Config.Missions = {
+    {
+        giver = "atelier",
+        dialogue = "Hé toi, trouve-moi de la ferraille dans la cour et je te paierai bien.",
+        itemNeeded = "ferraille",
+        reward = 100
+    }
 }

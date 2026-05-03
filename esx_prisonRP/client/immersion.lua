@@ -19,27 +19,23 @@ Citizen.CreateThread(function()
             -- Keep time synced with PC time periodically
             local year, month, day, hour, minute, second = GetLocalTime()
             NetworkOverrideClockTime(hour, minute, second)
+
+            if Config.Settings.DisableWantedLevel then
+                ClearPlayerWantedLevel(PlayerId())
+                SetMaxWantedLevel(0)
+            end
         else
             isInsidePrison = false
-        end
-    end
-end)
-
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(2000)
-        if isInsidePrison then
-            local peds = GetGamePool('CPed')
-            for _, ped in ipairs(peds) do
-                if not IsPedAPlayer(ped) then
-                    SetBlockingOfNonTemporaryEvents(ped, true)
-                    SetPedFleeAttributes(ped, 0, 0)
-                    SetPedCombatAttributes(ped, 17, 0) -- 17 is AlwaysFight, set to 0 (false)
-                end
+            if Config.Settings.DisableWantedLevel then
+                SetMaxWantedLevel(5)
             end
         end
     end
 end)
+
+-- Removed global CPed loop. NPC passiveness is handled at creation
+-- for script-spawned NPCs (helpers, scheduled NPCs, vendors)
+-- and `ClearAreaOfCops` prevents aggressive cop spawns.
 
 Citizen.CreateThread(function()
     while true do
@@ -73,6 +69,7 @@ Citizen.CreateThread(function()
                 -- Restore radar exactly once when leaving prison
                 DisplayRadar(true)
                 ClearOverrideWeather()
+                NetworkClearClockTimeOverride()
             end
             Citizen.Wait(1000) -- Sleep when outside
         end
