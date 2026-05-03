@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prison HUD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="schedule" class="hidden">
+        <h2>Planning Actuel</h2>
+        <p id="currentPhase">Réveil</p>
+    </div>
+
+    <div id="progress" class="hidden">
+        <h3 id="progressLabel">Travail...</h3>
+        <div class="progress-bar">
+            <div id="progressFill"></div>
+        </div>
+    </div>
+
+    <div id="tutorial" class="hidden">
+        <h2>Bienvenue en Prison</h2>
+        <p id="tutorialText"></p>
+        <button id="nextTutorial">Suivant</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
