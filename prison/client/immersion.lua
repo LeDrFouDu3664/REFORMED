@@ -34,7 +34,7 @@ Citizen.CreateThread(function()
                 if not IsPedAPlayer(ped) then
                     SetBlockingOfNonTemporaryEvents(ped, true)
                     SetPedFleeAttributes(ped, 0, 0)
-                    SetPedCombatAttributes(ped, 17, 1)
+                    SetPedCombatAttributes(ped, 17, 0) -- 17 is AlwaysFight, set to 0 (false)
                 end
             end
         end

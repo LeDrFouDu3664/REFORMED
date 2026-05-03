@@ -1,8 +1,8 @@
 local tutorialPlayed = {}
 
 RegisterNetEvent("prison:server:checkTutorial")
-AddEventHandler("prison:server:checkTutorial", function()
-    local _source = source
+AddEventHandler("prison:server:checkTutorial", function(targetSource)
+    local _source = targetSource or source
     local identifier = GetPlayerIdentifier(_source)
     if not identifier then return end
 

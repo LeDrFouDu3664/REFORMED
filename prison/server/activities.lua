@@ -1,4 +1,5 @@
 local activeActivities = {}
+serverEscapeTools = {} -- Global server-side registry to validate escapees
 
 RegisterNetEvent("prison:server:startActivity")
 AddEventHandler("prison:server:startActivity", function(actName)
@@ -22,7 +23,11 @@ AddEventHandler("prison:server:completeActivity", function(actName)
         TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Vous vous sentez plus en forme !' } })
     elseif actName == "trash" then
         local chance = math.random(1, 100)
-        if chance <= 30 then
+        if chance <= 10 then
+            serverEscapeTools[_source] = true
+            TriggerClientEvent('prison:client:receiveEscapeTool', _source)
+            TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Vous avez trouvé un outil d\'évasion !' } })
+        elseif chance <= 30 then
             -- Can give a small item here using bridge inventory
             TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Vous avez trouvé quelque chose d\'utile dans la poubelle.' } })
         else
