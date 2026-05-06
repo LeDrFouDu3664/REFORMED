@@ -1,17 +1,17 @@
 local isDoingActivity = false
 
 local activities = {
-    gym = {
-        coords = Config.Locations.Activities.gym,
-        animDict = "amb@world_human_muscle_free_weights@male@barbell@base",
-        animName = "base",
-        label = "faire de la musculation"
-    },
     trash = {
         coords = Config.Locations.Activities.trash,
         animDict = "amb@prop_human_bum_bin@base",
         animName = "base",
         label = "fouiller la poubelle"
+    },
+    balayage = {
+        coords = Config.Locations.Activities.balayage,
+        animDict = "anim@heists@prison_heiststation@cop_reactions",
+        animName = "cop_b_idle",
+        label = "balayer le sol"
     }
 }
 

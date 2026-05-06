@@ -38,11 +38,13 @@ AddEventHandler("prison:server:completeActivity", function(actName)
             TriggerClientEvent('prison:client:receiveEscapeTool', _source)
             TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Vous avez trouvé un outil d\'évasion !' } })
         elseif chance <= 30 then
-            -- Can give a small item here using bridge inventory
             TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Vous avez trouvé quelque chose d\'utile dans la poubelle.' } })
         else
             TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Rien d\'intéressant dans cette poubelle.' } })
         end
+    elseif actName == "balayage" then
+        TriggerClientEvent('chat:addMessage', _source, { args = { '^2[Prison]', 'Le sol est maintenant propre. Vous gagnez le respect des gardiens.' } })
+        AddPlayerMoney(_source, 10)
     end
 end)
 

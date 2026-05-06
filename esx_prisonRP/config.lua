@@ -76,8 +76,8 @@ Config.Locations = {
         Menuisier = vector3(1665.0, 2515.0, 45.0)
     },
     Activities = {
-        gym = vector3(1643.0, 2528.0, 45.0),
-        trash = vector3(1655.0, 2540.0, 45.0)
+        trash = vector3(1655.0, 2540.0, 45.0),
+        balayage = vector3(1665.0, 2535.0, 45.0)
     },
     VendorSpawns = {
         vector3(1640.0, 2510.0, 45.0),

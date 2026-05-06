@@ -22,14 +22,13 @@ body {
     display: none !important;
 }
 
-/* Glassmorphism utility classes */
+/* Utility classes */
 .glass-panel {
-    background: transparent;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 #schedule {
@@ -47,14 +46,15 @@ body {
     text-transform: uppercase;
     color: var(--text-secondary);
     letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 #currentPhase {
     margin: 0;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 600;
     color: var(--text-primary);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
 }
 
 #progress {
