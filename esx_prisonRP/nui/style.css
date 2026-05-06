@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+:root {
+    --bg-color: rgba(15, 15, 20, 0.4);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a5ba;
+    --accent-color: #4caf50;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-primary);
+    /* Strict transparent body background */
+    background: transparent !important;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Utility classes */
+.glass-panel {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+#schedule {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    padding: 20px 25px;
+    min-width: 200px;
+}
+
+#schedule h2 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+#currentPhase {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
+}
+
+#progress {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 20px 30px;
+    text-align: center;
+    width: 350px;
+}
+
+#progressLabel {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+#progressFill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4caf50, #81c784);
+    border-radius: 4px;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+#tutorial {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 40px 50px;
+    text-align: center;
+    max-width: 400px;
+}
+
+#tutorial h2 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    color: var(--accent-color);
+}
+
+#tutorialText {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 30px;
+    color: var(--text-secondary);
+}
+
+#tutorial button {
+    padding: 12px 30px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+#tutorial button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
