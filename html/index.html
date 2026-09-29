@@ -8,6 +8,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- INFECTION HUD WIDGET -->
+    <div id="infection-hud" class="infection-widget hidden">
+        <div class="hud-header">
+            <i class="fa-solid fa-virus biohazard-hud-icon"></i>
+            <span class="hud-title">NIVEAU DE CONTAMINATION</span>
+            <span id="hud-percent" class="hud-percent">0%</span>
+        </div>
+        <div class="progress-bar-container">
+            <div id="hud-bar" class="progress-bar-fill" style="width: 0%;"></div>
+        </div>
+        <div class="hud-footer">
+            <span id="hud-stage" class="hud-stage-label">Sain</span>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
     <div id="app" class="hidden">
         <div class="glass-panel">
             <!-- Header -->
@@ -24,6 +40,7 @@
                 <button class="tab-btn active" data-tab="tab-zones"><i class="fa-solid fa-map-location-dot"></i> Zones d'Infection</button>
                 <button class="tab-btn" data-tab="tab-zombies"><i class="fa-solid fa-skull"></i> Configuration Zombies</button>
                 <button class="tab-btn" data-tab="tab-vehicles"><i class="fa-solid fa-car-burst"></i> Véhicules Abandonnés</button>
+                <button class="tab-btn" data-tab="tab-props"><i class="fa-solid fa-cubes"></i> Props / Barricades</button>
                 <button class="tab-btn" data-tab="tab-events"><i class="fa-solid fa-ghost"></i> Événement Halloween</button>
             </nav>
 
@@ -90,7 +107,31 @@
                     </div>
                 </section>
 
-                <!-- TAB 4: HALLOWEEN EVENT -->
+                <!-- TAB 4: PROPS -->
+                <section id="tab-props" class="tab-content">
+                    <div class="section-actions">
+                        <h3><i class="fa-solid fa-cubes"></i> Placement de Props & Barricades</h3>
+                    </div>
+                    <div class="form-container inline-form">
+                        <div class="form-group">
+                            <label>Prop / Barricade :</label>
+                            <select id="select-prop-model">
+                                <option value="prop_barrier_work05">Barrière de Chantier</option>
+                                <option value="prop_sandbag_01">Sac de Sable</option>
+                                <option value="prop_hedgehog">Hérisson Tchèque Anti-Véhicule</option>
+                                <option value="prop_fncwood_16a">Barrière en Bois</option>
+                                <option value="prop_sign_road_01a">Panneau Danger Biohazard</option>
+                            </select>
+                        </div>
+                        <button id="btn-place-prop-here" class="btn btn-success"><i class="fa-solid fa-cube"></i> Poser à Ma Position</button>
+                    </div>
+
+                    <div id="props-list" class="cards-grid">
+                        <!-- Dynamic Prop Cards inserted here -->
+                    </div>
+                </section>
+
+                <!-- TAB 5: HALLOWEEN EVENT -->
                 <section id="tab-events" class="tab-content">
                     <div class="halloween-card">
                         <div class="halloween-header">

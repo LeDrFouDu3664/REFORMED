@@ -62,9 +62,7 @@ local function ConfigureZombiePed(ped, zone)
     SetAnimRate(ped, baseSpeed, 0.0, false)
     SetPedMoveRateOverride(ped, baseSpeed)
 
-    -- Store metadata on entity
-    Entity(ped).state:set('isZombie', true, true)
-    Entity(ped).state:set('damageMult', damageMult, true)
+    return damageMult
 end
 
 -- Spawn Zombie in Zone (isNetwork = false to avoid duplicate network peds across clients)
@@ -85,8 +83,8 @@ local function SpawnZombieInZone(zone)
 
     if DoesEntityExist(ped) then
         SetEntityAsMissionEntity(ped, true, true)
-        ConfigureZombiePed(ped, zone)
-        table.insert(spawnedZombies, { ped = ped, zoneId = zone.id, isDead = false, nextAttack = 0 })
+        local damageMult = ConfigureZombiePed(ped, zone)
+        table.insert(spawnedZombies, { ped = ped, zoneId = zone.id, isDead = false, nextAttack = 0, damageMult = damageMult })
     end
 
     SetModelAsNoLongerNeeded(modelHash)
@@ -154,7 +152,8 @@ CreateThread(function()
             local zoneCoords = GetVector3Coords(CurrentZone.coords)
             local now = GetGameTimer()
 
-            for i, z in ipairs(spawnedZombies) do
+            for i = #spawnedZombies, 1, -1 do
+                local z = spawnedZombies[i]
                 local ped = z.ped
 
                 if DoesEntityExist(ped) then
@@ -190,10 +189,13 @@ CreateThread(function()
                                         TaskPlayAnim(ped, "melee@unarmed@streamed_core", "short_0_fight", 8.0, -8.0, 1000, 0, 0, false, false, false)
 
                                         local baseDmg = (CurrentZone.zombieDamage or Config.Zombies.DefaultDamage)
-                                        local mult = Entity(ped).state.damageMult or 1.0
+                                        local mult = z.damageMult or 1.0
                                         local finalDmg = math.floor(baseDmg * mult)
 
                                         ApplyDamageToPed(playerPed, finalDmg, false)
+
+                                        -- Trigger Player Infection Hit Event
+                                        TriggerEvent('zombie_zones:client:addInfectionHit')
                                     end
                                 end
                             else

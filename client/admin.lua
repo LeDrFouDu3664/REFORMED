@@ -9,6 +9,7 @@ RegisterNetEvent('zombie_zones:client:openAdminMenu', function(zonesData, vehicl
         type = 'openAdmin',
         zones = zonesData or {},
         vehicles = vehiclesData or {},
+        props = Props or {},
         globalHalloween = globalHalloweenState or false
     })
 end)
@@ -90,6 +91,30 @@ end)
 RegisterNUICallback('deleteVehicle', function(data, cb)
     if data.id then
         TriggerServerEvent('zombie_zones:server:deleteVehicle', data.id)
+    end
+    cb('ok')
+end)
+
+-- NUI Callback: Place Prop at Player Position
+RegisterNUICallback('placePropHere', function(data, cb)
+    local ped = PlayerPedId()
+    local pCoords = GetEntityCoords(ped)
+    local heading = GetEntityHeading(ped)
+
+    local propData = {
+        model = data.model or 'prop_barrier_work05',
+        coords = { x = pCoords.x, y = pCoords.y, z = pCoords.z },
+        heading = heading
+    }
+
+    TriggerServerEvent('zombie_zones:server:placeProp', propData)
+    cb('ok')
+end)
+
+-- NUI Callback: Delete Prop
+RegisterNUICallback('deleteProp', function(data, cb)
+    if data.id then
+        TriggerServerEvent('zombie_zones:server:deleteProp', data.id)
     end
     cb('ok')
 end)

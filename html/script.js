@@ -8,8 +8,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const btnSaveZone = document.getElementById('btn-save-zone');
     const btnCancelEdit = document.getElementById('btn-cancel-edit');
 
+    const infectionHud = document.getElementById('infection-hud');
+    const hudPercent = document.getElementById('hud-percent');
+    const hudBar = document.getElementById('hud-bar');
+    const hudStage = document.getElementById('hud-stage');
+
     let currentZones = [];
     let currentVehicles = [];
+    let currentProps = [];
     let isHalloweenActive = false;
 
     // NUI Message Listener from Client Lua
@@ -19,13 +25,40 @@ window.addEventListener('DOMContentLoaded', () => {
         if (data.type === 'openAdmin') {
             currentZones = data.zones || [];
             currentVehicles = data.vehicles || [];
+            currentProps = data.props || [];
             isHalloweenActive = data.globalHalloween || false;
 
             renderZones();
             renderVehicles();
+            renderProps();
             updateHalloweenUI();
 
             app.classList.remove('hidden');
+        } else if (data.type === 'updateInfection') {
+            const level = data.level || 0;
+            const stage = data.stage || 0;
+
+            if (level > 0) {
+                infectionHud.classList.remove('hidden');
+                hudPercent.textContent = `${level}%`;
+                hudBar.style.width = `${level}%`;
+
+                if (stage === 1) {
+                    hudStage.textContent = 'Stade 1 : Contamination débutante';
+                    hudStage.style.color = '#ffcc00';
+                } else if (stage === 2) {
+                    hudStage.textContent = 'Stade 2 : Symptômes sévères';
+                    hudStage.style.color = '#ff6600';
+                } else if (stage === 3) {
+                    hudStage.textContent = 'Stade 3 CRITIQUE';
+                    hudStage.style.color = '#ff0000';
+                } else {
+                    hudStage.textContent = 'Sain';
+                    hudStage.style.color = '#28a745';
+                }
+            } else {
+                infectionHud.classList.add('hidden');
+            }
         } else if (data.type === 'playSound') {
             playAudio(data.sound, data.volume || 0.4);
         }
@@ -48,7 +81,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             if (!editModal.classList.contains('hidden')) {
                 editModal.classList.add('hidden');
-            } else {
+            } else if (!app.classList.contains('hidden')) {
                 closeUI();
             }
         }
@@ -130,6 +163,34 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Render Props List
+    function renderProps() {
+        const container = document.getElementById('props-list');
+        container.innerHTML = '';
+
+        if (currentProps.length === 0) {
+            container.innerHTML = '<p class="text-muted">Aucune barricade / prop placé(e).</p>';
+            return;
+        }
+
+        currentProps.forEach(prop => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <span>${prop.model.toUpperCase()}</span>
+                </div>
+                <div class="card-body">
+                    <div>ID : <strong>${prop.id}</strong></div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-danger" onclick="deleteProp('${prop.id}')">Supprimer</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
     // Update Halloween UI Status
     function updateHalloweenUI() {
         const statusLbl = document.getElementById('halloween-status');
@@ -194,7 +255,7 @@ window.addEventListener('DOMContentLoaded', () => {
         editModal.classList.add('hidden');
     });
 
-    // Zone & Vehicle Actions
+    // Zone, Vehicle & Prop Actions
     window.toggleZone = function(id, state) {
         fetch(`https://${GetParentResourceName()}/toggleZone`, {
             method: 'POST',
@@ -219,6 +280,14 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    window.deleteProp = function(id) {
+        fetch(`https://${GetParentResourceName()}/deleteProp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+    };
+
     document.getElementById('btn-create-zone-here').addEventListener('click', () => {
         fetch(`https://${GetParentResourceName()}/createZoneHere`, {
             method: 'POST',
@@ -236,6 +305,15 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-place-veh-here').addEventListener('click', () => {
         const model = document.getElementById('select-veh-model').value;
         fetch(`https://${GetParentResourceName()}/placeVehicleHere`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model })
+        });
+    });
+
+    document.getElementById('btn-place-prop-here').addEventListener('click', () => {
+        const model = document.getElementById('select-prop-model').value;
+        fetch(`https://${GetParentResourceName()}/placePropHere`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ model })
@@ -298,6 +376,12 @@ window.addEventListener('DOMContentLoaded', () => {
                 osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 2.0);
                 osc.start();
                 osc.stop(ctx.currentTime + 2.0);
+            } else if (type === 'cough') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(220, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.4);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
             } else if (type === 'explosion') {
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(100, ctx.currentTime);
