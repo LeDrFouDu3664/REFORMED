@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionnaire de Zones Zombie</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- INFECTION HUD WIDGET -->
+    <div id="infection-hud" class="infection-widget hidden">
+        <div class="hud-header">
+            <i class="fa-solid fa-virus biohazard-hud-icon"></i>
+            <span class="hud-title">NIVEAU DE CONTAMINATION</span>
+            <span id="hud-percent" class="hud-percent">0%</span>
+        </div>
+        <div class="progress-bar-container">
+            <div id="hud-bar" class="progress-bar-fill" style="width: 0%;"></div>
+        </div>
+        <div class="hud-footer">
+            <span id="hud-stage" class="hud-stage-label">Sain</span>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="app" class="hidden">
+        <div class="glass-panel">
+            <!-- Header -->
+            <header class="panel-header">
+                <div class="logo">
+                    <i class="fa-solid fa-biohazard bio-icon"></i>
+                    <h2>SURVIE ZOMBIE <span>PANNEAU D'ADMINISTRATION</span></h2>
+                </div>
+                <button id="close-btn" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="tab-zones"><i class="fa-solid fa-map-location-dot"></i> Zones d'Infection</button>
+                <button class="tab-btn" data-tab="tab-zombies"><i class="fa-solid fa-skull"></i> Configuration Zombies</button>
+                <button class="tab-btn" data-tab="tab-vehicles"><i class="fa-solid fa-car-burst"></i> Véhicules Abandonnés</button>
+                <button class="tab-btn" data-tab="tab-props"><i class="fa-solid fa-cubes"></i> Props / Barricades</button>
+                <button class="tab-btn" data-tab="tab-events"><i class="fa-solid fa-ghost"></i> Événement Halloween</button>
+            </nav>
+
+            <!-- Tab Content Container -->
+            <main class="panel-body">
+                <!-- TAB 1: ZONES -->
+                <section id="tab-zones" class="tab-content active">
+                    <div class="section-actions">
+                        <h3><i class="fa-solid fa-layer-group"></i> Liste des Zones Actives</h3>
+                        <button id="btn-create-zone-here" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Créer une Zone à Ma Position</button>
+                    </div>
+
+                    <div id="zones-list" class="cards-grid">
+                        <!-- Dynamic Zone Cards inserted here -->
+                    </div>
+                </section>
+
+                <!-- TAB 2: ZOMBIES -->
+                <section id="tab-zombies" class="tab-content">
+                    <h3><i class="fa-solid fa-sliders"></i> Paramètres Généraux des Zombies</h3>
+                    <div class="form-container">
+                        <div class="form-group">
+                            <label>Nombre Max de Zombies par Zone : <span id="lbl-max">20</span></label>
+                            <input type="range" id="input-zombie-max" min="5" max="100" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Santé de Base du Zombie : <span id="lbl-health">150</span> HP</label>
+                            <input type="range" id="input-zombie-health" min="50" max="500" value="150">
+                        </div>
+                        <div class="form-group">
+                            <label>Multiplicateur de Vitesse : <span id="lbl-speed">1.2</span>x</label>
+                            <input type="range" id="input-zombie-speed" min="0.5" max="2.5" step="0.1" value="1.2">
+                        </div>
+                        <div class="form-group">
+                            <label>Dégâts de Mêlée par Attaque : <span id="lbl-damage">15</span> HP</label>
+                            <input type="range" id="input-zombie-damage" min="5" max="100" value="15">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: VEHICLES -->
+                <section id="tab-vehicles" class="tab-content">
+                    <div class="section-actions">
+                        <h3><i class="fa-solid fa-car"></i> Placement de Véhicules Abandonnés</h3>
+                    </div>
+                    <div class="form-container inline-form">
+                        <div class="form-group">
+                            <label>Modèle de Véhicule :</label>
+                            <select id="select-veh-model">
+                                <option value="rubble">Camion Abandonné (Rubble)</option>
+                                <option value="surfer">Fourgon Epave (Surfer)</option>
+                                <option value="emperor2">Berline Rouillée (Emperor)</option>
+                                <option value="tornado3">Voiture Accidentée (Tornado)</option>
+                                <option value="voodoo2">Carcasse d'Automobile (Voodoo)</option>
+                                <option value="rebel2">4x4 Déglingué (Rebel)</option>
+                                <option value="bodhi2">Pick-up Cassé (Bodhi)</option>
+                            </select>
+                        </div>
+                        <button id="btn-place-veh-here" class="btn btn-success"><i class="fa-solid fa-location-crosshairs"></i> Placer à Ma Position</button>
+                    </div>
+
+                    <div id="vehicles-list" class="cards-grid">
+                        <!-- Dynamic Vehicle Cards inserted here -->
+                    </div>
+                </section>
+
+                <!-- TAB 4: PROPS -->
+                <section id="tab-props" class="tab-content">
+                    <div class="section-actions">
+                        <h3><i class="fa-solid fa-cubes"></i> Placement de Props & Barricades</h3>
+                    </div>
+                    <div class="form-container inline-form">
+                        <div class="form-group">
+                            <label>Prop / Barricade :</label>
+                            <select id="select-prop-model">
+                                <option value="prop_barrier_work05">Barrière de Chantier</option>
+                                <option value="prop_sandbag_01">Sac de Sable</option>
+                                <option value="prop_hedgehog">Hérisson Tchèque Anti-Véhicule</option>
+                                <option value="prop_fncwood_16a">Barrière en Bois</option>
+                                <option value="prop_sign_road_01a">Panneau Danger Biohazard</option>
+                            </select>
+                        </div>
+                        <button id="btn-place-prop-here" class="btn btn-success"><i class="fa-solid fa-cube"></i> Poser à Ma Position</button>
+                    </div>
+
+                    <div id="props-list" class="cards-grid">
+                        <!-- Dynamic Prop Cards inserted here -->
+                    </div>
+                </section>
+
+                <!-- TAB 5: HALLOWEEN EVENT -->
+                <section id="tab-events" class="tab-content">
+                    <div class="halloween-card">
+                        <div class="halloween-header">
+                            <i class="fa-solid fa-pumpkin halloween-icon"></i>
+                            <div>
+                                <h3>Événement Spécial : Nuit d'Halloween</h3>
+                                <p>Activez une ambiance nocturne ténébreuse, une obscurité totale et des zombies déchaînés sur toutes les zones d'infection.</p>
+                            </div>
+                        </div>
+
+                        <div class="halloween-controls">
+                            <span class="status-label">Statut Global : <strong id="halloween-status" class="text-danger">DÉSACTIVÉ</strong></span>
+                            <button id="btn-toggle-halloween" class="btn btn-warning"><i class="fa-solid fa-power-off"></i> Activer la Nuit d'Halloween</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- EDIT ZONE MODAL -->
+        <div id="edit-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Modifier la Zone d'Infection</h3>
+                <input type="hidden" id="edit-zone-id">
+                <div class="form-group">
+                    <label>Nom de la Zone :</label>
+                    <input type="text" id="edit-zone-name" class="text-input">
+                </div>
+                <div class="form-group">
+                    <label>Rayon (mètres) : <span id="lbl-edit-radius">150</span>m</label>
+                    <input type="range" id="edit-zone-radius" min="30" max="1000" step="10" value="150">
+                </div>
+                <div class="form-group">
+                    <label>Nombre Max de Zombies : <span id="lbl-edit-max">20</span></label>
+                    <input type="range" id="edit-zone-max" min="5" max="100" value="20">
+                </div>
+                <div class="form-group">
+                    <label>Santé Zombies : <span id="lbl-edit-health">150</span> HP</label>
+                    <input type="range" id="edit-zone-health" min="50" max="500" value="150">
+                </div>
+                <div class="modal-actions">
+                    <button id="btn-save-zone" class="btn btn-success"><i class="fa-solid fa-check"></i> Enregistrer</button>
+                    <button id="btn-cancel-edit" class="btn btn-danger"><i class="fa-solid fa-xmark"></i> Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
