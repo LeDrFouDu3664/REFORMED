@@ -40,6 +40,27 @@ Config.Zombies = {
     TetherDistanceMargin = 10.0 -- Margin allowed outside zone boundary before zombie is pulled back
 }
 
+-- Zombie Loot & Post-Apocalyptic Items Configuration
+Config.Loot = {
+    Enabled = true,
+    LootDistance = 2.0,
+    Items = {
+        ZombieBloodBag = {
+            name = 'zombie_blood_bag',
+            label = 'Poche de sang de zombie',
+            dropChance = 40, -- 40% chance on looting
+            cureAmount = 40  -- Reduces infection level by 40%
+        },
+        ZombieDrug = {
+            name = 'zombie_drug',
+            label = 'Seringue Virale / Drogue',
+            dropChance = 25, -- 25% chance on looting
+            speedBoost = 1.5, -- Speed multiplier boost
+            duration = 30    -- Duration in seconds
+        }
+    }
+}
+
 -- Player Infection System Configuration
 Config.Infection = {
     Enabled = true,
@@ -167,5 +188,12 @@ Config.Language = {
     ['stage2_msg'] = "Stade 2 : L'infection se propage. Vous toussez et votre vision se trouble.",
     ['stage3_msg'] = "Stade 3 CRITIQUE : L'infection consomme votre corps !",
     ['transformation_msg'] = "TRANSFORMATION : L'infection a pris le contrôle total de votre corps ! Vous êtes devenu un zombie.",
-    ['rp_death_msg'] = "MORT RP : L'infection vous a tué."
+    ['rp_death_msg'] = "MORT RP : L'infection vous a tué.",
+    ['loot_prompt'] = "Appuyez sur ~INPUT_CONTEXT~ pour fouiller le zombie.",
+    ['already_looted'] = "Ce zombie a déjà été fouillé.",
+    ['loot_success_blood'] = "Vous avez trouvé une Poche de sang de zombie !",
+    ['loot_success_drug'] = "Vous avez trouvé une Seringue Virale / Drogue !",
+    ['loot_nothing'] = "Vous n'avez rien trouvé d'intéressant sur ce zombie.",
+    ['used_blood_bag'] = "Vous avez injecté une poche de sang : votre niveau d'infection diminue.",
+    ['used_drug'] = "Vous avez consommé la drogue virale : vous ressentez une montée d'adrénaline !"
 }

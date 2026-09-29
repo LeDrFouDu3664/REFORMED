@@ -1,5 +1,6 @@
 local spawnedZombies = {}
 local isSpawningZombies = false
+local lootedZombies = {}
 
 -- Helper: Get random offset position within circle radius
 local function GetRandomCoordInZone(zoneCoords, radius)
@@ -22,6 +23,13 @@ local function LoadAnimDict(dict)
             Wait(10)
         end
     end
+end
+
+-- Helper: Display 3D Help Text in World
+local function DisplayHelpText(text)
+    BeginTextCommandDisplayHelp("STRING")
+    AddTextComponentSubstringPlayerName(text)
+    EndTextCommandDisplayHelp(0, false, true, -1)
 end
 
 -- Helper: Setup Zombie Ped AI & Attributes
@@ -206,6 +214,48 @@ CreateThread(function()
                                 end
                             end
                         end
+                    end
+                end
+            end
+        end
+
+        Wait(sleep)
+    end
+end)
+
+-- Zombie Loot Interaction Thread
+CreateThread(function()
+    while true do
+        local sleep = 500
+
+        if Config.Loot.Enabled and CurrentZone and #spawnedZombies > 0 then
+            local playerPed = PlayerPedId()
+            local pCoords = GetEntityCoords(playerPed)
+
+            for _, z in ipairs(spawnedZombies) do
+                local ped = z.ped
+                if DoesEntityExist(ped) and IsEntityDead(ped) then
+                    local zCoords = GetEntityCoords(ped)
+                    local dist = #(pCoords - zCoords)
+
+                    if dist <= Config.Loot.LootDistance then
+                        sleep = 0
+                        if lootedZombies[ped] then
+                            DisplayHelpText(Config.Language['already_looted'])
+                        else
+                            DisplayHelpText(Config.Language['loot_prompt'])
+
+                            if IsControlJustPressed(0, 38) then -- 'E' key
+                                lootedZombies[ped] = true
+
+                                LoadAnimDict("pickup_object")
+                                TaskPlayAnim(playerPed, "pickup_object", "pickup_low", 8.0, -8.0, 1500, 0, 0, false, false, false)
+                                Wait(1500)
+
+                                TriggerServerEvent('zombie_zones:server:lootZombie', zCoords)
+                            end
+                        end
+                        break
                     end
                 end
             end

@@ -116,6 +116,54 @@ local function SaveData()
     SaveResourceFile(GetCurrentResourceName(), dataFilePath, json.encode(payload, { indent = true }), -1)
 end
 
+-- Helper: Add Item to Player Inventory
+local function GivePlayerItem(source, itemName, count)
+    if Config.Framework == 'esx' and ESX then
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if xPlayer then xPlayer.addInventoryItem(itemName, count) end
+    elseif Config.Framework == 'qbcore' and QBCore then
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then Player.Functions.AddItem(itemName, count) end
+    end
+end
+
+-- Register Usable Items
+local function RegisterUsableItems()
+    if Config.Framework == 'esx' and ESX then
+        ESX.RegisterUsableItem(Config.Loot.Items.ZombieBloodBag.name, function(source)
+            local xPlayer = ESX.GetPlayerFromId(source)
+            if xPlayer then
+                xPlayer.removeInventoryItem(Config.Loot.Items.ZombieBloodBag.name, 1)
+                TriggerClientEvent('zombie_zones:client:useBloodBag', source)
+            end
+        end)
+
+        ESX.RegisterUsableItem(Config.Loot.Items.ZombieDrug.name, function(source)
+            local xPlayer = ESX.GetPlayerFromId(source)
+            if xPlayer then
+                xPlayer.removeInventoryItem(Config.Loot.Items.ZombieDrug.name, 1)
+                TriggerClientEvent('zombie_zones:client:useZombieDrug', source)
+            end
+        end)
+    elseif Config.Framework == 'qbcore' and QBCore then
+        QBCore.Functions.CreateUseableItem(Config.Loot.Items.ZombieBloodBag.name, function(source, item)
+            local Player = QBCore.Functions.GetPlayer(source)
+            if Player then
+                Player.Functions.RemoveItem(Config.Loot.Items.ZombieBloodBag.name, 1)
+                TriggerClientEvent('zombie_zones:client:useBloodBag', source)
+            end
+        end)
+
+        QBCore.Functions.CreateUseableItem(Config.Loot.Items.ZombieDrug.name, function(source, item)
+            local Player = QBCore.Functions.GetPlayer(source)
+            if Player then
+                Player.Functions.RemoveItem(Config.Loot.Items.ZombieDrug.name, 1)
+                TriggerClientEvent('zombie_zones:client:useZombieDrug', source)
+            end
+        end)
+    end
+end
+
 -- Admin Permission Checker
 local function IsPlayerAdmin(source)
     if source == 0 then return true end
@@ -138,10 +186,11 @@ local function IsPlayerAdmin(source)
     return IsPlayerAceAllowed(source, 'command.' .. Config.AdminCommand) or IsPlayerAceAllowed(source, 'zombie_zones.admin')
 end
 
--- Initialize Data on Resource Start
+-- Initialize Data & Items on Resource Start
 AddEventHandler('onResourceStart', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end
     LoadData()
+    RegisterUsableItems()
 end)
 
 -- Sync Initial Data to Client when spawned
@@ -173,6 +222,30 @@ RegisterCommand(Config.AdminCommand, function(source, args, rawCommand)
         })
     end
 end, false)
+
+-- Server Event: Loot Zombie
+RegisterNetEvent('zombie_zones:server:lootZombie', function(zombieCoords)
+    local src = source
+    local pPed = GetPlayerPed(src)
+    local pCoords = GetEntityCoords(pPed)
+
+    -- Distance check
+    if #(pCoords - vector3(zombieCoords.x, zombieCoords.y, zombieCoords.z)) > 10.0 then return end
+
+    local roll = math.random(1, 100)
+    local bloodChance = Config.Loot.Items.ZombieBloodBag.dropChance or 40
+    local drugChance = Config.Loot.Items.ZombieDrug.dropChance or 25
+
+    if roll <= bloodChance then
+        GivePlayerItem(src, Config.Loot.Items.ZombieBloodBag.name, 1)
+        TriggerClientEvent('chat:addMessage', src, { color = {0, 255, 128}, args = {"[Butin]", Config.Language['loot_success_blood']} })
+    elseif roll <= (bloodChance + drugChance) then
+        GivePlayerItem(src, Config.Loot.Items.ZombieDrug.name, 1)
+        TriggerClientEvent('chat:addMessage', src, { color = {255, 0, 255}, args = {"[Butin]", Config.Language['loot_success_drug']} })
+    else
+        TriggerClientEvent('chat:addMessage', src, { color = {200, 200, 200}, args = {"[Butin]", Config.Language['loot_nothing']} })
+    end
+end)
 
 -- Save Player Infection Level
 RegisterNetEvent('zombie_zones:server:savePlayerInfection', function(level, stage, transformed)

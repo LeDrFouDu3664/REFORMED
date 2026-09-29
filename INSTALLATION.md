@@ -4,35 +4,36 @@
 
 - Serveur FiveM (FXServer build récent)
 - Framework : ESX, QBCore ou Standalone
-- Resource `oxmysql` (recommandé pour ESX/QBCore si nécessaire, bien que les zones soient sauvegardées en JSON serveur)
+- Resource `oxmysql` (recommandé pour la persistance SQL)
 
 ---
 
 ## 🔧 Étapes d'Installation
 
 1. Extrayez le dossier `zombie_zones` dans votre répertoire `resources/` de votre serveur FiveM.
-2. Ouvrez le fichier `config.lua` et configurez :
+2. Importez le fichier `schema.sql` dans la base de données SQL de votre serveur.
+3. Si vous utilisez ESX ou `ox_inventory`, enregistrez les deux nouveaux items post-apocalyptiques :
+   ```sql
+   INSERT IGNORE INTO `items` (`name`, `label`, `weight`) VALUES
+   ('zombie_blood_bag', 'Poche de sang de zombie', 1),
+   ('zombie_drug', 'Seringue Virale / Drogue', 1);
+   ```
+4. Ouvrez le fichier `config.lua` et configurez :
    - `Config.Framework` : `'esx'`, `'qbcore'` ou `'standalone'`.
+   - `Config.DatabaseType` : `'oxmysql'` ou `'json'`.
    - `Config.AdminCommand` : Nom de la commande d'administration (par défaut : `zombieadmin`).
    - `Config.AdminGroups` : Groupes autorisés à ouvrir le menu (`superadmin`, `admin`, etc.).
-3. Ajoutez la ligne suivante dans votre fichier `server.cfg` :
+5. Ajoutez la ligne suivante dans votre fichier `server.cfg` :
    ```cfg
    ensure zombie_zones
    ```
-4. Redémarrez votre serveur FiveM.
+6. Redémarrez votre serveur FiveM.
 
 ---
 
-## 🎮 Utilisation de la Commande Admin
+## 🎮 Utilisation
 
-En jeu, si vous possédez les permissions administratives requises, tapez la commande :
-```text
-/zombieadmin
-```
-
-L'interface NUI s'ouvrira en français et vous permettra de :
-- Créer une nouvelle zone à votre position actuelle.
-- Définir le rayon, la santé des zombies, leur vitesse et leurs dégâts.
-- Placer des véhicules abandonnés à votre position et orientation.
-- Activer / Désactiver la Nuit d'Halloween globale ou par zone.
-- Supprimer ou désactiver des zones en temps réel sans redémarrage.
+- **Commande d'administration** : `/zombieadmin` (ouvre le panneau NUI en français).
+- **Infection & Transformation** : Les attaques de zombies contaminent les joueurs. Utilisez une `zombie_blood_bag` pour réduire la contamination.
+- **Drogue Virale** : Consommer une `zombie_drug` procure une accélération temporaire et un boost d'adrénaline.
+- **Fouille de Zombie** : Approchez-vous d'un zombie mort et appuyez sur **E** pour le fouiller.
