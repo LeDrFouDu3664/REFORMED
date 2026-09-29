@@ -116,6 +116,51 @@ local function SaveData()
     SaveResourceFile(GetCurrentResourceName(), dataFilePath, json.encode(payload, { indent = true }), -1)
 end
 
+-- Helper: Check if Player Has Crafting Ingredients
+local function HasCraftingIngredients(source)
+    if Config.Framework == 'esx' and ESX then
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if not xPlayer then return false end
+        for _, ing in ipairs(Config.Loot.Crafting.Recipe) do
+            local item = xPlayer.getInventoryItem(ing.name)
+            if not item or item.count < ing.count then
+                return false
+            end
+        end
+        return true
+    elseif Config.Framework == 'qbcore' and QBCore then
+        local Player = QBCore.Functions.GetPlayer(source)
+        if not Player then return false end
+        for _, ing in ipairs(Config.Loot.Crafting.Recipe) do
+            local item = Player.Functions.GetItemByName(ing.name)
+            if not item or item.amount < ing.count then
+                return false
+            end
+        end
+        return true
+    end
+    return true -- Standalone fallback
+end
+
+-- Helper: Remove Crafting Ingredients
+local function RemoveCraftingIngredients(source)
+    if Config.Framework == 'esx' and ESX then
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if xPlayer then
+            for _, ing in ipairs(Config.Loot.Crafting.Recipe) do
+                xPlayer.removeInventoryItem(ing.name, ing.count)
+            end
+        end
+    elseif Config.Framework == 'qbcore' and QBCore then
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then
+            for _, ing in ipairs(Config.Loot.Crafting.Recipe) do
+                Player.Functions.RemoveItem(ing.name, ing.count)
+            end
+        end
+    end
+end
+
 -- Helper: Add Item to Player Inventory
 local function GivePlayerItem(source, itemName, count)
     if Config.Framework == 'esx' and ESX then
@@ -222,6 +267,40 @@ RegisterCommand(Config.AdminCommand, function(source, args, rawCommand)
         })
     end
 end, false)
+
+-- Server Event: Request Crafting Zombie Drug
+RegisterNetEvent('zombie_zones:server:requestCraftingDrug', function()
+    local src = source
+
+    if HasCraftingIngredients(src) then
+        TriggerClientEvent('zombie_zones:client:startCraftingDrug', src)
+    else
+        TriggerClientEvent('chat:addMessage', src, {
+            color = {255, 50, 50},
+            args = {"[Craft]", Config.Language['crafting_missing']}
+        })
+    end
+end)
+
+-- Server Event: Finish Crafting Zombie Drug
+RegisterNetEvent('zombie_zones:server:finishCraftingDrug', function()
+    local src = source
+
+    if HasCraftingIngredients(src) then
+        RemoveCraftingIngredients(src)
+        GivePlayerItem(src, Config.Loot.Crafting.Result.name, Config.Loot.Crafting.Result.count)
+
+        TriggerClientEvent('chat:addMessage', src, {
+            color = {0, 255, 128},
+            args = {"[Craft]", Config.Language['crafting_success']}
+        })
+    else
+        TriggerClientEvent('chat:addMessage', src, {
+            color = {255, 50, 50},
+            args = {"[Craft]", Config.Language['crafting_missing']}
+        })
+    end
+end)
 
 -- Server Event: Loot Zombie
 RegisterNetEvent('zombie_zones:server:lootZombie', function(zombieCoords)

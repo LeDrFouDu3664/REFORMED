@@ -5,6 +5,7 @@ IsTransformedZombie = false
 local lastCoughTime = 0
 local lastDecayTime = 0
 local drugEffectEndTime = 0
+local isCrafting = false
 
 -- Helper: Load Animation Dictionary
 local function LoadAnimDict(dict)
@@ -67,6 +68,33 @@ RegisterNetEvent('zombie_zones:client:useZombieDrug', function()
         args = {"[Drogue Virale]", Config.Language['used_drug']}
     })
 end)
+
+-- Craft Zombie Drug Event Handler
+RegisterNetEvent('zombie_zones:client:startCraftingDrug', function()
+    if isCrafting then return end
+    isCrafting = true
+
+    local ped = PlayerPedId()
+    TriggerEvent('chat:addMessage', {
+        color = {255, 200, 0},
+        args = {"[Craft]", Config.Language['crafting_start']}
+    })
+
+    LoadAnimDict("mini@repair")
+    TaskPlayAnim(ped, "mini@repair", "fixing_a_ped", 8.0, -8.0, Config.Loot.Crafting.CraftTime or 5000, 1, 0, false, false, false)
+
+    Wait(Config.Loot.Crafting.CraftTime or 5000)
+    ClearPedTasks(ped)
+    isCrafting = false
+
+    TriggerServerEvent('zombie_zones:server:finishCraftingDrug')
+end)
+
+-- Register Crafting Command
+RegisterCommand('craftzombiedrug', function()
+    if not Config.Loot.Crafting.Enabled or IsTransformedZombie then return end
+    TriggerServerEvent('zombie_zones:server:requestCraftingDrug')
+end, false)
 
 -- Receive Infection Hit from Zombie Attack
 RegisterNetEvent('zombie_zones:client:addInfectionHit', function()

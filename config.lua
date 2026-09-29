@@ -40,7 +40,7 @@ Config.Zombies = {
     TetherDistanceMargin = 10.0 -- Margin allowed outside zone boundary before zombie is pulled back
 }
 
--- Zombie Loot & Post-Apocalyptic Items Configuration
+-- Zombie Loot & Crafting Configuration
 Config.Loot = {
     Enabled = true,
     LootDistance = 2.0,
@@ -58,6 +58,17 @@ Config.Loot = {
             speedBoost = 1.5, -- Speed multiplier boost
             duration = 30    -- Duration in seconds
         }
+    },
+    -- Recipe for Crafting Zombie Drug (Poche de sang + Weed + Pochon vide)
+    Crafting = {
+        Enabled = true,
+        CraftTime = 5000, -- 5 seconds crafting time
+        Recipe = {
+            { name = 'zombie_blood_bag', count = 1, label = 'Poche de sang de zombie' },
+            { name = 'weed', count = 1, label = 'Feuille de Weed' },
+            { name = 'pooch', count = 1, label = 'Pochon vide' }
+        },
+        Result = { name = 'zombie_drug', count = 1 }
     }
 }
 
@@ -195,5 +206,8 @@ Config.Language = {
     ['loot_success_drug'] = "Vous avez trouvé une Seringue Virale / Drogue !",
     ['loot_nothing'] = "Vous n'avez rien trouvé d'intéressant sur ce zombie.",
     ['used_blood_bag'] = "Vous avez injecté une poche de sang : votre niveau d'infection diminue.",
-    ['used_drug'] = "Vous avez consommé la drogue virale : vous ressentez une montée d'adrénaline !"
+    ['used_drug'] = "Vous avez consommé la drogue virale : vous ressentez une montée d'adrénaline !",
+    ['crafting_start'] = "Fabrication de la drogue virale en cours...",
+    ['crafting_success'] = "Fabrication réussie ! Vous avez créé une Seringue Virale / Drogue.",
+    ['crafting_missing'] = "Ingrédients manquants ! Il vous faut 1 Poche de sang de zombie, 1 Weed et 1 Pochon vide."
 }
