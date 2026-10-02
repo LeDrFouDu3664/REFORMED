@@ -10,7 +10,8 @@ shared_scripts {
 
 client_scripts {
     'client/speed_limiter.lua',
-    'client/time_sync.lua'
+    'client/time_sync.lua',
+    'client/dispatch.lua'
 }
 
 server_scripts {
