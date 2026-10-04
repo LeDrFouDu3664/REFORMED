@@ -1,39 +1,58 @@
 Citizen.CreateThread(function()
-    local iplsToRemove = {
-        -- ==========================================
-        -- Hôpitaux (Pillbox, Mt Zonah, Sandy Shores)
-        -- ==========================================
-        "rc12b_default",
-        "rc12b_hospitalinterior",
-        "rc12b_hospitalinterior_lod",
-        "rc12b_destroyed",
-        "coronertrash",
-        "Coroner_Int_On",
+    print("^2[INFO] Nettoyage des zones pour MLOs initialisé.^0")
 
-        -- ==========================================
-        -- Commissariats (Mission Row, Paleto, etc.)
-        -- ==========================================
-        "v_57_carmod",
+    for mloName, data in pairs(Config.CustomMLOs) do
 
-        -- ==========================================
-        -- Magasins (LTD, 24/7, Rob's Liquor)
-        -- ==========================================
-        "v_int_24",
-        "v_int_49",
+        -- 1. Désactiver les IPLs
+        if data.iplsToRemove then
+            for _, ipl in ipairs(data.iplsToRemove) do
+                RemoveIpl(ipl)
+            end
+        end
 
-        -- ==========================================
-        -- Autres bâtiments (Simeon, Vangelico, FIB)
-        -- ==========================================
-        "shr_int",
-        "post_hiest_unload",
-        "jewel2fake",
-        "bh1_16_refurb",
-        "FIBlobby"
-    }
+        -- 2. Désactiver les PNJ, Scénarios (travaux) et Véhicules
+        if data.clearArea and data.clearArea.coords and data.clearArea.radius then
+            local p = data.clearArea.coords
+            local r = data.clearArea.radius
 
-    for _, ipl in pairs(iplsToRemove) do
-        RemoveIpl(ipl)
+            -- Bloquer les scénarios (ouvriers, gens qui fument, etc.)
+            AddScenarioBlockingArea(p.x - r, p.y - r, p.z - r, p.x + r, p.y + r, p.z + r, false, true, true, true)
+
+            -- Bloquer la création des PNJ
+            SetPedNonCreationArea(p.x - r, p.y - r, p.z - r, p.x + r, p.y + r, p.z + r)
+
+            -- Optionnel: Bloquer la création des véhicules ambiants
+            SetAllVehicleGeneratorsActiveInArea(p.x - r, p.y - r, p.z - r, p.x + r, p.y + r, p.z + r, false, false)
+            RemoveVehiclesFromGeneratorsInArea(p.x - r, p.y - r, p.z - r, p.x + r, p.y + r, p.z + r)
+        end
+
+        -- 3. Désactiver les sons d'ambiance spécifiques (si connus)
+        if data.audioEmitters then
+            for _, emitterName in ipairs(data.audioEmitters) do
+                SetStaticEmitterEnabled(emitterName, false)
+            end
+        end
     end
+end)
 
-    print("^2[INFO] Les bâtiments (IPL) GTA V par défaut ont été désactivés pour faire place à vos MLOs (Hôpitaux, LTD, etc.)^0")
+-- Boucle continue pour supprimer les PNJ qui auraient pu spawner malgré tout (Optionnel mais efficace)
+Citizen.CreateThread(function()
+    while true do
+        Wait(1000)
+        local playerPed = PlayerPedId()
+        local playerCoords = GetEntityCoords(playerPed)
+
+        for mloName, data in pairs(Config.CustomMLOs) do
+            if data.clearArea and data.clearArea.coords and data.clearArea.radius then
+                local p = data.clearArea.coords
+                local r = data.clearArea.radius
+
+                -- Si le joueur est proche de la zone, nettoyer activement
+                if #(playerCoords - p) < (r + 50.0) then
+                    ClearAreaOfPeds(p.x, p.y, p.z, r, 1)
+                    -- ClearAreaOfVehicles(p.x, p.y, p.z, r, false, false, false, false, false) -- Optionnel
+                end
+            end
+        end
+    end
 end)
