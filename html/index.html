@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBCore Inventory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+</head>
+<body>
+    <div id="inventory-container" style="display: none;">
+        <!-- Left Panel: Main Inventory -->
+        <div class="panel left-panel" id="player-inventory">
+            <div class="inventory-header">
+                <div class="player-info">
+                    <h2><i class="fa-solid fa-user"></i> <span id="player-name">Player Name</span></h2>
+                    <div class="weight-bar-container">
+                        <div class="weight-bar" id="player-weight-bar"></div>
+                        <span class="weight-text"><span id="player-weight">0</span> / <span id="player-max-weight">120</span> KG</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inventory-controls">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="player-search" placeholder="Rechercher...">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Tout</button>
+                    <button class="filter-btn" data-filter="weapon"><i class="fa-solid fa-gun"></i></button>
+                    <button class="filter-btn" data-filter="clothing"><i class="fa-solid fa-shirt"></i></button>
+                    <button class="filter-btn" data-filter="consumable"><i class="fa-solid fa-burger"></i></button>
+                </div>
+            </div>
+
+            <div class="inventory-grid" id="player-inventory-grid">
+                <!-- Slots will be generated here -->
+            </div>
+        </div>
+
+        <!-- Center Panel: Character & Equipment -->
+        <div class="panel center-panel" id="character-equipment">
+            <div class="character-preview">
+                <!-- NUI will render character over this transparent area -->
+                <div class="equipment-slots left-equipment">
+                    <div class="equip-slot" data-type="hat" title="Chapeau"><i class="fa-solid fa-hat-cowboy"></i></div>
+                    <div class="equip-slot" data-type="mask" title="Masque"><i class="fa-solid fa-masks-theater"></i></div>
+                    <div class="equip-slot" data-type="glasses" title="Lunettes"><i class="fa-solid fa-glasses"></i></div>
+                    <div class="equip-slot" data-type="chain" title="Chaîne"><i class="fa-solid fa-link"></i></div>
+                    <div class="equip-slot" data-type="watch" title="Montre"><i class="fa-solid fa-stopwatch"></i></div>
+                    <div class="equip-slot" data-type="bracelet" title="Bracelet"><i class="fa-solid fa-ring"></i></div>
+                </div>
+
+                <div class="equipment-slots right-equipment">
+                    <div class="equip-slot" data-type="shirt" title="Haut"><i class="fa-solid fa-shirt"></i></div>
+                    <div class="equip-slot" data-type="tshirt" title="T-Shirt"><i class="fa-solid fa-tshirt"></i></div>
+                    <div class="equip-slot" data-type="vest" title="Gilet"><i class="fa-solid fa-vest"></i></div>
+                    <div class="equip-slot" data-type="bag" title="Sac"><i class="fa-solid fa-backpack"></i></div>
+                    <div class="equip-slot" data-type="pants" title="Pantalon"><i class="fa-solid fa-shoe-prints" style="transform: rotate(-90deg);"></i></div>
+                    <div class="equip-slot" data-type="shoes" title="Chaussures"><i class="fa-solid fa-shoe-prints"></i></div>
+                </div>
+            </div>
+
+            <div class="interaction-buttons">
+                <button id="btn-use"><i class="fa-solid fa-hand"></i> Utiliser</button>
+                <button id="btn-give"><i class="fa-solid fa-gift"></i> Donner</button>
+                <button id="btn-drop"><i class="fa-solid fa-trash"></i> Jeter</button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Secondary Inventory (Stash/Trunk/Drop) -->
+        <div class="panel right-panel" id="secondary-inventory">
+            <div class="inventory-header">
+                <div class="inventory-info">
+                    <h2><i class="fa-solid fa-box-open"></i> <span id="other-name">Coffre</span></h2>
+                    <div class="weight-bar-container">
+                        <div class="weight-bar" id="other-weight-bar"></div>
+                        <span class="weight-text"><span id="other-weight">0</span> / <span id="other-max-weight">500</span> KG</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inventory-controls">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="other-search" placeholder="Rechercher...">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Tout</button>
+                    <button class="filter-btn" data-filter="weapon"><i class="fa-solid fa-gun"></i></button>
+                    <button class="filter-btn" data-filter="clothing"><i class="fa-solid fa-shirt"></i></button>
+                    <button class="filter-btn" data-filter="consumable"><i class="fa-solid fa-burger"></i></button>
+                </div>
+            </div>
+
+            <div class="inventory-grid" id="other-inventory-grid">
+                <!-- Secondary slots will be generated here -->
+            </div>
+        </div>
+
+        <!-- Bottom Left: Hotbar -->
+        <div class="panel hotbar-panel" id="hotbar">
+            <div class="hotbar-container">
+                <div class="hotbar-slot" data-slot="1"><span class="slot-key">1</span></div>
+                <div class="hotbar-slot" data-slot="2"><span class="slot-key">2</span></div>
+                <div class="hotbar-slot" data-slot="3"><span class="slot-key">3</span></div>
+                <div class="hotbar-slot" data-slot="4"><span class="slot-key">4</span></div>
+                <div class="hotbar-slot" data-slot="5"><span class="slot-key">5</span></div>
+            </div>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>
