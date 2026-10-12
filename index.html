@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pause Menu Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for typography similar to the reference -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app" class="dashboard-container">
+
+        <!-- 1. EN-TÊTE ET STATUTS -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo-shield">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="header-titles">
+                    <h1 id="main-title">MIKE WAZOVSKI</h1>
+                    <h2 id="sub-title">PAUSE MENU • ROLEPLAY SERVER</h2>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="status-badge" id="online-players">
+                    <span id="online-text">JOUEURS EN LIGNE:</span>
+                    <span class="status-value"><span id="online-current">516</span> / <span id="online-max">1024</span></span>
+                    <i id="online-icon" class="fa-solid fa-users"></i>
+                </div>
+
+                <div class="status-badge" id="last-connection">
+                    <span id="connection-text">DERNIÈRE CONNEXION:</span>
+                    <span class="status-value" id="connection-date">12.10.2026, 08:21</span>
+                    <i id="connection-icon" class="fa-solid fa-wifi"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. INFOS DU JOUEUR -->
+        <section class="player-info" id="player-info-container">
+            <!-- Badges will be injected here by JS -->
+        </section>
+
+        <!-- 3. ACTIONS RAPIDES & RACCOURCIS -->
+        <section class="quick-actions-section">
+            <div class="quick-actions-header">
+                <div class="actions-title-group">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <h3>ACTIONS RAPIDES & RACCOURCIS</h3>
+                </div>
+                <div class="actions-subtitle" id="quick-actions-subtitle">
+                    Boutons configurables pour les futures fonctionnalités
+                </div>
+            </div>
+            <div class="quick-actions-grid" id="quick-actions-container">
+                <!-- Buttons will be injected here by JS -->
+            </div>
+        </section>
+
+        <!-- 4. BLOCS ET GRANDS MODULES -->
+        <section class="main-modules">
+
+            <!-- Colonne Gauche -->
+            <div class="module-col module-left" id="module-left-container">
+                <!-- Left modules injected by JS -->
+            </div>
+
+            <!-- Colonne Milieu -->
+            <div class="module-col module-middle">
+                <div class="discord-card">
+                    <div class="discord-logo-container">
+                        <i class="fa-brands fa-discord discord-large-icon"></i>
+                    </div>
+                    <h3 id="discord-title">COMMUNAUTÉ DISCORD</h3>
+                    <p id="discord-desc">Rejoignez plus de 1 000 joueurs actifs, découvrez les patch notes et échangez avec le staff.</p>
+                    <div class="discord-badge" id="discord-badge">+1000 MEMBRES EN LIGNE</div>
+                    <a href="#" class="discord-btn" id="discord-btn">
+                        <span id="discord-btn-text">REJOINDRE LE DISCORD</span>
+                        <i id="discord-btn-icon" class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Colonne Droite -->
+            <div class="module-col module-right">
+                <div class="announcements-card">
+                    <h3 class="announcements-title">
+                        <i id="announcements-icon" class="fa-solid fa-bullhorn"></i>
+                        <span id="announcements-title-text">ANNONCES DU PROJET</span>
+                    </h3>
+
+                    <div class="announcements-list" id="announcements-list">
+                        <!-- Announcements injected by JS -->
+                    </div>
+
+                    <div class="announcements-footer">
+                        <span id="announcements-ticker">Bannière Battle Pass retirée avec succès</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
