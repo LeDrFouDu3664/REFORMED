@@ -1,0 +1,203 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #1a1a2e;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 800px;
+    height: 600px;
+    background-color: #16213e;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.screen.active {
+    display: flex;
+}
+
+h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #e94560;
+}
+
+/* Menu */
+#player-setup {
+    background: #0f3460;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    margin-bottom: 30px;
+}
+
+.player-config {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+
+.p-color { font-weight: bold; }
+.p1-color { color: #ff4757; }
+.p2-color { color: #1e90ff; }
+.p3-color { color: #2ed573; }
+.p4-color { color: #ffa502; }
+
+button {
+    background-color: #e94560;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #ff5270;
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* Board */
+#hud {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+#player-scores {
+    display: flex;
+    gap: 15px;
+}
+
+.score-badge {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    background: #222;
+}
+
+#board-container {
+    position: relative;
+    flex-grow: 1;
+    width: 100%;
+    background: #0f3460;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 20px;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 10px;
+    height: 100%;
+}
+
+.tile {
+    background: #5352ed;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 4px 0 #3742fa;
+}
+.tile.start { background: #2ed573; box-shadow: 0 4px 0 #21a95b; }
+.tile.end { background: #ff4757; box-shadow: 0 4px 0 #c0392b; }
+.tile.bad { background: #eccc68; box-shadow: 0 4px 0 #ffa502; }
+
+#tokens-layer {
+    position: absolute;
+    top: 20px; left: 20px; right: 20px; bottom: 20px;
+    pointer-events: none; /* Let clicks pass through if needed */
+}
+
+.token {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    position: absolute;
+    border: 2px solid white;
+    transition: all 0.5s ease;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.5);
+    z-index: 10;
+    transform: translate(-50%, -50%);
+}
+
+#action-panel {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 60px;
+}
+
+#dice-result {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #eccc68;
+}
+
+/* Minigames */
+#minigame-screen {
+    justify-content: center;
+    align-items: center;
+    background: #2f3542;
+}
+
+.minigame-area {
+    width: 100%;
+    height: 80%;
+    position: relative;
+    background: #1e272e;
+    border-radius: 10px;
+    border: 2px solid #57606f;
+    overflow: hidden;
+}
+
+/* Reflex minigame specifics */
+#reflex-target {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: red;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+}
