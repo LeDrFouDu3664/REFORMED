@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Party - Le Jeu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main Menu -->
+        <div id="main-menu" class="screen active">
+            <h1>PC Party</h1>
+            <h2>Configuration de la partie</h2>
+            <div id="player-setup">
+                <div class="player-config" id="config-p1">
+                    <span class="p-color p1-color">Joueur 1 (Rouge)</span>
+                    <select id="type-p1">
+                        <option value="human">Humain</option>
+                        <option value="ai">Ordinateur</option>
+                    </select>
+                </div>
+                <div class="player-config" id="config-p2">
+                    <span class="p-color p2-color">Joueur 2 (Bleu)</span>
+                    <select id="type-p2">
+                        <option value="human">Humain</option>
+                        <option value="ai">Ordinateur</option>
+                    </select>
+                </div>
+                <div class="player-config" id="config-p3">
+                    <span class="p-color p3-color">Joueur 3 (Vert)</span>
+                    <select id="type-p3">
+                        <option value="human">Humain</option>
+                        <option value="ai" selected>Ordinateur</option>
+                        <option value="none">Désactivé</option>
+                    </select>
+                </div>
+                <div class="player-config" id="config-p4">
+                    <span class="p-color p4-color">Joueur 4 (Jaune)</span>
+                    <select id="type-p4">
+                        <option value="human">Humain</option>
+                        <option value="ai" selected>Ordinateur</option>
+                        <option value="none">Désactivé</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btn-start-game">Commencer la partie</button>
+        </div>
+
+        <!-- Board Screen -->
+        <div id="board-screen" class="screen">
+            <div id="hud">
+                <div id="player-scores"></div>
+                <div id="turn-info">Tour de <span id="current-player-name"></span></div>
+            </div>
+
+            <div id="board-container">
+                <div id="board">
+                    <!-- Tiles will be generated here -->
+                </div>
+                <!-- Player tokens will be placed here relative to board -->
+                <div id="tokens-layer"></div>
+            </div>
+
+            <div id="action-panel">
+                <button id="btn-roll-dice" disabled>Lancer le dé</button>
+                <div id="dice-result"></div>
+            </div>
+        </div>
+
+        <!-- Minigame Intro Screen -->
+        <div id="minigame-intro-screen" class="screen">
+            <h1 id="minigame-title">Titre du Mini-jeu</h1>
+            <p id="minigame-desc">Description et règles du jeu...</p>
+            <button id="btn-start-minigame">Prêt !</button>
+        </div>
+
+        <!-- Minigame Screen (Dynamic container) -->
+        <div id="minigame-screen" class="screen">
+            <!-- Specific minigame elements will be injected here -->
+        </div>
+
+        <!-- Minigame Results Screen -->
+        <div id="minigame-results-screen" class="screen">
+            <h1>Résultats du mini-jeu</h1>
+            <div id="minigame-standings"></div>
+            <button id="btn-return-board">Retour au plateau</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen">
+            <h1>Partie Terminée !</h1>
+            <h2>Vainqueur : <span id="winner-name"></span></h2>
+            <div id="final-standings"></div>
+            <button id="btn-restart">Retour au menu</button>
+        </div>
+    </div>
+
+    <script src="minigames.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
