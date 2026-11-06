@@ -13,6 +13,17 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://horizonrp.fr",
+    "http://horizonrp.fr",
+    "https://*.horizonrp.fr",
+    "http://*.horizonrp.fr",
+    "https://horizon-rp.fr",
+    "http://horizon-rp.fr",
+    "http://127.0.0.1",
+    "http://localhost",
+]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
