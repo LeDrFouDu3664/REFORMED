@@ -1,0 +1,39 @@
+{% extends 'accueil/base.html' %}
+
+{% block title %}Règlement - Horizon RP{% endblock %}
+
+{% block content %}
+
+<section class="page-hero">
+    <div class="container">
+        <span class="section-tag">HORIZON RP</span>
+        <h1>RÈGLEMENT</h1>
+        <p>Les règles à respecter pour garantir une expérience agréable à tous.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="rules-container">
+            {% if rules %}
+                {% for rule in rules %}
+                <article class="rule-card">
+                    <h2>{{ rule.number }}. {{ rule.title }}</h2>
+                    <p>{{ rule.content }}</p>
+                </article>
+                {% endfor %}
+            {% else %}
+                <article class="rule-card">
+                    <h2>01. Respect et comportement</h2>
+                    <p>Respectez les autres joueurs et les membres du staff. Les insultes, discriminations et comportements toxiques sont interdits.</p>
+                </article>
+            {% endif %}
+        </div>
+
+        <p class="rules-notice">
+            Ce règlement est administrable directement via l'espace d'administration Django.
+        </p>
+    </div>
+</section>
+
+{% endblock %}

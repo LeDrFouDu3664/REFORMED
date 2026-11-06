@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizon RP - Serveur GTA V Roleplay Immersif</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            dark: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f8fafc;
+        }
+        .hero-bg {
+            background: linear-gradient(rgba(11, 15, 25, 0.7), rgba(11, 15, 25, 0.85)), url('https://images.unsplash.com/photo-1514565131-fce0801e5785?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .neon-glow {
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.35);
+        }
+        .neon-text {
+            text-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-red-500 selection:text-white">
+
+    <!-- Notification Toast Modal (Custom alert alternative) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Auth Modal (Authentic Cfx.re OAuth / Tebex Style) -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md hidden transition-all duration-300">
+        <div class="bg-[#11141d] border border-white/10 w-full max-w-md p-8 rounded-2xl shadow-2xl relative transform scale-95 transition-transform duration-300 text-gray-200" id="auth-modal-content">
+            <button onclick="toggleAuthModal(false)" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div class="text-center mb-6">
+                <!-- Cfx.re Logo icon simulation -->
+                <div class="flex items-center justify-center space-x-2 mb-3">
+                    <span class="text-2xl font-black text-white tracking-wider flex items-center"><i class="fa-solid fa-road mr-2 text-red-500"></i>Cfx.re</span>
+                </div>
+                <h3 class="text-xl font-bold tracking-tight text-white">Logging in to Horizon RP at:</h3>
+                <div class="text-red-400 font-mono text-sm mt-1 bg-slate-900/80 py-1.5 px-3 rounded-lg inline-block border border-red-500/30">
+                    https://horizon-rp.fr
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 p-4 rounded-xl border border-white/5 space-y-2 mb-6 text-sm text-gray-300">
+                <p class="font-semibold text-white mb-2">Horizon RP wants access to:</p>
+                <div class="flex items-center space-x-2 text-xs text-gray-400">
+                    <i class="fa-solid fa-circle text-[6px] text-red-500"></i>
+                    <span>your email address</span>
+                </div>
+                <div class="flex items-center space-x-2 text-xs text-gray-400">
+                    <i class="fa-solid fa-circle text-[6px] text-red-500"></i>
+                    <span>your username and profile details</span>
+                </div>
+                <div class="pt-3 border-t border-white/5 text-xs text-gray-400 flex items-center justify-between">
+                    <span>You're signed in as <strong id="auth-current-user" class="text-white">leDrFou</strong>.</span>
+                    <a href="#" onclick="switchAccount()" class="text-red-400 hover:underline">Not you?</a>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="simulateCfxOAuthSuccess()" class="w-full bg-transparent hover:bg-red-600/10 text-white border-2 border-red-600 font-bold py-3 rounded-xl transition-all shadow-lg shadow-red-600/20 flex items-center justify-center space-x-2 uppercase tracking-wider text-sm">
+                    <span>CONTINUE</span>
+                </button>
+                <button onclick="toggleAuthModal(false)" class="w-full text-center text-xs text-gray-500 hover:text-gray-300 transition-colors py-2">
+                    Cancel
+                </button>
+            </div>
+
+            <div class="mt-6 text-center text-[10px] text-gray-600 font-mono">
+                Powered by Cfx.re / CitizenFX OAuth Service
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo & Brand -->
+            <a href="#" onclick="switchTab('accueil')" class="flex items-center space-x-3 group">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-rose-900 p-0.5 shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform">
+                    <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center text-red-500 font-black text-xl">
+                        H
+                    </div>
+                </div>
+                <div>
+                    <span class="text-xl font-black tracking-wider uppercase text-white">Horizon <span class="text-red-500">RP</span></span>
+                    <span class="block text-[10px] text-gray-400 font-medium tracking-widest uppercase">GTA V Roleplay</span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-1 lg:space-x-2 bg-slate-900/60 p-1.5 rounded-2xl border border-white/5">
+                <button onclick="switchTab('accueil')" id="nav-accueil" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all text-red-500 bg-red-500/10">
+                    <i class="fa-solid fa-house mr-2"></i>Accueil
+                </button>
+                <button onclick="switchTab('reglement')" id="nav-reglement" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all text-gray-300 hover:text-white hover:bg-white/5">
+                    <i class="fa-solid fa-book-open mr-2"></i>Règlement
+                </button>
+                <button onclick="switchTab('boutique')" id="nav-boutique" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all text-gray-300 hover:text-white hover:bg-white/5">
+                    <i class="fa-solid fa-store mr-2"></i>Boutique
+                </button>
+                <button onclick="switchTab('streamers')" id="nav-streamers" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all text-gray-300 hover:text-white hover:bg-white/5">
+                    <i class="fa-solid fa-video mr-2"></i>Streamers
+                </button>
+                <button onclick="switchTab('vote')" id="nav-vote" class="nav-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all text-gray-300 hover:text-white hover:bg-white/5">
+                    <i class="fa-solid fa-square-poll-vertical mr-2"></i>Vote
+                </button>
+            </nav>
+
+            <!-- Right Actions (Server Status + Auth) -->
+            <div class="flex items-center space-x-4">
+                <!-- Players Online Badge -->
+                <div class="hidden sm:flex items-center space-x-2.5 bg-slate-900/80 px-3.5 py-2 rounded-xl border border-white/10 text-xs font-medium">
+                    <span class="relative flex h-2.5 w-2.5">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-gray-300"><strong id="player-count" class="text-white">94</strong> / 128 Joueurs</span>
+                </div>
+
+                <!-- Auth Button / User Profile -->
+                <div id="auth-container">
+                    <button onclick="toggleAuthModal(true)" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-red-600/30 flex items-center space-x-2">
+                        <i class="fa-solid fa-user-lock"></i>
+                        <span class="hidden sm:inline">Connexion Cfx</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden text-gray-300 hover:text-white p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="md:hidden hidden glass-panel border-t border-white/10 px-4 py-4 space-y-2">
+            <button onclick="switchTab('accueil'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500/10 flex items-center space-x-3">
+                <i class="fa-solid fa-house text-red-500"></i><span>Accueil</span>
+            </button>
+            <button onclick="switchTab('reglement'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-300 hover:bg-white/5 flex items-center space-x-3">
+                <i class="fa-solid fa-book-open text-red-500"></i><span>Règlement</span>
+            </button>
+            <button onclick="switchTab('boutique'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-300 hover:bg-white/5 flex items-center space-x-3">
+                <i class="fa-solid fa-store text-red-500"></i><span>Boutique</span>
+            </button>
+            <button onclick="switchTab('streamers'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-300 hover:bg-white/5 flex items-center space-x-3">
+                <i class="fa-solid fa-video text-red-500"></i><span>Streamers</span>
+            </button>
+            <button onclick="switchTab('vote'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-300 hover:bg-white/5 flex items-center space-x-3">
+                <i class="fa-solid fa-square-poll-vertical text-red-500"></i><span>Vote</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Sections Container -->
+    <main class="flex-grow">
+
+        <!-- SECTION 1: ACCUEIL -->
+        <section id="section-accueil" class="tab-content min-h-[calc(100vh-80px)] hero-bg flex flex-col items-center justify-center text-center px-4 py-16 relative overflow-hidden">
+            <!-- Decorative background glow elements -->
+            <div class="absolute w-96 h-96 bg-red-600/10 rounded-full blur-3xl -top-20 -left-20 pointer-events-none"></div>
+            <div class="absolute w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -bottom-20 -right-20 pointer-events-none"></div>
+
+            <div class="max-w-4xl mx-auto z-10 space-y-6">
+                <!-- Badge notice -->
+                <div class="inline-flex items-center space-x-2 bg-red-600/10 border border-red-500/30 px-4 py-1.5 rounded-full text-red-400 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+                    <i class="fa-solid fa-fire text-red-500 animate-pulse"></i>
+                    <span>Serveur Whitelist Ouvert • Optimisé & Inédit</span>
+                </div>
+
+                <!-- Main Title -->
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight uppercase leading-none neon-text">
+                    Bienvenue sur <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-orange-500">Horizon RP</span>
+                </h1>
+
+                <p class="text-gray-300 text-base sm:text-xl max-w-2xl mx-auto font-normal leading-relaxed">
+                    Plongez dans une expérience roleplay immersive et ultra-réaliste. Économie équilibrée, scripts exclusifs, staff à l'écoute et liberté totale d'action.
+                </p>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+                    <button onclick="connectToServer()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded-2xl transition-all shadow-xl shadow-red-600/40 hover:scale-105 flex items-center space-x-3 text-base">
+                        <i class="fa-solid fa-gamepad text-xl"></i>
+                        <span>Rejoindre le Serveur</span>
+                    </button>
+                    <a href="https://discord.gg" target="_blank" class="glass-panel hover:bg-white/10 text-white font-bold px-8 py-4 rounded-2xl transition-all border border-white/15 hover:scale-105 flex items-center space-x-3 text-base">
+                        <i class="fa-brands fa-discord text-xl text-indigo-400"></i>
+                        <span>Rejoindre le Discord</span>
+                    </a>
+                </div>
+
+                <!-- Stats Footer Banner -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-12 max-w-3xl mx-auto">
+                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-white">99.9%</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wider mt-1">Stabilité</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-red-500">128 Slots</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wider mt-1">Haute Performance</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-white">24/7</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wider mt-1">Support Staff</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400">Exclusif</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wider mt-1">Scripts Inédits</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: REGLEMENT -->
+        <section id="section-reglement" class="tab-content hidden max-w-5xl mx-auto px-4 py-16 space-y-8">
+            <div class="text-center space-y-3">
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight uppercase">Règlement du Serveur</h2>
+                <p class="text-gray-400 max-w-xl mx-auto text-sm sm:text-base">Le respect des règles garantit une expérience de jeu de qualité pour l'ensemble de la communauté Horizon RP.</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Accordion Item 1 -->
+                <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden transition-all">
+                    <button onclick="toggleAccordion('acc-1')" class="w-full px-6 py-5 text-left font-bold text-lg flex items-center justify-between hover:bg-white/5">
+                        <span class="flex items-center space-x-3"><span class="text-red-500">01.</span><span>Règles Générales & Comportement</span></span>
+                        <i id="icon-acc-1" class="fa-solid fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="acc-1" class="hidden px-6 pb-6 text-gray-300 text-sm leading-relaxed space-y-3 border-t border-white/5 pt-4">
+                        <p>• Le fair-play est de rigueur en toutes circonstances. Le manque de respect, le sexisme, le racisme et toute forme de discrimination sont passibles d'un bannissement définitif immédiat.</p>
+                        <p>• Le "Power Gaming" (forcer des actions impossibles ou irréalistes) et le "Meta Gaming" (utiliser des informations obtenues hors jeu) sont strictement interdits.</p>
+                        <p>• Votre personnage doit posséder un nom RP cohérent et un background respectueux de l'univers du jeu.</p>
+                    </div>
+                </div>
+
+                <!-- Accordion Item 2 -->
+                <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden transition-all">
+                    <button onclick="toggleAccordion('acc-2')" class="w-full px-6 py-5 text-left font-bold text-lg flex items-center justify-between hover:bg-white/5">
+                        <span class="flex items-center space-x-3"><span class="text-red-500">02.</span><span>Interactions & Scènes Illégales</span></span>
+                        <i id="icon-acc-2" class="fa-solid fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="acc-2" class="hidden px-6 pb-6 text-gray-300 text-sm leading-relaxed space-y-3 border-t border-white/5 pt-4">
+                        <p>• Toute action illégale (braquage, prise d'otage, trafic) nécessite un motif RP valable et un minimum de membres des forces de l'ordre connectés.</p>
+                        <p>• Le "Freekill" (tuer sans sommation ni interaction RP préalable) est strictement sanctionné.</p>
+                        <p>• Les zones safes (hôpitaux, commissariats, Pôle Emploi) interdisent toute agression ou scène criminelle.</p>
+                    </div>
+                </div>
+
+                <!-- Accordion Item 3 -->
+                <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden transition-all">
+                    <button onclick="toggleAccordion('acc-3')" class="w-full px-6 py-5 text-left font-bold text-lg flex items-center justify-between hover:bg-white/5">
+                        <span class="flex items-center space-x-3"><span class="text-red-500">03.</span><span>Conduite & Véhicules</span></span>
+                        <i id="icon-acc-3" class="fa-solid fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="acc-3" class="hidden px-6 pb-6 text-gray-300 text-sm leading-relaxed space-y-3 border-t border-white/5 pt-4">
+                        <p>• Le "Drive-By" volontaire sans sommation ou écraser des piétons sans raison valable (Car Kill) est interdit.</p>
+                        <p>• Respectez un minimum le code de la route en ville lors de vos déplacements quotidiens.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: BOUTIQUE -->
+        <section id="section-boutique" class="tab-content hidden max-w-7xl mx-auto px-4 py-16 space-y-10">
+            <div class="text-center space-y-3">
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight uppercase">Boutique VIP & Packs</h2>
+                <p class="text-gray-400 max-w-xl mx-auto text-sm sm:text-base">Soutenez le développement d'Horizon RP et débloquez des avantages exclusifs en jeu.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Package 1: Silver -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 flex flex-col justify-between relative overflow-hidden group hover:border-red-500/50 transition-all">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-colors"></div>
+                    <div>
+                        <div class="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">Grade Starter</div>
+                        <h3 class="text-2xl font-black text-white">VIP Silver</h3>
+                        <div class="my-6">
+                            <span class="text-4xl font-extrabold text-red-500">9.99€</span>
+                            <span class="text-gray-400 text-sm"> / mois</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-300 mb-8">
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>Priorité de file d'attente (Queue VIP)</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>+50,000$ en banque au spawn</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>Rôle exclusif sur Discord</li>
+                            <li class="flex items-center text-gray-500"><i class="fa-solid fa-xmark text-red-500 mr-3"></i>Véhicule VIP exclusif</li>
+                        </ul>
+                    </div>
+                    <button onclick="openCheckout('VIP Silver', '9.99€')" class="w-full bg-slate-800 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-all shadow-lg">
+                        Sélectionner
+                    </button>
+                </div>
+
+                <!-- Package 2: Gold (Featured) -->
+                <div class="glass-panel p-8 rounded-3xl border-2 border-red-500 flex flex-col justify-between relative overflow-hidden shadow-xl shadow-red-600/10 transform md:-translate-y-2">
+                    <div class="absolute top-4 right-4 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">Populaire</div>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
+                    <div>
+                        <div class="text-sm font-semibold uppercase tracking-wider text-red-400 mb-2">Recommandé</div>
+                        <h3 class="text-2xl font-black text-white">VIP Gold</h3>
+                        <div class="my-6">
+                            <span class="text-4xl font-extrabold text-red-500">19.99€</span>
+                            <span class="text-gray-400 text-sm"> / mois</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-300 mb-8">
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>Haute Priorité file d'attente</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>+150,000$ en banque au spawn</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>Véhicule import VIP offert par mois</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>Garage personnel supplémentaire</li>
+                        </ul>
+                    </div>
+                    <button onclick="openCheckout('VIP Gold', '19.99€')" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-red-600/30">
+                        Sélectionner
+                    </button>
+                </div>
+
+                <!-- Package 3: Platinum -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 flex flex-col justify-between relative overflow-hidden group hover:border-red-500/50 transition-all">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-colors"></div>
+                    <div>
+                        <div class="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-2">Expérience Ultime</div>
+                        <h3 class="text-2xl font-black text-white">VIP Platinum</h3>
+                        <div class="my-6">
+                            <span class="text-4xl font-extrabold text-red-500">39.99€</span>
+                            <span class="text-gray-400 text-sm"> / mois</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-300 mb-8">
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>Priorité maximale absolue (VIP+)</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>+400,000$ en banque au spawn</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>2 Véhicules import VIP sur mesure</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-3"></i>Plaque d'immatriculation personnalisée</li>
+                        </ul>
+                    </div>
+                    <button onclick="openCheckout('VIP Platinum', '39.99€')" class="w-full bg-slate-800 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-all shadow-lg">
+                        Sélectionner
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: STREAMERS -->
+        <section id="section-streamers" class="tab-content hidden max-w-7xl mx-auto px-4 py-16 space-y-10">
+            <div class="text-center space-y-3">
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight uppercase">Créateurs & Streamers</h2>
+                <p class="text-gray-400 max-w-xl mx-auto text-sm sm:text-base">Retrouvez nos créateurs de contenu partenaires en live sur Twitch ou en vidéo sur YouTube.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Streamer Card 1 -->
+                <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden group hover:border-red-500/50 transition-all">
+                    <div class="relative h-48 bg-slate-800">
+                        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop" alt="Streamer Banner" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70">
+                        <div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center space-x-1.5 shadow-lg">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                            <span>En Live</span>
+                        </div>
+                        <div class="absolute top-3 right-3 bg-purple-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-semibold">
+                            <i class="fa-brands fa-twitch mr-1"></i>Twitch
+                        </div>
+                    </div>
+                    <div class="p-6 relative">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-900 border-2 border-red-500 absolute -top-7 left-6 overflow-hidden shadow-lg">
+                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop" alt="Avatar" class="w-full h-full object-cover">
+                        </div>
+                        <div class="pt-4">
+                            <h3 class="font-bold text-lg text-white">AlexRP_</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">Commissaire Principal LSPD • 1.4k spectateurs</p>
+                            <p class="text-sm text-gray-300 mt-3 line-clamp-2">Grosse intervention en cours au centre-ville, suivez l'enquête en direct !</p>
+                            <a href="https://twitch.tv" target="_blank" class="mt-5 block w-full bg-purple-600 hover:bg-purple-500 text-center text-white text-sm font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-purple-600/30">
+                                Regarder le Live
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Streamer Card 2 -->
+                <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden group hover:border-red-500/50 transition-all">
+                    <div class="relative h-48 bg-slate-800">
+                        <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop" alt="Streamer Banner" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70">
+                        <div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center space-x-1.5 shadow-lg">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                            <span>En Live</span>
+                        </div>
+                        <div class="absolute top-3 right-3 bg-purple-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-semibold">
+                            <i class="fa-brands fa-twitch mr-1"></i>Twitch
+                        </div>
+                    </div>
+                    <div class="p-6 relative">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-900 border-2 border-red-500 absolute -top-7 left-6 overflow-hidden shadow-lg">
+                            <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=150&auto=format&fit=crop" alt="Avatar" class="w-full h-full object-cover">
+                        </div>
+                        <div class="pt-4">
+                            <h3 class="font-bold text-lg text-white">SarahBmx</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">Mécano Chef & Custom • 850 spectateurs</p>
+                            <p class="text-sm text-gray-300 mt-3 line-clamp-2">Montage de moteurs tunés et test de vitesse sur l'autoroute du nord.</p>
+                            <a href="https://twitch.tv" target="_blank" class="mt-5 block w-full bg-purple-600 hover:bg-purple-500 text-center text-white text-sm font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-purple-600/30">
+                                Regarder le Live
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Streamer Card 3 -->
+                <div class="glass-panel rounded-2xl border border-white/10 overflow-hidden group hover:border-red-500/50 transition-all">
+                    <div class="relative h-48 bg-slate-800">
+                        <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop" alt="Streamer Banner" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70">
+                        <div class="absolute top-3 left-3 bg-slate-700/80 backdrop-blur-md text-gray-300 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center space-x-1.5">
+                            <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                            <span>Hors-ligne</span>
+                        </div>
+                        <div class="absolute top-3 right-3 bg-red-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-semibold">
+                            <i class="fa-brands fa-youtube mr-1"></i>YouTube
+                        </div>
+                    </div>
+                    <div class="p-6 relative">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-900 border-2 border-red-500 absolute -top-7 left-6 overflow-hidden shadow-lg">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop" alt="Avatar" class="w-full h-full object-cover">
+                        </div>
+                        <div class="pt-4">
+                            <h3 class="font-bold text-lg text-white">NeoGaming</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">Vidéaste RP • Nouvelle vidéo dispo</p>
+                            <p class="text-sm text-gray-300 mt-3 line-clamp-2">"J'ai créé le plus gros cartel de drogue sur Horizon RP (Bêtisier & Best-of)"</p>
+                            <a href="https://youtube.com" target="_blank" class="mt-5 block w-full bg-red-600 hover:bg-red-500 text-center text-white text-sm font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-red-600/30">
+                                Voir la Vidéo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: VOTE -->
+        <section id="section-vote" class="tab-content hidden max-w-5xl mx-auto px-4 py-16 space-y-8">
+            <div class="text-center space-y-3">
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight uppercase">Voter pour le serveur</h2>
+                <p class="text-gray-400 max-w-xl mx-auto text-sm sm:text-base">Aidez Horizon RP à grandir en votant chaque jour et gagnez des récompenses automatiques en jeu !</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Vote Platform 1 -->
+                <div class="glass-panel p-6 rounded-2xl border border-white/10 flex items-center justify-between">
+                    <div class="space-y-1">
+                        <div class="text-xs font-bold text-red-500 uppercase tracking-widest">Plateforme #1</div>
+                        <h3 class="text-xl font-bold text-white">Top Serveurs GTA</h3>
+                        <p class="text-xs text-gray-400">Récompense : +5,000$ et 1x Coffre Mystère</p>
+                    </div>
+                    <button onclick="handleVote('Top Serveurs GTA')" class="bg-red-600 hover:bg-red-500 text-white text-sm font-semibold px-5 py-3 rounded-xl transition-all shadow-lg shadow-red-600/30 flex items-center space-x-2">
+                        <span>Voter</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Vote Platform 2 -->
+                <div class="glass-panel p-6 rounded-2xl border border-white/10 flex items-center justify-between">
+                    <div class="space-y-1">
+                        <div class="text-xs font-bold text-red-500 uppercase tracking-widest">Plateforme #2</div>
+                        <h3 class="text-xl font-bold text-white">GTA Roleplay List</h3>
+                        <p class="text-xs text-gray-400">Récompense : +5,000$ en banque</p>
+                    </div>
+                    <button onclick="handleVote('GTA Roleplay List')" class="bg-red-600 hover:bg-red-500 text-white text-sm font-semibold px-5 py-3 rounded-xl transition-all shadow-lg shadow-red-600/30 flex items-center space-x-2">
+                        <span>Voter</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-white/10 py-8 px-4 text-center text-xs text-gray-500 space-y-4">
+        <div class="flex justify-center space-x-6 text-lg text-gray-400">
+            <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-twitter"></i></a>
+            <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-facebook"></i></a>
+            <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-youtube"></i></a>
+            <a href="#" class="hover:text-red-500 transition-colors"><i class="fa-brands fa-discord"></i></a>
+        </div>
+        <p>&copy; 2026 Horizon RP. Tous droits réservés. Non affilié à Rockstar Games ni à Take-Two Interactive.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Tab Navigation System
+        function switchTab(tabId) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.add('hidden'));
+
+            // Show target tab
+            const target = document.getElementById('section-' + tabId);
+            if (target) {
+                target.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // Update nav button active states
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.remove('text-red-500', 'bg-red-500/10');
+                btn.classList.add('text-gray-300', 'hover:text-white', 'hover:bg-white/5');
+            });
+
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-300', 'hover:text-white', 'hover:bg-white/5');
+                activeBtn.classList.add('text-red-500', 'bg-red-500/10');
+            }
+        }
+
+        // Accordion Toggle for Regulations
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // Auth Modal Toggle
+        function toggleAuthModal(show) {
+            const modal = document.getElementById('auth-modal');
+            const content = document.getElementById('auth-modal-content');
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => content.classList.remove('scale-95'), 10);
+            } else {
+                content.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 200);
+            }
+        }
+
+        function switchAccount() {
+            let newUser = prompt("Entrez votre pseudo Cfx.re :", "leDrFou");
+            if (newUser) {
+                document.getElementById('auth-current-user').innerText = newUser;
+                showNotification(`Compte basculé sur ${newUser}`);
+            }
+        }
+
+        // OAuth Cfx.re Success Simulation
+        function simulateCfxOAuthSuccess() {
+            const username = document.getElementById('auth-current-user').innerText || 'leDrFou';
+            toggleAuthModal(false);
+
+            // Update Auth Button State in Header
+            const authContainer = document.getElementById('auth-container');
+            authContainer.innerHTML = `
+                <div class="flex items-center space-x-3 bg-slate-900/90 border border-red-500/30 px-3.5 py-1.5 rounded-xl">
+                    <div class="w-8 h-8 rounded-lg bg-red-600/20 text-red-500 font-bold flex items-center justify-center text-xs">
+                        ${username.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="hidden sm:block text-left">
+                        <div class="text-xs font-bold text-white">${username}</div>
+                        <div class="text-[10px] text-emerald-400 flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>Cfx.re Connecté</div>
+                    </div>
+                    <button onclick="logoutCfx()" title="Se déconnecter" class="text-gray-400 hover:text-red-500 text-xs ml-2"><i class="fa-solid fa-power-off"></i></button>
+                </div>
+            `;
+            showNotification(`Authentification Cfx.re réussie : Bienvenue ${username} !`);
+        }
+
+        function logoutCfx() {
+            const authContainer = document.getElementById('auth-container');
+            authContainer.innerHTML = `
+                <button onclick="toggleAuthModal(true)" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-red-600/30 flex items-center space-x-2">
+                    <i class="fa-solid fa-user-lock"></i>
+                    <span class="hidden sm:inline">Connexion Cfx</span>
+                </button>
+            `;
+            showNotification("Déconnecté de votre compte Cfx.re", "error");
+        }
+
+        // Connect to server button action
+        function connectToServer() {
+            showNotification("Lancement de FiveM et connexion à Horizon RP...", "success");
+            // Simulation of FiveM protocol link
+            setTimeout(() => {
+                window.location.href = "fivem://connect/cfx.re/join";
+            }, 1000);
+        }
+
+        // Checkout simulation
+        function checkout(packageName, price) {
+            showNotification(`Redirection vers la passerelle sécurisée pour ${packageName} (${price})...`);
+        }
+
+        function openCheckout(name, price) {
+            showNotification(`Pack ${name} (${price}) sélectionné. Redirection...`);
+        }
+
+        // Vote simulation
+        function handleVote(platform) {
+            showNotification(`Redirection vers ${platform}... Merci pour votre soutien !`);
+            window.open('https://top-servers.net', '_blank');
+        }
+
+        // Dynamic simulated player counter fluctuation
+        setInterval(() => {
+            const countEl = document.getElementById('player-count');
+            if (countEl) {
+                let current = parseInt(countEl.innerText);
+                let diff = Math.floor(Math.random() * 5) - 2;
+                let newCount = Math.max(70, Math.min(128, current + diff));
+                countEl.innerText = newCount;
+            }
+        }, 8000);
+    </script>
+</body>
+</html>
