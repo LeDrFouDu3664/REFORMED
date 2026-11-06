@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur Serveur - Horizon RP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #f8fafc; }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="glass-panel p-8 sm:p-12 rounded-3xl max-w-lg w-full text-center space-y-6 border border-white/10 shadow-2xl">
+        <div class="w-20 h-20 bg-red-600/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto text-3xl">
+            <i class="fa-solid fa-server"></i>
+        </div>
+        <h1 class="text-6xl font-black text-red-500">500</h1>
+        <h2 class="text-2xl font-bold text-white">Erreur interne du serveur</h2>
+        <p class="text-gray-400 text-sm">Une erreur temporaire est survenue. Veuillez vérifier que les migrations de la base de données ont été exécutées (<code>python manage.py migrate</code>).</p>
+        <div class="flex justify-center gap-4">
+            <a href="/" class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-red-600/30">
+                <i class="fa-solid fa-house"></i>
+                <span>Retour à l'accueil</span>
+            </a>
+            <a href="javascript:location.reload()" class="inline-flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-all">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Réessayer</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
