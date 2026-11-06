@@ -1,0 +1,114 @@
+{% extends 'accueil/base.html' %}
+
+{% block title %}Accueil - Horizon RP{% endblock %}
+
+{% block description %}
+Bienvenue sur Horizon RP, votre serveur GTA V Roleplay immersif.
+{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="container hero-content">
+
+        <span class="hero-tag">SERVEUR GTA V ROLEPLAY</span>
+
+        <h1>
+            BIENVENUE SUR
+            <span>HORIZON RP</span>
+        </h1>
+
+        <p>
+            Une nouvelle aventure commence ici.
+            Rejoins notre communauté et écris ta propre histoire dans un Los Santos immersif et dynamique.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="{% url 'accueil:dashboard' %}" class="btn btn-primary" id="joinServer">
+                Rejoindre le serveur
+            </a>
+
+            <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" id="discordHero">
+                Rejoindre Discord
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<section class="section presentation">
+    <div class="container">
+
+        <span class="section-tag">DÉCOUVRE NOTRE UNIVERS</span>
+
+        <h2>BIENVENUE CHEZ <span>HORIZON RP</span></h2>
+
+        <p>
+            Horizon RP est un projet GTA V Roleplay qui souhaite proposer
+            une expérience immersive, une communauté conviviale et
+            des possibilités variées pour construire ton histoire.
+        </p>
+
+    </div>
+</section>
+
+<section class="section features">
+    <div class="container">
+
+        <h2>TON AVENTURE <span>COMMENCE ICI</span></h2>
+
+        <div class="feature-grid">
+
+            <article class="feature-card">
+                <h3>Roleplay Réaliste</h3>
+                <p>
+                    Crée ton personnage, choisis ta voie légale ou criminelle et développe sa propre histoire.
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <h3>Économie Équilibrée</h3>
+                <p>
+                    Un système économique pensé sur le long terme avec des entreprises réelles gérées par les joueurs.
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <h3>Staff Actif 24/7</h3>
+                <p>
+                    Une équipe d'administration dédiée pour assurer un jeu équitable et une assistance rapide.
+                </p>
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+{% if packages %}
+<section class="section" style="background: rgba(255,255,255,0.02); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="container">
+        <span class="section-tag">BOUTIQUE OFFICIELLE</span>
+        <h2>OFFRES DU <span>MOMENT</span></h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 24px;">
+            {% for pack in packages %}
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: relative;">
+                {% if pack.badge %}
+                <span style="position: absolute; top: 16px; right: 16px; background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase;">
+                    {{ pack.badge }}
+                </span>
+                {% endif %}
+                <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">{{ pack.name }}</h3>
+                <div style="font-size: 1.8rem; font-weight: 900; color: #ef4444; margin-bottom: 12px;">{{ pack.price }} €</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">{{ pack.description }}</p>
+                <a href="{% url 'accueil:boutique' %}" class="btn btn-primary" style="display: block; text-align: center; width: 100%;">
+                    Voir l'offre
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

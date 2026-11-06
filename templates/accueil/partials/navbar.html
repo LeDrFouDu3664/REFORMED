@@ -1,0 +1,27 @@
+<header class="site-header">
+    <nav class="navbar container">
+        <a href="/" class="brand">
+            <span class="brand-name">HORIZON <strong>RP</strong></span>
+        </a>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="{% url 'accueil:accueil' %}" class="nav-link">Accueil</a>
+            <a href="{% url 'accueil:reglement' %}" class="nav-link">Règlement</a>
+            <a href="{% url 'accueil:boutique' %}" class="nav-link">Boutique</a>
+            <a href="{% url 'accueil:streamers' %}" class="nav-link">Streamers</a>
+            <a href="{% url 'accueil:vote' %}" class="nav-link">Vote</a>
+            <a href="{% url 'accueil:dashboard' %}" class="nav-link" style="color: #ef4444; font-weight: 700;">Dashboard</a>
+        </div>
+
+        <a href="#" class="btn btn-primary nav-discord" id="discordButton">
+            <i class="fa-brands fa-discord"></i>
+            Discord
+        </a>
+    </nav>
+</header>

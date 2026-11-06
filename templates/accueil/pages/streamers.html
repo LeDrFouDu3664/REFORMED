@@ -1,0 +1,44 @@
+{% extends 'accueil/base.html' %}
+
+{% block title %}Streamers - Horizon RP{% endblock %}
+
+{% block content %}
+
+<section class="page-hero">
+    <div class="container">
+        <span class="section-tag">HORIZON RP</span>
+        <h1>NOS STREAMERS</h1>
+        <p>Retrouve les créateurs de contenu officiels de notre communauté.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        {% if streamers %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+            {% for streamer in streamers %}
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; text-align: center;">
+                {% if streamer.avatar_url %}
+                <img src="{{ streamer.avatar_url }}" alt="{{ streamer.name }}" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px auto; object-fit: cover; border: 2px solid #ef4444;">
+                {% endif %}
+                <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 4px;">{{ streamer.name }}</h3>
+                <span style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; {% if streamer.is_live %}background: #ef4444; color: white;{% else %}background: #374151; color: #9ca3af;{% endif %}">
+                    {% if streamer.is_live %}🔴 EN DIRECT{% else %}HORS LIGNE{% endif %}
+                </span>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 16px 0;">{{ streamer.bio }}</p>
+                <a href="{{ streamer.channel_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display: inline-block;">
+                    Regarder le live
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="streamers-empty">
+            <h2>Aucun streamer pour le moment</h2>
+            <p>Les streamers seront ajoutés ici prochainement.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
