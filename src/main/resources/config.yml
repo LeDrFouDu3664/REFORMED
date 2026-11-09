@@ -1,0 +1,88 @@
+# Dégâts de blocs des projectiles/explosions des armes custom
+block-damage: false
+
+# Effets potions : "NOM:durée_en_secondes:niveau" (niveau 0 = I, 1 = II ...)
+# Noms : slowness, weakness, wither, poison, blindness, hunger, nausea, glowing...
+# Capacités (ability.type) : NONE, DASH, HEAL, LIGHTNING, FIREBALL
+# item-model : "espace:nom" pour un modèle de resource pack (optionnel)
+weapons:
+  epee_ardente:
+    material: DIAMOND_SWORD
+    name: "<gradient:#ff4500:#ffd700><bold>Épée Ardente</bold></gradient>"
+    lore:
+      - "<gray>Forgée dans le cœur d'un volcan."
+      - ""
+      - "<red>🔥 Enflamme les ennemis"
+      - "<gold>Clic droit : Boule de feu"
+    unbreakable: true
+    glow: true
+    item-model: ""
+    custom-model-data: 0
+    bonus-damage: 3.0
+    on-hit:
+      fire-ticks: 100
+      lightning-chance: 0.0
+      lifesteal: 0.0
+      knockback: 0.0
+      effects: []
+    ability:
+      type: FIREBALL
+      cooldown: 8
+      power: 1.0
+
+  lame_du_tonnerre:
+    material: IRON_SWORD
+    name: "<gradient:#00c3ff:#ffffff><bold>Lame du Tonnerre</bold></gradient>"
+    lore:
+      - "<gray>Elle appelle la foudre."
+      - ""
+      - "<aqua>⚡ 20% de chance de foudroyer"
+      - "<aqua>Clic droit : Foudre ciblée"
+    unbreakable: true
+    glow: true
+    bonus-damage: 2.0
+    on-hit:
+      lightning-chance: 0.2
+      effects:
+        - "SLOWNESS:3:1"
+    ability:
+      type: LIGHTNING
+      cooldown: 15
+      power: 1.0
+
+  faux_vampirique:
+    material: NETHERITE_HOE
+    name: "<gradient:#8b0000:#ff0055><bold>Faux Vampirique</bold></gradient>"
+    lore:
+      - "<gray>Elle se nourrit de vos ennemis."
+      - ""
+      - "<red>❤ Vol de vie 30%"
+      - "<dark_red>Clic droit : Régénération"
+    unbreakable: true
+    glow: true
+    bonus-damage: 4.0
+    on-hit:
+      lifesteal: 0.3
+      effects:
+        - "WITHER:3:0"
+    ability:
+      type: HEAL
+      cooldown: 20
+      power: 8.0
+
+  hache_du_vent:
+    material: NETHERITE_AXE
+    name: "<gradient:#a8ffea:#ffffff><bold>Hache des Tempêtes</bold></gradient>"
+    lore:
+      - "<gray>Le vent obéit à son porteur."
+      - ""
+      - "<white>💨 Repousse fortement"
+      - "<white>Clic droit : Charge"
+    unbreakable: true
+    bonus-damage: 1.0
+    on-hit:
+      knockback: 1.8
+    ability:
+      type: DASH
+      cooldown: 6
+      power: 1.8

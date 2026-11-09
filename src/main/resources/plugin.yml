@@ -1,0 +1,21 @@
+name: ArmesCustom
+version: ${version}
+main: fr.armescustom.ArmesCustom
+api-version: "26.3"
+description: Armes personnalisées configurables (effets, capacités, modèles)
+authors: [ArmesCustom]
+commands:
+  arme:
+    description: Gérer les armes custom
+    usage: /arme <list|give|reload>
+    aliases: [armes, cw]
+permissions:
+  armescustom.use:
+    description: Utiliser les capacités des armes custom
+    default: true
+  armescustom.give:
+    description: Se donner / donner des armes custom
+    default: op
+  armescustom.reload:
+    description: Recharger la configuration
+    default: op
